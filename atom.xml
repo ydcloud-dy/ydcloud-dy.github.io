@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2022-08-02T06:04:58.878Z</updated>
+  <updated>2022-08-02T09:04:24.626Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -17,13 +17,53 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>使用阿里云oss静态页面部署服务</title>
+    <link href="http://example.com/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/"/>
+    <id>http://example.com/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/</id>
+    <published>2022-08-02T08:47:50.000Z</published>
+    <updated>2022-08-02T09:04:24.626Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="一、使用阿里云OSS静态页面部署公司服务"><a href="#一、使用阿里云OSS静态页面部署公司服务" class="headerlink" title="一、使用阿里云OSS静态页面部署公司服务"></a>一、使用阿里云OSS静态页面部署公司服务</h3><p>场景：因公司新业务需要将项目部署在阿里云oss上，并配置域名解析</p><ol><li><p><strong>创建bucket桶</strong><br><img src="/images/pasted-4.png" alt="bucket"><br>注意：读写权限选择公共读<br><img src="/images/pasted-5.png" alt="bucket2"></p></li><li><p><strong>将bucket上传到bucket中</strong><br><img src="/images/pasted-6.png" alt="upload successful"></p></li><li><p><strong>配置静态页面</strong><br><img src="/images/pasted-7.png" alt="upload successful"></p></li></ol><p><strong>如果不配置静态页面会无法访问，注意要添加默认404规则，如果不添加则会报下面的错误：</strong></p><p><img src="/images/pasted-9.png" alt="upload successful"><br> <strong>添加域名解析</strong></p><p><strong>查看oss外网访问域名,在域名解析界面将二级域名指向oss的外网域名，如果公司有内网dns则需要在内网dns中也添加相关记录</strong></p><p><img src="/images/pasted-10.png" alt="upload successful"></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h3 id=&quot;一、使用阿里云OSS静态页面部署公司服务&quot;&gt;&lt;a href=&quot;#一、使用阿里云OSS静态页面部署公司服务&quot; class=&quot;headerlink&quot; title=&quot;一、使用阿里云OSS静态页面部署公司服务&quot;&gt;&lt;/a&gt;一、使用阿里云OSS静态页面部署公司服务&lt;/h3&gt;&lt;</summary>
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>第一篇文章</title>
+    <link href="http://example.com/2022/08/02/%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/"/>
+    <id>http://example.com/2022/08/02/%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</id>
+    <published>2022-08-02T07:34:00.000Z</published>
+    <updated>2022-08-02T08:56:24.787Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="mysql主从架构"><a href="#mysql主从架构" class="headerlink" title="mysql主从架构"></a>mysql主从架构</h3><p><strong>加粗字体</strong><br><em>斜体</em><br><del>删除线</del></p><blockquote><p>这是引用的文字</p><blockquote><p>两层引用</p></blockquote></blockquote><hr><p><img src="/images/pasted-0.png" alt="upload successful"></p><p>123123123123123.png<br><img src="/images/pasted-2.png" alt="test"></p><p>es.png<br><img src="/images/pasted-3.png" alt="ss"></p><ul><li>一层<ul><li>二层</li><li>你好<ul><li>三层</li></ul></li></ul></li></ul><ul><li>一层<ul><li>二层<ul><li>三层</li></ul></li></ul></li></ul><h2 id="有序列表"><a href="#有序列表" class="headerlink" title="有序列表"></a>有序列表</h2><ol><li>一层</li></ol><blockquote><p>第一层引用</p></blockquote><pre class="line-numbers language-Bash" data-language="Bash"><code class="language-Bash">[root@k8s-master1 case3-Probe]# cat 1-http-Probe.yaml apiVersion: apps&#x2F;v1kind: Deploymentmetadata:  name: myserver-myapp-frontend-deployment  namespace: myserverspec:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h3 id=&quot;mysql主从架构&quot;&gt;&lt;a href=&quot;#mysql主从架构&quot; class=&quot;headerlink&quot; title=&quot;mysql主从架构&quot;&gt;&lt;/a&gt;mysql主从架构&lt;/h3&gt;&lt;p&gt;&lt;strong&gt;加粗字体&lt;/strong&gt;&lt;br&gt;&lt;em&gt;斜体&lt;/em&gt;&lt;br&gt;&lt;d</summary>
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
     <title>Hello World</title>
     <link href="http://example.com/2022/08/02/hello-world/"/>
     <id>http://example.com/2022/08/02/hello-world/</id>
     <published>2022-08-02T06:04:58.878Z</published>
     <updated>2022-08-02T06:04:58.878Z</updated>
     
-    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>]]></content>
+    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ hexo new <span class="token string">"My New Post"</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ hexo server<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ hexo generate<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ hexo deploy<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre><p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>]]></content>
     
     
       
