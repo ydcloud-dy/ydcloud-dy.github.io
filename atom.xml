@@ -6,7 +6,7 @@
   <link href="http://dycloudnavite.love/atom.xml" rel="self"/>
   
   <link href="http://dycloudnavite.love/"/>
-  <updated>2022-08-02T09:04:24.626Z</updated>
+  <updated>2022-08-03T09:25:13.997Z</updated>
   <id>http://dycloudnavite.love/</id>
   
   <author>
@@ -15,6 +15,23 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>dujie</title>
+    <link href="http://dycloudnavite.love/2022/08/03/dujie/"/>
+    <id>http://dycloudnavite.love/2022/08/03/dujie/</id>
+    <published>2022-08-03T09:23:29.000Z</published>
+    <updated>2022-08-03T09:25:13.997Z</updated>
+    
+    
+    
+    
+    <category term="centos" scheme="http://dycloudnavite.love/categories/centos/"/>
+    
+    
+    <category term="centos" scheme="http://dycloudnavite.love/tags/centos/"/>
+    
+  </entry>
   
   <entry>
     <title>使用阿里云oss静态页面部署服务</title>
