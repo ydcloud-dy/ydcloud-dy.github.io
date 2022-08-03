@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>使用阿里云oss静态页面部署服务</title>
+      <link href="/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/"/>
+      <url>/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/</url>
+      
+        <content type="html"><![CDATA[<h3 id="一、使用阿里云OSS静态页面部署公司服务"><a href="#一、使用阿里云OSS静态页面部署公司服务" class="headerlink" title="一、使用阿里云OSS静态页面部署公司服务"></a>一、使用阿里云OSS静态页面部署公司服务</h3><p>场景：因公司新业务需要将项目部署在阿里云oss上，并配置域名解析</p><ol><li><p><strong>创建bucket桶</strong><br><img src="/images/pasted-4.png" alt="bucket"><br>注意：读写权限选择公共读<br><img src="/images/pasted-5.png" alt="bucket2"></p></li><li><p><strong>将bucket上传到bucket中</strong><br><img src="/images/pasted-6.png" alt="upload successful"></p></li><li><p><strong>配置静态页面</strong><br><img src="/images/pasted-7.png" alt="upload successful"></p></li></ol><p><strong>如果不配置静态页面会无法访问，注意要添加默认404规则，如果不添加则会报下面的错误：</strong></p><p><img src="/images/pasted-9.png" alt="upload successful"><br> <strong>添加域名解析</strong></p><p><strong>查看oss外网访问域名,在域名解析界面将二级域名指向oss的外网域名，如果公司有内网dns则需要在内网dns中也添加相关记录</strong></p><p><img src="/images/pasted-10.png" alt="upload successful"></p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>第一篇文章</title>
+      <link href="/2022/08/02/%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/"/>
+      <url>/2022/08/02/%E7%AC%AC%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0/</url>
+      
+        <content type="html"><![CDATA[<h3 id="mysql主从架构"><a href="#mysql主从架构" class="headerlink" title="mysql主从架构"></a>mysql主从架构</h3><p><strong>加粗字体</strong><br><em>斜体</em><br><del>删除线</del></p><blockquote><p>这是引用的文字</p><blockquote><p>两层引用</p></blockquote></blockquote><hr><p><img src="/images/pasted-0.png" alt="upload successful"></p><p>123123123123123.png<br><img src="/images/pasted-2.png" alt="test"></p><p>es.png<br><img src="/images/pasted-3.png" alt="ss"></p><ul><li>一层<ul><li>二层</li><li>你好<ul><li>三层</li></ul></li></ul></li></ul><ul><li>一层<ul><li>二层<ul><li>三层</li></ul></li></ul></li></ul><h2 id="有序列表"><a href="#有序列表" class="headerlink" title="有序列表"></a>有序列表</h2><ol><li>一层</li></ol><blockquote><p>第一层引用</p></blockquote><pre class="line-numbers language-Bash" data-language="Bash"><code class="language-Bash">[root@k8s-master1 case3-Probe]# cat 1-http-Probe.yaml apiVersion: apps&#x2F;v1kind: Deploymentmetadata:  name: myserver-myapp-frontend-deployment  namespace: myserverspec:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Hello World</title>
+      <link href="/2022/08/02/hello-world/"/>
+      <url>/2022/08/02/hello-world/</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+      
+      
+    </entry>
+    
+    
+  
+  
+</search>
