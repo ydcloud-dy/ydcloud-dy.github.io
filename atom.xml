@@ -3,11 +3,11 @@
   <title>J.のblog</title>
   
   
-  <link href="http://dycloudnative.love/atom.xml" rel="self"/>
+  <link href="http://dycloudnavite.love/atom.xml" rel="self"/>
   
-  <link href="http://dycloudnative.love/"/>
+  <link href="http://dycloudnavite.love/"/>
   <updated>2022-08-02T09:04:24.626Z</updated>
-  <id>http://dycloudnative.love/</id>
+  <id>http://dycloudnavite.love/</id>
   
   <author>
     <name>J.</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>使用阿里云oss静态页面部署服务</title>
-    <link href="http://dycloudnative.love/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/"/>
-    <id>http://dycloudnative.love/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/</id>
+    <link href="http://dycloudnavite.love/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/"/>
+    <id>http://dycloudnavite.love/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/</id>
     <published>2022-08-02T08:47:50.000Z</published>
     <updated>2022-08-02T09:04:24.626Z</updated>
     
