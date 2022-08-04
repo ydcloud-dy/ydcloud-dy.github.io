@@ -65,14 +65,7 @@
 
   
   <url>
-    <loc>http://dycloudnavite.love/tags/kubernetes/</loc>
-    <lastmod>2022-08-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>http://dycloudnavite.love/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/</loc>
+    <loc>http://dycloudnavite.love/tags/linux/</loc>
     <lastmod>2022-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -86,27 +79,27 @@
   </url>
   
   <url>
-    <loc>http://dycloudnavite.love/tags/linux/</loc>
-    <lastmod>2022-08-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>http://dycloudnavite.love/tags/docker/</loc>
     <lastmod>2022-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
-
-  
   <url>
-    <loc>http://dycloudnavite.love/categories/kubernetes/</loc>
+    <loc>http://dycloudnavite.love/tags/kubernetes/</loc>
     <lastmod>2022-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
+  
+  <url>
+    <loc>http://dycloudnavite.love/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/</loc>
+    <lastmod>2022-08-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+
   
   <url>
     <loc>http://dycloudnavite.love/categories/linux/</loc>
@@ -117,6 +110,13 @@
   
   <url>
     <loc>http://dycloudnavite.love/categories/Docker/</loc>
+    <lastmod>2022-08-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://dycloudnavite.love/categories/kubernetes/</loc>
     <lastmod>2022-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
