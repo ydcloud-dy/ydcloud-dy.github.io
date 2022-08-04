@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://dycloudnavite.love/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/</loc>
+    
+    <lastmod>2022-08-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://dycloudnavite.love/2022/08/03/dujie/</loc>
     
     <lastmod>2022-08-03</lastmod>
@@ -28,19 +37,10 @@
     <priority>0.6</priority>
   </url>
   
-  <url>
-    <loc>http://dycloudnavite.love/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/</loc>
-    
-    <lastmod>2022-08-02</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
 
   <url>
     <loc>http://dycloudnavite.love/</loc>
-    <lastmod>2022-08-03</lastmod>
+    <lastmod>2022-08-04</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -48,7 +48,14 @@
   
   <url>
     <loc>http://dycloudnavite.love/tags/centos/</loc>
-    <lastmod>2022-08-03</lastmod>
+    <lastmod>2022-08-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://dycloudnavite.love/tags/%E9%98%BF%E9%87%8C%E4%BA%91/</loc>
+    <lastmod>2022-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -57,7 +64,7 @@
   
   <url>
     <loc>http://dycloudnavite.love/categories/centos/</loc>
-    <lastmod>2022-08-03</lastmod>
+    <lastmod>2022-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
