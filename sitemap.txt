@@ -1,3 +1,4 @@
+http://dycloudnavite.love/2021/08/24/rsync+inotify%20%E5%AE%9E%E6%97%B6%E5%A4%87%E4%BB%BD/
 http://dycloudnavite.love/2022/06/24/kubeasz%20-etcd%20v3%20API%E7%89%88%E6%9C%AC%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D/
 http://dycloudnavite.love/2022/05/04/%E9%83%A8%E7%BD%B2harbor%E6%9C%8D%E5%8A%A1%E5%99%A8%EF%BC%88https_http%EF%BC%89/
 http://dycloudnavite.love/2022/06/21/kubernetes%E5%AE%89%E8%A3%85coreDNS%E7%BB%84%E4%BB%B6/
