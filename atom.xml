@@ -6,7 +6,7 @@
   <link href="http://dycloudnavite.love/atom.xml" rel="self"/>
   
   <link href="http://dycloudnavite.love/"/>
-  <updated>2022-08-15T02:42:18.541Z</updated>
+  <updated>2022-08-16T02:12:58.971Z</updated>
   <id>http://dycloudnavite.love/</id>
   
   <author>
@@ -15,6 +15,30 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Jenkins用户权限控制插件——Role-based Authorization Strategy</title>
+    <link href="http://dycloudnavite.love/2022/08/16/Jenkins%E7%94%A8%E6%88%B7%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6%E6%8F%92%E4%BB%B6%E2%80%94%E2%80%94Role-based%20Authorization%20Strategy/"/>
+    <id>http://dycloudnavite.love/2022/08/16/Jenkins%E7%94%A8%E6%88%B7%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6%E6%8F%92%E4%BB%B6%E2%80%94%E2%80%94Role-based%20Authorization%20Strategy/</id>
+    <published>2022-08-16T02:02:00.000Z</published>
+    <updated>2022-08-16T02:12:58.971Z</updated>
+    
+    <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><blockquote><p>看了下公司的jenkins权限配置，发现公司用的是Role-based Authorization<br>Strategy插件做的权限控制（之前公司一直用的是安全矩阵的方式控制的） 这里就大概记录一下吧</p></blockquote><p>使用Role-based Authorization Strategy这个插件需要在jenkins插件里搜索并下载下载成功后重启jenkins，发现在jenkins管理中会多出一个Manage and Assign Roles，如下图：</p><p><img src="https://img-blog.csdnimg.cn/73a87cb4c5f64aa1b9b2acbb76729524.png" alt="在这里插入图片描述"></p><blockquote><p><strong>点进去可以分别管理角色和给用户分配角色：</strong></p></blockquote><p><img src="https://img-blog.csdnimg.cn/aab899006552425e8aa1e07edfb07aeb.png" alt="在这里插入图片描述"><br>我们首先看下Manage Roles：</p><blockquote><p>这里包括几个选项，<br>Global roles ：这个选项是添加一个角色，该角色对项目可以有哪些权限，一般会给开放分配build，cancel等权限，每个公司不太一样<br>Project roles：这个选项就是添加一个可以对哪些job进行操作的角色权限，Role是角色名，会在Assign Roles里展示的，Pattern是匹配项目，比如你的项目名是dys-web-prod，那么这里就要写dys-web-.*进行匹配（我个人测试的结果是这样的）<br>Slave roles：这个公司没用到，应该是对角色添加一个从角色</p></blockquote><p>权限说明：<strong>Overall</strong>是全局权限，job,run,view,scm是业务权限</p><p><strong>overall</strong>中的<strong>read</strong>要勾选，否则用户登陆后什么也看不到</p><p><img src="https://img-blog.csdnimg.cn/5bc5731d8fa34df2859ac53ac2fbfc42.png" alt="在这里插入图片描述"></p><h3 id="2、配置完角色后，进行角色分配"><a href="#2、配置完角色后，进行角色分配" class="headerlink" title="2、配置完角色后，进行角色分配"></a>2、配置完角色后，进行角色分配</h3><p>点开Assign Roles </p><blockquote><p>这里也有几个选项<br>Global roles：这个是将用户绑定到刚才在Manage Roles中配置的全局角色<br>Item roles：这个就是将用户绑定到Pattern匹配的项目上，这样用户就只能对匹配的job进行操作了。<br>Node roles：没有使用</p></blockquote><p>以上配置完成后，就实现了用户只能访问某些job的权限控制了</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;link rel=&quot;stylesheet&quot; class=&quot;aplayer-secondary-style-marker&quot; href=&quot;/assets/css/APlayer.min.css&quot;&gt;&lt;script src=&quot;/assets/js/APlayer.min.js&quot; cla</summary>
+      
+    
+    
+    
+    <category term="jenkins" scheme="http://dycloudnavite.love/categories/jenkins/"/>
+    
+    
+    <category term="jenkins" scheme="http://dycloudnavite.love/tags/jenkins/"/>
+    
+  </entry>
   
   <entry>
     <title>基于centos7的Openssh版本升级</title>

@@ -1,3 +1,4 @@
+http://dycloudnavite.love/2022/08/16/Jenkins%E7%94%A8%E6%88%B7%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6%E6%8F%92%E4%BB%B6%E2%80%94%E2%80%94Role-based%20Authorization%20Strategy/
 http://dycloudnavite.love/2022/05/04/%E9%83%A8%E7%BD%B2harbor%E6%9C%8D%E5%8A%A1%E5%99%A8%EF%BC%88https_http%EF%BC%89/
 http://dycloudnavite.love/2022/08/04/%E5%9F%BA%E4%BA%8Ecentos7%E7%9A%84Openssh%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/
 http://dycloudnavite.love/2021/08/24/rsync+inotify%20%E5%AE%9E%E6%97%B6%E5%A4%87%E4%BB%BD/
@@ -15,6 +16,8 @@ http://dycloudnavite.love/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/
 http://dycloudnavite.love/tags/linux/
 http://dycloudnavite.love/tags/%E9%98%BF%E9%87%8C%E4%BA%91/
 http://dycloudnavite.love/tags/docker/
+http://dycloudnavite.love/tags/jenkins/
 http://dycloudnavite.love/categories/kubernetes/
 http://dycloudnavite.love/categories/linux/
 http://dycloudnavite.love/categories/Docker/
+http://dycloudnavite.love/categories/jenkins/
