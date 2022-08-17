@@ -69,7 +69,7 @@
     <link href="http://dycloudnavite.love/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/"/>
     <id>http://dycloudnavite.love/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/</id>
     <published>2022-08-02T08:47:50.000Z</published>
-    <updated>2022-08-10T09:42:44.468Z</updated>
+    <updated>2022-08-15T02:42:45.193Z</updated>
     
     <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h3 id="一、使用阿里云OSS静态页面部署公司服务"><a href="#一、使用阿里云OSS静态页面部署公司服务" class="headerlink" title="一、使用阿里云OSS静态页面部署公司服务"></a>一、使用阿里云OSS静态页面部署公司服务</h3><p>场景：因公司新业务需要将项目部署在阿里云oss上，并配置域名解析</p><ol><li><p><strong>创建bucket桶</strong><br><img src="/images/pasted-4.png" alt="bucket"><br>注意：读写权限选择公共读<br><img src="/images/pasted-5.png" alt="bucket2"></p></li><li><p><strong>将bucket上传到bucket中</strong><br><img src="/images/pasted-6.png" alt="upload successful"></p></li><li><p><strong>配置静态页面</strong><br><img src="/images/pasted-7.png" alt="upload successful"></p></li></ol><p><strong>如果不配置静态页面会无法访问，注意要添加默认404规则，如果不添加则会报下面的错误：</strong></p><p><img src="/images/pasted-9.png" alt="upload successful"><br> <strong>添加域名解析</strong></p><p><strong>查看oss外网访问域名,在域名解析界面将二级域名指向oss的外网域名，如果公司有内网dns则需要在内网dns中也添加相关记录</strong></p><p><img src="/images/pasted-10.png" alt="upload successful"></p>]]></content>
     
