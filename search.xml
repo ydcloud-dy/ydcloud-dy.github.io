@@ -1412,7 +1412,7 @@ spec:
           path: /tmp/linux66<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p><img src="/images/pasted-17.png" alt="1"></p>
-<h5 id="三、nfs等共享存储-常用v3版本，v4可能会有问题"><a href="#三、nfs等共享存储-常用v3版本，v4可能会有问题" class="headerlink" title="三、nfs等共享存储(常用v3版本，v4可能会有问题)"></a>三、nfs等共享存储(常用v3版本，v4可能会有问题)</h5><p>nfs卷允许将现有的NFS（网络文件系统）共享挂载到您的容器中，不像emptyDir，当删除Pod时，nfs卷的内容会被保留，卷仅仅是被卸载，这意味着nfs卷可以预填充数据，并且可以在pod之间“切换”数据。NFS可以被多个写入者同时挂载。</p>
+<h5 id="三、nfs等共享存储-常用v3版本，v4可能会有问题"><a href="#三、nfs等共享存储-常用v3版本，v4可能会有问题" class="headerlink" title="三、nfs等共享存储(常用v3版本，v4可能会有问题)"></a>三、nfs等共享存储(常用v3版本，v4可能会有问题)</h5><p>nfs卷允许将现有的NFS（网络文件系统）共享挂载到容器中，不像emptyDir，当删除Pod时，nfs卷的内容会被保留，卷仅仅是被卸载，这意味着nfs卷可以预填充数据，并且可以在pod之间“切换”数据。NFS可以被多个写入者同时挂载。</p>
 <p>需要安装nfs服务端：</p>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">yum <span class="token function">install</span> -y nfs-utils rpcbind
  systemctl start nfs-utils
@@ -3334,6 +3334,264 @@ PUT
       </tags>
   </entry>
   <entry>
+    <title>Kubernetes 安装coreDNS组件</title>
+    <url>/2022/06/21/kubernetes%E5%AE%89%E8%A3%85coreDNS%E7%BB%84%E4%BB%B6/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><p><strong>DNS  组件历史版本有skydns、kube-dns和coredns三个，k8s1.3版本之前使用skydns，之后的版本到1.17及之间的版本使用kube-dns，目前主要使用coredns，DNS组件用于解析k8s集群中service name 所对应的ip地址</strong><br>官方文档：<br><a href="https://coredns.io/">coreDNS官方文档</a><br><img src="https://img-blog.csdnimg.cn/e8734359c36a4a77a1e0b49fb5508ad2.jpeg#pic_center" alt="在这里插入图片描述"><br>获取官方包和yaml文件：<br><a href="https://github.com/kubernetes/kubernetes/releases">官方包和yaml文件地址</a></p>
+<p>github搜索kubernetes，找到相应的k8s版本，点击changelog<br><img src="https://img-blog.csdnimg.cn/7e44efaad8044d10bff334cbaac5e191.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/daa536e81e88483da10ff481699a183e.png#pic_center" alt="在这里插入图片描述"><br>需要下载这几个包：<br><img src="https://img-blog.csdnimg.cn/ec6df00401784d8d8bd63229aeefc81d.png#pic_center" alt="在这里插入图片描述"><br>client：<br><img src="https://img-blog.csdnimg.cn/ea43686726c54dd484345ac283aead39.png#pic_center" alt="在这里插入图片描述"><br>server：<br><img src="https://img-blog.csdnimg.cn/52564cd948c14e2f80a616705c694a3c.png#pic_center" alt="在这里插入图片描述"><br>node：<br><img src="https://img-blog.csdnimg.cn/7a26c8c3c55943dc8ac34a760d851287.png#pic_center" alt="在这里插入图片描述"><br>下载之后上传到master并解压，解压之后的目录结构如下图：<br><img src="https://img-blog.csdnimg.cn/f76cd1c43fca447ba3ea4dcf7164a55d.png#pic_center" alt="在这里插入图片描述"><br>相关yaml文件和插件目录，如dns，dashboard等<br><img src="https://img-blog.csdnimg.cn/10871876b5a74482b1932c64391669a7.png#pic_center" alt="在这里插入图片描述"><br>相关二进制文件：<br><img src="https://img-blog.csdnimg.cn/757ef1ccc20b482d8745f45b07249e8a.png#pic_center" alt="在这里插入图片描述"><br>coredns一般用coredns.yaml.base 修改<br><img src="https://img-blog.csdnimg.cn/3af66c8f609449f5b399b1bdf5b138dd.png#pic_center" alt="在这里插入图片描述"></p>
+<p>官方yaml文件：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># __MACHINE_GENERATED_WARNING__</span>
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+      kubernetes.io/cluster-service: <span class="token string">"true"</span>
+      addonmanager.kubernetes.io/mode: Reconcile
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+    addonmanager.kubernetes.io/mode: Reconcile
+  name: system:coredns
+rules:
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - endpoints
+  - services
+  - pods
+  - namespaces
+  verbs:
+  - list
+  - <span class="token function">watch</span>
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - nodes
+  verbs:
+  - get
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - list
+  - <span class="token function">watch</span>
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: <span class="token string">"true"</span>
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+    addonmanager.kubernetes.io/mode: EnsureExists
+  name: system:coredns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:coredns
+subjects:
+- kind: ServiceAccount
+  name: coredns
+  namespace: kube-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+      addonmanager.kubernetes.io/mode: EnsureExists
+data:
+  Corefile: <span class="token operator">|</span>
+    .:53 <span class="token punctuation">&#123;</span>
+    <span class="token comment">#errors:错误信息标准输出</span>
+        errors
+        <span class="token comment">#心跳检测，检测服务是否存活，在CoreDNS的http://localhost:8080/health端口提供CoreDNS服务的健康报告</span>
+        health <span class="token punctuation">&#123;</span>
+            lameduck 5s
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">#监听8181端口，当coredns的插件已经就绪时，访问该接口会返回200 OK</span>
+        ready
+        <span class="token comment">#需要修改的地方（__DNS__DOMAIN__），这个是在创建k8s集群时在/etc/kubeasz/clusters/k8s-cluster/hosts中指定的CLUSTER_DNS_DOMAIN="clusterdujie.local"</span>
+        kubernetes kubernetes  clusterdujie.local in-addr.arpa ip6.arpa <span class="token punctuation">&#123;</span>  
+
+            pods insecure
+            fallthrough in-addr.arpa ip6.arpa
+            ttl <span class="token number">30</span>
+        <span class="token punctuation">&#125;</span>
+        prometheus :9153
+        <span class="token comment">#forward就表示coredns解析不了的dns域名往哪里转发。可以指向公司内部dns地址</span>
+        forward <span class="token builtin class-name">.</span> <span class="token number">223.6</span>.6.6 <span class="token punctuation">&#123;</span>
+            max_concurrent <span class="token number">1000</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">#dns缓存，如果第一次请求，先去etcd查询再用coredns缓存30s，如果30s内再有请求访问直接通过缓存返回</span>
+        cache <span class="token number">30</span>
+        <span class="token comment">#检测域名解析是否有死循环，如coredns转发给内网DNS服务器，而内网服务器又转发给coredns，如果发现解析时死循环，则强制终止coredns进程（kubernetes会重建），如果不加该参数可能会导致coredns资源利用率非常高甚至卡死</span>
+        loop
+        <span class="token comment">#检测corefile是否更改，再重新编辑configmap配置后，默认2分钟会优雅的自动加载新的配置</span>
+        reload
+        <span class="token comment">#轮询DNS域名解析，如果一个域名存在多个记录则轮询解析</span>
+        loadbalance
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">#把myserver。online的请求转发到下面的地址</span>
+    myserver.online <span class="token punctuation">&#123;</span>
+      forward <span class="token builtin class-name">.</span> <span class="token number">192.168</span>.17.131:53
+    <span class="token punctuation">&#125;</span>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: <span class="token string">"true"</span>
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/name: <span class="token string">"CoreDNS"</span>
+spec:
+  <span class="token comment"># replicas: not specified here:</span>
+  <span class="token comment"># 1. In order to make Addon Manager do not reconcile this replicas parameter.</span>
+  <span class="token comment"># 2. Default is 1.</span>
+  <span class="token comment"># 3. Will be tuned in real time if DNS horizontal auto-scaling is turned on.</span>
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: <span class="token number">1</span>
+  selector:
+    matchLabels:
+      k8s-app: kube-dns
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-dns
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      priorityClassName: system-cluster-critical
+      serviceAccountName: coredns
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: <span class="token number">100</span>
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: k8s-app
+                    operator: In
+                    values: <span class="token punctuation">[</span><span class="token string">"kube-dns"</span><span class="token punctuation">]</span>
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+        - key: <span class="token string">"CriticalAddonsOnly"</span>
+          operator: <span class="token string">"Exists"</span>
+      nodeSelector:
+        kubernetes.io/os: linux
+      containers:
+      - name: coredns
+      <span class="token comment">#镜像地址默认是谷歌的，需要更换成国内镜像源或者官方hub仓库源，下面可以看图</span>
+        image:  coredns/coredns:1.8.6
+        imagePullPolicy: IfNotPresent
+        resources:
+        <span class="token comment">#限制coredns可以使用多少资源</span>
+          limits:
+            memory: 200Mi  <span class="token comment">#200毫核 ，一般生产会写2000Mi 或者直接写2</span>
+          requests:
+            cpu: 100m
+            memory: 70Mi
+        args: <span class="token punctuation">[</span> <span class="token string">"-conf"</span>, <span class="token string">"/etc/coredns/Corefile"</span> <span class="token punctuation">]</span>
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/coredns
+          readOnly: <span class="token boolean">true</span>
+        ports:
+        - containerPort: <span class="token number">53</span>
+          name: dns
+          protocol: UDP
+        - containerPort: <span class="token number">53</span>
+          name: dns-tcp
+          protocol: TCP
+        - containerPort: <span class="token number">9153</span>
+          name: metrics
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: <span class="token number">8080</span>
+            scheme: HTTP
+          initialDelaySeconds: <span class="token number">60</span>
+          timeoutSeconds: <span class="token number">5</span>
+          successThreshold: <span class="token number">1</span>
+          failureThreshold: <span class="token number">5</span>
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: <span class="token number">8181</span>
+            scheme: HTTP
+        securityContext:
+          allowPrivilegeEscalation: <span class="token boolean">false</span>
+          capabilities:
+            add:
+            - NET_BIND_SERVICE
+            drop:
+            - all
+          readOnlyRootFilesystem: <span class="token boolean">true</span>
+      dnsPolicy: Default
+      volumes:
+        - name: config-volume
+          configMap:
+            name: coredns
+            items:
+            - key: Corefile
+              path: Corefile
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-dns
+  namespace: kube-system
+  annotations:
+    prometheus.io/port: <span class="token string">"9153"</span>
+    prometheus.io/scrape: <span class="token string">"true"</span>
+  labels:
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: <span class="token string">"true"</span>
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/name: <span class="token string">"CoreDNS"</span>
+spec:
+  selector:
+    k8s-app: kube-dns
+    <span class="token comment">#clusterIP：dns地址，这个地址可以创建一个pod然后查看pod的/etc/resolv.conf的namespaces查看，如下面</span>
+  clusterIP: <span class="token number">10.100</span>.0.2
+  ports:
+  - name: dns
+    port: <span class="token number">53</span>
+    protocol: UDP
+  - name: dns-tcp
+    port: <span class="token number">53</span>
+    protocol: TCP
+  - name: metrics
+    port: <span class="token number">9153</span>
+    protocol: TCP<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>查看coredns的svc地址，上面的10.100.0.1是kubernetes的api的地址，k8s内部会将第一个地址分配给apiserver<br><img src="https://img-blog.csdnimg.cn/230ef23b6bfe40d59e8e224c657a995e.png#pic_center" alt="在这里插入图片描述"><br>镜像更换：</p>
+<p><img src="https://img-blog.csdnimg.cn/d484214680ba4da492a4757d042e4c3a.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/19bfc52cd197427481ba6ce9237e4192.png#pic_center" alt="在这里插入图片描述"><br>修改完成后apply -f coredns.yaml，启动成功后进入pod查看是否能够进行域名解析测试<br><img src="https://img-blog.csdnimg.cn/3648c3e121f44cc596498d26d33d6182.jpeg#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/0e9cd09ba5d44c98bf0ce809938251ec.jpeg#pic_center" alt="在这里插入图片描述"><br>nslookup测试该域名是否可以解析<br><img src="https://img-blog.csdnimg.cn/cf1e835147824bcd83c6595b74fbb36e.jpeg#pic_center" alt="在这里插入图片描述"><br>一般会将coredns多副本，保证业务解析正常，会以轮询的方式请求，或者修改limit占用资源。一般cpu为2核，内存为3个Gi就够了，如果不够就多副本<br><img src="https://img-blog.csdnimg.cn/60bb06c121a7427cb1ffe1d5351fe7b9.jpeg#pic_center" alt="在这里插入图片描述"><br>k8s域名固定格式：<br> ping kube-dns.kube-system.svc.clusterdujie.local<br> 名称.namespace.svc.域名后缀<br> <img src="https://img-blog.csdnimg.cn/f9e448b76af54f17b324064b4f5ac91e.jpeg#pic_center" alt="在这里插入图片描述"><br><strong>coredns性能优化：</strong><br>1、（pod级别缓存）在pod中添加dnsmasq缓存，优缺点：pod自己缓存自己的，缓存不共享是隔离的，每个容器中都需要添加域名解析记录<br>2、（node级别缓存）缓存放在node上，localdns，pod第一次宿主机请求的时候，宿主机向coredns请求解析，获取解析后缓存到node，下次pod再请求直接通过node节点的localdns直接返回给pod</p>
+<p>[root@master01 ~]# vim &#x2F;etc&#x2F;kubeasz&#x2F;clusters&#x2F;k8s-cluster&#x2F;config.yml<br><img src="https://img-blog.csdnimg.cn/909e03bb1caa4127b595dad46d958cdc.jpeg#pic_center" alt="在这里插入图片描述"><br>3、（coredns级别缓存）在coredns容器里，修改缓存时间，默认30s，可以调成180s，不过需要coredns内存比较大，，缓存时间设置不要太长也不要太短</p>
+]]></content>
+      <categories>
+        <category>kubernetes</category>
+      </categories>
+      <tags>
+        <tag>kubernetes</tag>
+        <tag>云原生</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>rsync+inotify 实时同步备份</title>
     <url>/2021/08/24/rsync+inotify%20%E5%AE%9E%E6%97%B6%E5%A4%87%E4%BB%BD/</url>
     <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="rsync-inotify-实时备份"><a href="#rsync-inotify-实时备份" class="headerlink" title="rsync+inotify 实时备份"></a>rsync+inotify 实时备份</h1><p>目标服务器：</p>
@@ -3841,264 +4099,6 @@ vVKqxA6M1+5+O9TbxeufFUbfV14vzncKSlJ+gAoIcLemHMZRELQ<span class="token operator">
 
 
 
-]]></content>
-      <categories>
-        <category>kubernetes</category>
-      </categories>
-      <tags>
-        <tag>kubernetes</tag>
-        <tag>云原生</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Kubernetes 安装coreDNS组件</title>
-    <url>/2022/06/21/kubernetes%E5%AE%89%E8%A3%85coreDNS%E7%BB%84%E4%BB%B6/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><p><strong>DNS  组件历史版本有skydns、kube-dns和coredns三个，k8s1.3版本之前使用skydns，之后的版本到1.17及之间的版本使用kube-dns，目前主要使用coredns，DNS组件用于解析k8s集群中service name 所对应的ip地址</strong><br>官方文档：<br><a href="https://coredns.io/">coreDNS官方文档</a><br><img src="https://img-blog.csdnimg.cn/e8734359c36a4a77a1e0b49fb5508ad2.jpeg#pic_center" alt="在这里插入图片描述"><br>获取官方包和yaml文件：<br><a href="https://github.com/kubernetes/kubernetes/releases">官方包和yaml文件地址</a></p>
-<p>github搜索kubernetes，找到相应的k8s版本，点击changelog<br><img src="https://img-blog.csdnimg.cn/7e44efaad8044d10bff334cbaac5e191.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/daa536e81e88483da10ff481699a183e.png#pic_center" alt="在这里插入图片描述"><br>需要下载这几个包：<br><img src="https://img-blog.csdnimg.cn/ec6df00401784d8d8bd63229aeefc81d.png#pic_center" alt="在这里插入图片描述"><br>client：<br><img src="https://img-blog.csdnimg.cn/ea43686726c54dd484345ac283aead39.png#pic_center" alt="在这里插入图片描述"><br>server：<br><img src="https://img-blog.csdnimg.cn/52564cd948c14e2f80a616705c694a3c.png#pic_center" alt="在这里插入图片描述"><br>node：<br><img src="https://img-blog.csdnimg.cn/7a26c8c3c55943dc8ac34a760d851287.png#pic_center" alt="在这里插入图片描述"><br>下载之后上传到master并解压，解压之后的目录结构如下图：<br><img src="https://img-blog.csdnimg.cn/f76cd1c43fca447ba3ea4dcf7164a55d.png#pic_center" alt="在这里插入图片描述"><br>相关yaml文件和插件目录，如dns，dashboard等<br><img src="https://img-blog.csdnimg.cn/10871876b5a74482b1932c64391669a7.png#pic_center" alt="在这里插入图片描述"><br>相关二进制文件：<br><img src="https://img-blog.csdnimg.cn/757ef1ccc20b482d8745f45b07249e8a.png#pic_center" alt="在这里插入图片描述"><br>coredns一般用coredns.yaml.base 修改<br><img src="https://img-blog.csdnimg.cn/3af66c8f609449f5b399b1bdf5b138dd.png#pic_center" alt="在这里插入图片描述"></p>
-<p>官方yaml文件：</p>
-<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># __MACHINE_GENERATED_WARNING__</span>
-
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: coredns
-  namespace: kube-system
-  labels:
-      kubernetes.io/cluster-service: <span class="token string">"true"</span>
-      addonmanager.kubernetes.io/mode: Reconcile
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    kubernetes.io/bootstrapping: rbac-defaults
-    addonmanager.kubernetes.io/mode: Reconcile
-  name: system:coredns
-rules:
-- apiGroups:
-  - <span class="token string">""</span>
-  resources:
-  - endpoints
-  - services
-  - pods
-  - namespaces
-  verbs:
-  - list
-  - <span class="token function">watch</span>
-- apiGroups:
-  - <span class="token string">""</span>
-  resources:
-  - nodes
-  verbs:
-  - get
-- apiGroups:
-  - discovery.k8s.io
-  resources:
-  - endpointslices
-  verbs:
-  - list
-  - <span class="token function">watch</span>
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  annotations:
-    rbac.authorization.kubernetes.io/autoupdate: <span class="token string">"true"</span>
-  labels:
-    kubernetes.io/bootstrapping: rbac-defaults
-    addonmanager.kubernetes.io/mode: EnsureExists
-  name: system:coredns
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:coredns
-subjects:
-- kind: ServiceAccount
-  name: coredns
-  namespace: kube-system
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: coredns
-  namespace: kube-system
-  labels:
-      addonmanager.kubernetes.io/mode: EnsureExists
-data:
-  Corefile: <span class="token operator">|</span>
-    .:53 <span class="token punctuation">&#123;</span>
-    <span class="token comment">#errors:错误信息标准输出</span>
-        errors
-        <span class="token comment">#心跳检测，检测服务是否存活，在CoreDNS的http://localhost:8080/health端口提供CoreDNS服务的健康报告</span>
-        health <span class="token punctuation">&#123;</span>
-            lameduck 5s
-        <span class="token punctuation">&#125;</span>
-        <span class="token comment">#监听8181端口，当coredns的插件已经就绪时，访问该接口会返回200 OK</span>
-        ready
-        <span class="token comment">#需要修改的地方（__DNS__DOMAIN__），这个是在创建k8s集群时在/etc/kubeasz/clusters/k8s-cluster/hosts中指定的CLUSTER_DNS_DOMAIN="clusterdujie.local"</span>
-        kubernetes kubernetes  clusterdujie.local in-addr.arpa ip6.arpa <span class="token punctuation">&#123;</span>  
-
-            pods insecure
-            fallthrough in-addr.arpa ip6.arpa
-            ttl <span class="token number">30</span>
-        <span class="token punctuation">&#125;</span>
-        prometheus :9153
-        <span class="token comment">#forward就表示coredns解析不了的dns域名往哪里转发。可以指向公司内部dns地址</span>
-        forward <span class="token builtin class-name">.</span> <span class="token number">223.6</span>.6.6 <span class="token punctuation">&#123;</span>
-            max_concurrent <span class="token number">1000</span>
-        <span class="token punctuation">&#125;</span>
-        <span class="token comment">#dns缓存，如果第一次请求，先去etcd查询再用coredns缓存30s，如果30s内再有请求访问直接通过缓存返回</span>
-        cache <span class="token number">30</span>
-        <span class="token comment">#检测域名解析是否有死循环，如coredns转发给内网DNS服务器，而内网服务器又转发给coredns，如果发现解析时死循环，则强制终止coredns进程（kubernetes会重建），如果不加该参数可能会导致coredns资源利用率非常高甚至卡死</span>
-        loop
-        <span class="token comment">#检测corefile是否更改，再重新编辑configmap配置后，默认2分钟会优雅的自动加载新的配置</span>
-        reload
-        <span class="token comment">#轮询DNS域名解析，如果一个域名存在多个记录则轮询解析</span>
-        loadbalance
-    <span class="token punctuation">&#125;</span>
-    <span class="token comment">#把myserver。online的请求转发到下面的地址</span>
-    myserver.online <span class="token punctuation">&#123;</span>
-      forward <span class="token builtin class-name">.</span> <span class="token number">192.168</span>.17.131:53
-    <span class="token punctuation">&#125;</span>
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: coredns
-  namespace: kube-system
-  labels:
-    k8s-app: kube-dns
-    kubernetes.io/cluster-service: <span class="token string">"true"</span>
-    addonmanager.kubernetes.io/mode: Reconcile
-    kubernetes.io/name: <span class="token string">"CoreDNS"</span>
-spec:
-  <span class="token comment"># replicas: not specified here:</span>
-  <span class="token comment"># 1. In order to make Addon Manager do not reconcile this replicas parameter.</span>
-  <span class="token comment"># 2. Default is 1.</span>
-  <span class="token comment"># 3. Will be tuned in real time if DNS horizontal auto-scaling is turned on.</span>
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: <span class="token number">1</span>
-  selector:
-    matchLabels:
-      k8s-app: kube-dns
-  template:
-    metadata:
-      labels:
-        k8s-app: kube-dns
-    spec:
-      securityContext:
-        seccompProfile:
-          type: RuntimeDefault
-      priorityClassName: system-cluster-critical
-      serviceAccountName: coredns
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: <span class="token number">100</span>
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                  - key: k8s-app
-                    operator: In
-                    values: <span class="token punctuation">[</span><span class="token string">"kube-dns"</span><span class="token punctuation">]</span>
-              topologyKey: kubernetes.io/hostname
-      tolerations:
-        - key: <span class="token string">"CriticalAddonsOnly"</span>
-          operator: <span class="token string">"Exists"</span>
-      nodeSelector:
-        kubernetes.io/os: linux
-      containers:
-      - name: coredns
-      <span class="token comment">#镜像地址默认是谷歌的，需要更换成国内镜像源或者官方hub仓库源，下面可以看图</span>
-        image:  coredns/coredns:1.8.6
-        imagePullPolicy: IfNotPresent
-        resources:
-        <span class="token comment">#限制coredns可以使用多少资源</span>
-          limits:
-            memory: 200Mi  <span class="token comment">#200毫核 ，一般生产会写2000Mi 或者直接写2</span>
-          requests:
-            cpu: 100m
-            memory: 70Mi
-        args: <span class="token punctuation">[</span> <span class="token string">"-conf"</span>, <span class="token string">"/etc/coredns/Corefile"</span> <span class="token punctuation">]</span>
-        volumeMounts:
-        - name: config-volume
-          mountPath: /etc/coredns
-          readOnly: <span class="token boolean">true</span>
-        ports:
-        - containerPort: <span class="token number">53</span>
-          name: dns
-          protocol: UDP
-        - containerPort: <span class="token number">53</span>
-          name: dns-tcp
-          protocol: TCP
-        - containerPort: <span class="token number">9153</span>
-          name: metrics
-          protocol: TCP
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: <span class="token number">8080</span>
-            scheme: HTTP
-          initialDelaySeconds: <span class="token number">60</span>
-          timeoutSeconds: <span class="token number">5</span>
-          successThreshold: <span class="token number">1</span>
-          failureThreshold: <span class="token number">5</span>
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: <span class="token number">8181</span>
-            scheme: HTTP
-        securityContext:
-          allowPrivilegeEscalation: <span class="token boolean">false</span>
-          capabilities:
-            add:
-            - NET_BIND_SERVICE
-            drop:
-            - all
-          readOnlyRootFilesystem: <span class="token boolean">true</span>
-      dnsPolicy: Default
-      volumes:
-        - name: config-volume
-          configMap:
-            name: coredns
-            items:
-            - key: Corefile
-              path: Corefile
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kube-dns
-  namespace: kube-system
-  annotations:
-    prometheus.io/port: <span class="token string">"9153"</span>
-    prometheus.io/scrape: <span class="token string">"true"</span>
-  labels:
-    k8s-app: kube-dns
-    kubernetes.io/cluster-service: <span class="token string">"true"</span>
-    addonmanager.kubernetes.io/mode: Reconcile
-    kubernetes.io/name: <span class="token string">"CoreDNS"</span>
-spec:
-  selector:
-    k8s-app: kube-dns
-    <span class="token comment">#clusterIP：dns地址，这个地址可以创建一个pod然后查看pod的/etc/resolv.conf的namespaces查看，如下面</span>
-  clusterIP: <span class="token number">10.100</span>.0.2
-  ports:
-  - name: dns
-    port: <span class="token number">53</span>
-    protocol: UDP
-  - name: dns-tcp
-    port: <span class="token number">53</span>
-    protocol: TCP
-  - name: metrics
-    port: <span class="token number">9153</span>
-    protocol: TCP<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>查看coredns的svc地址，上面的10.100.0.1是kubernetes的api的地址，k8s内部会将第一个地址分配给apiserver<br><img src="https://img-blog.csdnimg.cn/230ef23b6bfe40d59e8e224c657a995e.png#pic_center" alt="在这里插入图片描述"><br>镜像更换：</p>
-<p><img src="https://img-blog.csdnimg.cn/d484214680ba4da492a4757d042e4c3a.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/19bfc52cd197427481ba6ce9237e4192.png#pic_center" alt="在这里插入图片描述"><br>修改完成后apply -f coredns.yaml，启动成功后进入pod查看是否能够进行域名解析测试<br><img src="https://img-blog.csdnimg.cn/3648c3e121f44cc596498d26d33d6182.jpeg#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/0e9cd09ba5d44c98bf0ce809938251ec.jpeg#pic_center" alt="在这里插入图片描述"><br>nslookup测试该域名是否可以解析<br><img src="https://img-blog.csdnimg.cn/cf1e835147824bcd83c6595b74fbb36e.jpeg#pic_center" alt="在这里插入图片描述"><br>一般会将coredns多副本，保证业务解析正常，会以轮询的方式请求，或者修改limit占用资源。一般cpu为2核，内存为3个Gi就够了，如果不够就多副本<br><img src="https://img-blog.csdnimg.cn/60bb06c121a7427cb1ffe1d5351fe7b9.jpeg#pic_center" alt="在这里插入图片描述"><br>k8s域名固定格式：<br> ping kube-dns.kube-system.svc.clusterdujie.local<br> 名称.namespace.svc.域名后缀<br> <img src="https://img-blog.csdnimg.cn/f9e448b76af54f17b324064b4f5ac91e.jpeg#pic_center" alt="在这里插入图片描述"><br><strong>coredns性能优化：</strong><br>1、（pod级别缓存）在pod中添加dnsmasq缓存，优缺点：pod自己缓存自己的，缓存不共享是隔离的，每个容器中都需要添加域名解析记录<br>2、（node级别缓存）缓存放在node上，localdns，pod第一次宿主机请求的时候，宿主机向coredns请求解析，获取解析后缓存到node，下次pod再请求直接通过node节点的localdns直接返回给pod</p>
-<p>[root@master01 ~]# vim &#x2F;etc&#x2F;kubeasz&#x2F;clusters&#x2F;k8s-cluster&#x2F;config.yml<br><img src="https://img-blog.csdnimg.cn/909e03bb1caa4127b595dad46d958cdc.jpeg#pic_center" alt="在这里插入图片描述"><br>3、（coredns级别缓存）在coredns容器里，修改缓存时间，默认30s，可以调成180s，不过需要coredns内存比较大，，缓存时间设置不要太长也不要太短</p>
 ]]></content>
       <categories>
         <category>kubernetes</category>
