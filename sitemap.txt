@@ -1,3 +1,4 @@
+http://dycloudnavite.love/2022/07/05/kubernetes%20HPA%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%B5%8B%E8%AF%95/
 http://dycloudnavite.love/2022/07/03/Volume%E5%AD%98%E5%82%A8%E5%8D%B7/
 http://dycloudnavite.love/2022/07/03/Service%E6%8E%A7%E5%88%B6%E5%99%A8/
 http://dycloudnavite.love/2022/07/02/PV%20PVC/

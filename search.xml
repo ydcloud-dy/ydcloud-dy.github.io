@@ -4218,4 +4218,169 @@ systemctl restart docker <span aria-hidden="true" class="line-numbers-rows"><spa
         <tag>docker</tag>
       </tags>
   </entry>
+  <entry>
+    <title>kubernetesHPA使用及测试</title>
+    <url>/2022/07/05/kubernetes%20HPA%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%B5%8B%E8%AF%95/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="一、安装metrics-server"><a href="#一、安装metrics-server" class="headerlink" title="一、安装metrics server"></a>一、安装metrics server</h1><p>Metrics Server是Kubernetes内置的容器资源指标来源。<br>Metrics Server从node节点上的Kubelet收集资源指标,并通过Metrics API在 Kubernetes apiserver中公开指标数据,以供Horizontal Pod Autoscaler和Vertical Pod Autoscaler使用,也可以通过访问kubectl top node&#x2F;pod查看指标数据。<img src="https://img-blog.csdnimg.cn/a3e96f87611e480084feaa655ab276f3.png" alt="请添加图片描述"><br>使用Metrics-Server监控node和pod计算资源使用情况，并提供给第三方使用<br>下载地址：<br><a href="https://github.com/kubernetes-sigs/metrics-server/releases">gituhub地址</a><br><img src="https://img-blog.csdnimg.cn/8c8ea20d5edc45929afa2321bfd509b3.png" alt="请添加图片描述"><br>修改资源定义文件</p>
+<pre class="line-numbers language-none"><code class="language-none">root@master:~&#x2F;.kube# vim components.yaml<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>修改镜像位置:</p>
+<pre class="line-numbers language-none"><code class="language-none">image: k8s.gcr.io&#x2F;metrics-server&#x2F;metrics-server:v0.6.1
+修改为：
+registry.cn-hangzhou.aliyuncs.com&#x2F;liangxiaohui&#x2F;metrics-server:0.6.1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>部署：</p>
+<pre class="line-numbers language-none"><code class="language-none">kubectl apply -f components.yaml
+serviceaccount&#x2F;metrics-server created
+clusterrole.rbac.authorization.k8s.io&#x2F;system:aggregated-metrics-reader created
+clusterrole.rbac.authorization.k8s.io&#x2F;system:metrics-server created
+rolebinding.rbac.authorization.k8s.io&#x2F;metrics-server-auth-reader created
+clusterrolebinding.rbac.authorization.k8s.io&#x2F;metrics-server:system:auth-delegator created
+clusterrolebinding.rbac.authorization.k8s.io&#x2F;system:metrics-server created
+service&#x2F;metrics-server created
+deployment.apps&#x2F;metrics-server created
+apiservice.apiregistration.k8s.io&#x2F;v1beta1.metrics.k8s.io created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>验证：</p>
+<pre class="line-numbers language-none"><code class="language-none">root@deploy:~&#x2F;yaml# kubectl get pods -n kube-system 
+NAME                                       READY   STATUS    RESTARTS       AGE
+calico-kube-controllers-7ff47c8649-mnwjh   1&#x2F;1     Running   31 (69m ago)   21d
+calico-node-8pqgz                          1&#x2F;1     Running   21 (69m ago)   21d
+calico-node-bqbj8                          1&#x2F;1     Running   21 (69m ago)   21d
+calico-node-zjrwp                          1&#x2F;1     Running   21 (69m ago)   21d
+coredns-778797657-zct55                    1&#x2F;1     Running   18 (69m ago)   21d
+coredns-778797657-zlgfg                    1&#x2F;1     Running   14 (69m ago)   21d
+metrics-server-597c6f68ff-68hpv            1&#x2F;1     Running   0              63s
+root@deploy:~&#x2F;yaml# kubectl top nodes
+NAME            CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%   
+192.168.100.2   76m          3%     1073Mi          64%       
+192.168.100.5   141m         7%     1543Mi          20%       
+192.168.100.6   50m          2%     652Mi           8%<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>验证：查看可以采集pods和nodes节点资源</p>
+<pre class="line-numbers language-none"><code class="language-none">root@deploy:~&#x2F;yaml# kubectl top pod -n test
+NAME                                         CPU(cores)   MEMORY(bytes)   
+dubbo-consumer-deployment-b55c7cdff-k8lm7    1m           3Mi 
+dubbo-provider-deployment-5cc994c8b4-sd72z   1m           6Mi 
+dubboadmin-deployment-d98765c7-mwt5v         71m          717Mi 
+zookeeper1-654c4f44c-9cbqb                   1m           80Mi 
+zookeeper2-645fdbd686-rmwrl                  2m           81Mi
+zookeeper3-b879d8d8f-prhmb                   2m           74Mi<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="二、HPA自动伸缩"><a href="#二、HPA自动伸缩" class="headerlink" title="二、HPA自动伸缩"></a>二、HPA自动伸缩</h1><p>HorizontalPodAutoscaler（简称HPA）自动更新工作负载资源（例如Deployment或者StatefulSet），基于pod资源利用率横向调整pod副本数量。目的是自动扩缩工作负载以满足需求。</p>
+<p>根据当前pod的负载，动态调整pod副本数量，业务高峰期自动扩容pod的副本数以尽快相应pod的请求。</p>
+<p>水平扩缩意味着对增加的负载的响应是部署更多的Pods。这与“垂直（Vertical）”扩缩不同，对于Kubernetes，垂直扩缩意味着将更多资源（例如：内存或CPU）分配给已经为工作负载运行的Pod。</p>
+<p>如果负载减少，并且Pod的数量高于配置的最小值， HorizontalPodAutoscaler会指示工作负载资源（Deployment、StatefulSet或其他类似资源）缩减。</p>
+<p><strong>相关的其他动态伸缩控制器类型</strong></p>
+<blockquote>
+<p>垂直pod自动缩放器(VPA)：基于pod资源利用率，调整对单个pod的最大资源限制，不能与HPA同时使用<br>       集群伸缩(Cluster Autoscaler,CA)：基于集群中node资源使用情况，动态伸缩node节点，从而保证有CPU和内存资源用于创建pod。</p>
+</blockquote>
+<p> <strong>HPA控制器简介：</strong></p>
+<blockquote>
+<p> Horizontal Pod Autoscaling (HPA)控制器，根据预定义好的阈值及pod当前的资源利用率，自动控制在k8s集群中运行的pod数量(自动弹性水平自动伸缩).</p>
+</blockquote>
+<p><strong>HPA重要参数：</strong></p>
+<blockquote>
+<pre><code> 使用kube-controller-manager --help|grep &lt;options&gt;,进行查询
+</code></pre>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">##默认每隔15s，可以通过此选项修改查询metrics的资源使用
+--horizontal-pod-autoscaler-sync-period
+
+#缩容间隔周期，默认5分钟。
+--horizontal-pod-autoscaler-downscale-stabilization
+
+#HPA控制器同步pod副本数的间隔周期
+--horizontal-pod-autoscaler-sync-period
+
+#初始化延迟时间，在此时间内pod的CPU资源指标将不会生效，默认为5分钟。
+--horizontal-pod-autoscaler-cpu-initialization-period
+
+#用于设置pod准备时间，在此时间内的pod统统被认为未就绪及不采集数据,默认为30秒。
+--horizontal-pod-autoscaler-initial-readiness-delay
+
+#HPA控制器能容忍的数据差异(浮点数，默认为0.1)，即新的指标要与当前的阈值差异在0.1或以上，即要大于1+0.1&#x3D;1.1，或小于1-0.1&#x3D;0.9，比如阈值为CPU利用率50%,当前为80%,那么80&#x2F;50&#x3D;1.6 &gt; 1.1则会触发扩容，反之会缩容。
+--horizontal-pod-autoscaler-tolerance
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>即触发条件：avg(CurrentPodsConsumption) &#x2F; Target &gt;1.1 或 &lt;0.9&#x3D;把N个pod的数据相加后根据pod的数量计算出平均数除以阈值,大于1.1就扩容，小于0.9就缩容。<br> 计算公式：TargetNumOfPods &#x3D; ceil(sum(CurrentPodsCPUUtilization) &#x2F; Target) #ceil是一个向上取整的目的pod整数。</p>
+</blockquote>
+<pre><code>指标数据需要部署metrics-server，即HPA使用metrics-server作为数据源。
+https://github.com/kubernetes-sigs/metrics-server
+</code></pre>
+<blockquote>
+<p>在k8s 1.1引入HPA控制器，早期使用Heapster组件采集pod指标数据，在k8s 1.11版本开始使用Metrices Server完成数据采集，然后将采集到的数据通过API（Aggregated API，汇总API），例如metrics.k8s.io、custom.metrics.k8s.io、external.metrics.k8s.io，然后再把数据提供给HPA控制器进行查询，以实现基于某个资源利用率对pod进行扩缩容的目的。</p>
+</blockquote>
+<h2 id="根据cpu利用率伸缩"><a href="#根据cpu利用率伸缩" class="headerlink" title="根据cpu利用率伸缩"></a>根据cpu利用率伸缩</h2><p>创建deployment</p>
+<pre class="line-numbers language-none"><code class="language-none">apiVersion: apps&#x2F;v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        imagePullPolicy: IfNotPresent<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建hpa</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@master10 hpa]# kubectl autoscale deployment nginx --max&#x3D;5 --min&#x3D;2 --cpu-percent&#x3D;80 --dry-run&#x3D;client -o yaml &gt; hpa.yaml
+
+[root@master10 hpa]# vim hpa.yaml
+apiVersion: autoscaling&#x2F;v1
+kind: HorizontalPodAutoscaler
+metadata:
+  creationTimestamp: null
+  name: nginx
+spec:
+  maxReplicas: 5
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps&#x2F;v1
+    kind: Deployment
+    name: nginx
+  targetCPUUtilizationPercentage: 80
+status:
+  currentReplicas: 0
+  desiredReplicas: 0
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>要想看到HPA的TARGETS值必须满足2个条件：</p>
+<ol>
+<li>安装metric server</li>
+<li>为pod设定资源限制。</li>
+</ol>
+<p> 配置deployment 限制cpu和内存<br> 添加resource资源限制</p>
+<pre class="line-numbers language-none"><code class="language-none">kubectl edit deployments.apps nginx
+
+    spec:
+      containers:
+      - image: nginx
+        imagePullPolicy: IfNotPresent
+        name: nginx
+        resources:
+          limits:
+            memory: &quot;200m&quot;
+            cpu: &quot;100m&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>修改后，自动创建两个新的pod来替换旧的pod资源限制<img src="https://img-blog.csdnimg.cn/5171b5b5c996437ca7a575f7f8e62072.png" alt="请添加图片描述"><br>暴露deployment端口，创建svc</p>
+<pre class="line-numbers language-none"><code class="language-none">kubectl expose deployment nginx --port&#x3D;80 --target-port&#x3D;80<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><img src="https://img-blog.csdnimg.cn/cf96dab942e44a1285fe17304cf6a67c.png" alt="请添加图片描述"><br>apt-install httpd-tools 安装ab工具进行压力测试</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@master10 hpa]# ab -n 300000 -c 100 http:&#x2F;&#x2F;10.102.118.93&#x2F;
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><img src="https://img-blog.csdnimg.cn/ecd14c1de69643789dbdfcd1b024b4ff.png" alt="请添加图片描述"><br>容器cpu达到80%则hpa自动水平伸缩，扩容pods，直到扩容到cpu负载均匀到各个pods中，或者hpa扩容到最大pods数量。<br><img src="https://img-blog.csdnimg.cn/e64f2768643c4b0b8bd64f4c953a6696.png" alt="请添加图片描述"></p>
+]]></content>
+      <categories>
+        <category>kubernetes</category>
+      </categories>
+      <tags>
+        <tag>kubernetes</tag>
+        <tag>云原生</tag>
+      </tags>
+  </entry>
 </search>
