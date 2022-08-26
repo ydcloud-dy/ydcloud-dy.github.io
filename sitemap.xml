@@ -255,6 +255,13 @@
   </url>
   
   <url>
+    <loc>http://dycloudnavite.love/tags/iptables/</loc>
+    <lastmod>2022-08-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>http://dycloudnavite.love/tags/svn/</loc>
     <lastmod>2022-08-26</lastmod>
     <changefreq>weekly</changefreq>
@@ -269,7 +276,7 @@
   </url>
   
   <url>
-    <loc>http://dycloudnavite.love/tags/iptables/</loc>
+    <loc>http://dycloudnavite.love/tags/linux/</loc>
     <lastmod>2022-08-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -277,13 +284,6 @@
   
   <url>
     <loc>http://dycloudnavite.love/tags/%E9%98%BF%E9%87%8C%E4%BA%91/</loc>
-    <lastmod>2022-08-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>http://dycloudnavite.love/tags/linux/</loc>
     <lastmod>2022-08-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -320,14 +320,14 @@
   </url>
   
   <url>
-    <loc>http://dycloudnavite.love/categories/svn/</loc>
+    <loc>http://dycloudnavite.love/categories/iptables/</loc>
     <lastmod>2022-08-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>http://dycloudnavite.love/categories/iptables/</loc>
+    <loc>http://dycloudnavite.love/categories/svn/</loc>
     <lastmod>2022-08-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

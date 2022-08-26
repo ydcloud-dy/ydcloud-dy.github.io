@@ -140,47 +140,6 @@ spec:
       </tags>
   </entry>
   <entry>
-    <title>kubernetes常用资源——deployment</title>
-    <url>/2022/07/01/Deployment%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="Deployment副本控制器"><a href="#Deployment副本控制器" class="headerlink" title="Deployment副本控制器"></a>Deployment副本控制器</h1><p>Deployment：比rs更高级的控制器，除了有rs的功能之外，还有很多高级的功能，比如最重要的滚动升级、回滚等</p>
-<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@haproxy1 case3-controller<span class="token punctuation">]</span><span class="token comment"># cat deployment.yml </span>
-<span class="token comment">#apiVersion: extensions/v1beta1</span>
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-deployment
-spec:
-  replicas: <span class="token number">3</span>
-  selector:
-    <span class="token comment">#app: ng-deploy-80 #rc</span>
-    matchLabels: <span class="token comment">#rs or deployment</span>
-      app: ng-deploy-80
-    
-    <span class="token comment">#matchExpressions:</span>
-    <span class="token comment">#  - &#123;key: app, operator: In, values: [ng-deploy-80,ng-rs-81]&#125;</span>
-  template:
-    metadata:
-      labels:
-        app: ng-deploy-80
-    spec:
-      containers:
-      - name: ng-deploy-80
-        image: nginx:1.16.0
-        ports:
-        - containerPort: <span class="token number">80</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment">#回滚</span>
-<span class="token punctuation">[</span>root@haproxy1 case3-controller<span class="token punctuation">]</span><span class="token comment"># kubectl rollout undo deployment nginx-deployment</span>
-deployment.apps/nginx-deployment rolled back<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>kubernetes</category>
-      </categories>
-      <tags>
-        <tag>kubernetes</tag>
-        <tag>云原生</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Jenkins用户权限控制插件——Role-based Authorization Strategy</title>
     <url>/2022/08/16/Jenkins%E7%94%A8%E6%88%B7%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6%E6%8F%92%E4%BB%B6%E2%80%94%E2%80%94Role-based%20Authorization%20Strategy/</url>
     <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><blockquote>
@@ -627,166 +586,6 @@ root@myserver-myapp-deployment-name-7c855dc86d-sbb6g:/usr/share/nginx/html/stati
 
 <p><img src="/images/pasted-15.png" alt="pv5"></p>
 ]]></content>
-      <categories>
-        <category>kubernetes</category>
-      </categories>
-      <tags>
-        <tag>kubernetes</tag>
-        <tag>云原生</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>kubernetes常用资源——RC/RS</title>
-    <url>/2022/07/01/RC%20RS%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="RC-x2F-RS副本控制器"><a href="#RC-x2F-RS副本控制器" class="headerlink" title="RC&#x2F;RS副本控制器"></a>RC&#x2F;RS副本控制器</h1><p>Replication Controller:副本控制器（selector &#x3D;  !&#x3D;）#第一代pod副本控制器</p>
-<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@haproxy1 case3-controller<span class="token punctuation">]</span><span class="token comment"># cat rc.yml </span>
-apiVersion: v1  
-kind: ReplicationController  
-metadata:  
-  name: ng-rc
-spec:  
-  replicas: <span class="token number">2</span>
-  selector:  
-    app: ng-rc-80 
-    <span class="token comment">#app1: ng-rc-81</span>
-  template:   
-    metadata:  
-      labels:  
-        app: ng-rc-80
-        <span class="token comment">#app1: ng-rc-81</span>
-    spec:  
-      containers:  
-      - name: ng-rc-80 
-        image: nginx  
-        ports:  
-        - containerPort: <span class="token number">80</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-
-<p>Replication Set: rs 支持matchlabels，可以支持labels  In 或者NotIn</p>
-<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@haproxy1 case3-controller<span class="token punctuation">]</span><span class="token comment"># cat rs.yml </span>
-<span class="token comment">#apiVersion: extensions/v1beta1</span>
-apiVersion: apps/v1 
-kind: ReplicaSet
-metadata:
-  name: frontend
-spec:
-  replicas: <span class="token number">2</span>
-  selector:
-    matchLabels:
-      app: ng-rs-80
-    <span class="token comment">#matchExpressions:</span>
-    <span class="token comment">#  - &#123;key: app, operator: In, values: [ng-rs-80,ng-rs-81]&#125;</span>
-  template:
-    metadata:
-      labels:
-        app: ng-rs-80
-    spec:  
-      containers:  
-      - name: ng-rs-80 
-        image: nginx  
-        ports:  
-        - containerPort: <span class="token number">80</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-]]></content>
-      <categories>
-        <category>kubernetes</category>
-      </categories>
-      <tags>
-        <tag>kubernetes</tag>
-        <tag>云原生</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>kubernetes常用资源——Service</title>
-    <url>/2022/07/03/Service%E6%8E%A7%E5%88%B6%E5%99%A8/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="Service控制器"><a href="#Service控制器" class="headerlink" title="Service控制器"></a>Service控制器</h1><p>由于Pod重建之后ip就变了，因此pod之间使用的IP直接访问会出现无法访问的问题，而service则解耦了服务和应用，service的实现方式就是通过label标签动态匹配后端endpoint。</p>
-<p>kube-proxy 监听着k8s-apiserver，一旦service资源发生变化（调k8s-api修改service信息），kube-proxy 就会生成对应得负载调度得调整，这样就保证了service得最新状态</p>
-<p><img src="/images/pasted-16.png" alt="service"></p>
-<p>service类型：</p>
-<ul>
-<li>ClusterIP：用于内部服务基于service name的访问</li>
-<li>NodePort：用于K8s集群以外的服务主动访问运行在kubernetes集群内部的服务</li>
-<li>LoadBalancer：用于公有云环境的服务暴露</li>
-<li>ExternalName：用于将k8s集群外部的服务映射至K8s集群内部访问，从而让集群内部的pod能够通过固定的service name访问集群外部的服务，有时候也用于将不同namespace 之间的pod通过ExternalName 进行访问</li>
-</ul>
-<p>clusterIP:</p>
-<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># cat 1-deploy_node.yml </span>
-<span class="token comment">#apiVersion: extensions/v1beta1</span>
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-deployment
-spec:
-  replicas: <span class="token number">1</span>
-  selector:
-    <span class="token comment">#matchLabels: #rs or deployment</span>
-    <span class="token comment">#  app: ng-deploy3-80</span>
-    matchExpressions:
-      - <span class="token punctuation">&#123;</span>key: app, operator: In, values: <span class="token punctuation">[</span>ng-deploy-80,ng-rs-81<span class="token punctuation">]</span><span class="token punctuation">&#125;</span>
-  template:
-    metadata:
-      labels:
-        app: ng-deploy-80
-    spec:
-      containers:
-      - name: ng-deploy-80
-        image: nginx:1.17.5 
-        ports:
-        - containerPort: <span class="token number">80</span>
-      <span class="token comment">#nodeSelector:</span>
-      <span class="token comment">#  env: group1</span>
-<span class="token comment">#在其他的pod</span>
-<span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># cat 2-svc_service.yml </span>
-apiVersion: v1
-kind: Service
-metadata:
-  name: ng-deploy-80 
-spec:
-  ports:
-  - name: http
-    port: <span class="token number">80</span>
-    targetPort: <span class="token number">80</span>
-    protocol: TCP
-  type: ClusterIP
-<span class="token comment">#这里的selector 对应deployment 的template  metadata下的labels通过这个标签选择器找到指定的deployment控制器</span>
-  selector:
-    app: ng-deploy-80
-<span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># kubectl get svc </span>
-NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class="token punctuation">(</span>S<span class="token punctuation">)</span>   AGE
-kubernetes     ClusterIP   <span class="token number">10.100</span>.0.1      <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">443</span>/TCP   15d
-ng-deploy-80   ClusterIP   <span class="token number">10.100</span>.41.139   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">80</span>/TCP    11m
-<span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># </span>
-<span class="token comment">#查看svc对应的后端pod</span>
-<span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># kubectl get ep</span>
-NAME           ENDPOINTS                               AGE
-kubernetes     <span class="token number">172.16</span>.92.130:6443,172.16.92.131:6443   15d
-ng-deploy-80   <span class="token number">10.200</span>.107.219:80                       3d2h
-<span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-
-<p>Nodeport:</p>
-<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># cat 3-svc_NodePort.yml </span>
-apiVersion: v1
-kind: Service
-metadata:
-  name: ng-deploy-80 
-spec:
-  ports:
-  - name: http
-    port: <span class="token number">81</span>
-    targetPort: <span class="token number">80</span>
-    nodePort: <span class="token number">30012</span>
-    protocol: TCP
-  type: NodePort
-  selector:
-    app: ng-deploy-80
-<span class="token comment">#此时就可以直接访问podip+30012 端口访问了</span>
-<span class="token comment">#如果前端有负载均衡可以添加到负载均衡里，如haproxy：</span>
-listen dujie-nginx-80
-    <span class="token builtin class-name">bind</span> <span class="token number">172.16</span>.92.189:80
-    mode tcp
-    server k8s-node1 <span class="token number">172.16</span>.92.140:30012 check inter 3s fall <span class="token number">3</span> rise <span class="token number">1</span>
-    server k8s-node2 <span class="token number">172.16</span>.92.141:30012 check inter 3s fall <span class="token number">3</span> rise <span class="token number">1</span>
-    server k8s-node3 <span class="token number">172.16</span>.92.142:30012 check inter 3s fall <span class="token number">3</span> rise <span class="token number">1</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>]]></content>
       <categories>
         <category>kubernetes</category>
       </categories>
@@ -1299,6 +1098,106 @@ sonar<span class="token punctuation">.</span>sourceEncoding=UTF-8<span aria-hidd
       </tags>
   </entry>
   <entry>
+    <title>kubernetes常用资源——Service</title>
+    <url>/2022/07/03/Service%E6%8E%A7%E5%88%B6%E5%99%A8/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="Service控制器"><a href="#Service控制器" class="headerlink" title="Service控制器"></a>Service控制器</h1><p>由于Pod重建之后ip就变了，因此pod之间使用的IP直接访问会出现无法访问的问题，而service则解耦了服务和应用，service的实现方式就是通过label标签动态匹配后端endpoint。</p>
+<p>kube-proxy 监听着k8s-apiserver，一旦service资源发生变化（调k8s-api修改service信息），kube-proxy 就会生成对应得负载调度得调整，这样就保证了service得最新状态</p>
+<p><img src="/images/pasted-16.png" alt="service"></p>
+<p>service类型：</p>
+<ul>
+<li>ClusterIP：用于内部服务基于service name的访问</li>
+<li>NodePort：用于K8s集群以外的服务主动访问运行在kubernetes集群内部的服务</li>
+<li>LoadBalancer：用于公有云环境的服务暴露</li>
+<li>ExternalName：用于将k8s集群外部的服务映射至K8s集群内部访问，从而让集群内部的pod能够通过固定的service name访问集群外部的服务，有时候也用于将不同namespace 之间的pod通过ExternalName 进行访问</li>
+</ul>
+<p>clusterIP:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># cat 1-deploy_node.yml </span>
+<span class="token comment">#apiVersion: extensions/v1beta1</span>
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: <span class="token number">1</span>
+  selector:
+    <span class="token comment">#matchLabels: #rs or deployment</span>
+    <span class="token comment">#  app: ng-deploy3-80</span>
+    matchExpressions:
+      - <span class="token punctuation">&#123;</span>key: app, operator: In, values: <span class="token punctuation">[</span>ng-deploy-80,ng-rs-81<span class="token punctuation">]</span><span class="token punctuation">&#125;</span>
+  template:
+    metadata:
+      labels:
+        app: ng-deploy-80
+    spec:
+      containers:
+      - name: ng-deploy-80
+        image: nginx:1.17.5 
+        ports:
+        - containerPort: <span class="token number">80</span>
+      <span class="token comment">#nodeSelector:</span>
+      <span class="token comment">#  env: group1</span>
+<span class="token comment">#在其他的pod</span>
+<span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># cat 2-svc_service.yml </span>
+apiVersion: v1
+kind: Service
+metadata:
+  name: ng-deploy-80 
+spec:
+  ports:
+  - name: http
+    port: <span class="token number">80</span>
+    targetPort: <span class="token number">80</span>
+    protocol: TCP
+  type: ClusterIP
+<span class="token comment">#这里的selector 对应deployment 的template  metadata下的labels通过这个标签选择器找到指定的deployment控制器</span>
+  selector:
+    app: ng-deploy-80
+<span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># kubectl get svc </span>
+NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class="token punctuation">(</span>S<span class="token punctuation">)</span>   AGE
+kubernetes     ClusterIP   <span class="token number">10.100</span>.0.1      <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">443</span>/TCP   15d
+ng-deploy-80   ClusterIP   <span class="token number">10.100</span>.41.139   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">80</span>/TCP    11m
+<span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># </span>
+<span class="token comment">#查看svc对应的后端pod</span>
+<span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># kubectl get ep</span>
+NAME           ENDPOINTS                               AGE
+kubernetes     <span class="token number">172.16</span>.92.130:6443,172.16.92.131:6443   15d
+ng-deploy-80   <span class="token number">10.200</span>.107.219:80                       3d2h
+<span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>Nodeport:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@haproxy1 case4-service<span class="token punctuation">]</span><span class="token comment"># cat 3-svc_NodePort.yml </span>
+apiVersion: v1
+kind: Service
+metadata:
+  name: ng-deploy-80 
+spec:
+  ports:
+  - name: http
+    port: <span class="token number">81</span>
+    targetPort: <span class="token number">80</span>
+    nodePort: <span class="token number">30012</span>
+    protocol: TCP
+  type: NodePort
+  selector:
+    app: ng-deploy-80
+<span class="token comment">#此时就可以直接访问podip+30012 端口访问了</span>
+<span class="token comment">#如果前端有负载均衡可以添加到负载均衡里，如haproxy：</span>
+listen dujie-nginx-80
+    <span class="token builtin class-name">bind</span> <span class="token number">172.16</span>.92.189:80
+    mode tcp
+    server k8s-node1 <span class="token number">172.16</span>.92.140:30012 check inter 3s fall <span class="token number">3</span> rise <span class="token number">1</span>
+    server k8s-node2 <span class="token number">172.16</span>.92.141:30012 check inter 3s fall <span class="token number">3</span> rise <span class="token number">1</span>
+    server k8s-node3 <span class="token number">172.16</span>.92.142:30012 check inter 3s fall <span class="token number">3</span> rise <span class="token number">1</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>]]></content>
+      <categories>
+        <category>kubernetes</category>
+      </categories>
+      <tags>
+        <tag>kubernetes</tag>
+        <tag>云原生</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>kubernetes常用资源——Volume存储卷</title>
     <url>/2022/07/03/Volume%E5%AD%98%E5%82%A8%E5%8D%B7/</url>
     <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="Volume存储卷"><a href="#Volume存储卷" class="headerlink" title="Volume存储卷"></a>Volume存储卷</h1><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
@@ -1606,99 +1505,6 @@ tmpfs                        <span class="token number">2</span>.8G     <span cl
       <tags>
         <tag>kubernetes</tag>
         <tag>云原生</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>centos7 安装svn服务器</title>
-    <url>/2020/09/08/centos7%E6%90%AD%E5%BB%BAsvn%E6%9C%8D%E5%8A%A1%E5%99%A8/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="一、安装svn服务器"><a href="#一、安装svn服务器" class="headerlink" title="一、安装svn服务器"></a>一、安装svn服务器</h1><pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver ~]</span><span class="token comment"># yum -y install subversion</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>查看svn 安装位置，可以用以下命令：</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver ~]</span><span class="token comment"># rpm -ql subversion</span>
-<span class="token operator">/</span>etc/subversion
-<span class="token operator">/</span>etc/sysconfig/svnserve
-<span class="token operator">/</span>run/svnserve
-<span class="token operator">/</span>usr/bin/svn
-<span class="token operator">/</span>usr/bin/svnadmin
-<span class="token operator">/</span>usr/bin/svndumpfilter
-<span class="token operator">/</span>usr/bin/svnlook
-<span class="token operator">/</span>usr/bin/svnrdump
-<span class="token operator">/</span>usr/bin/svnserve
-<span class="token operator">/</span>usr/bin/svnsync
-<span class="token operator">/</span>usr/bin/svnversion
-<span class="token operator">/</span>usr/lib/systemd/system/svnserve<span class="token punctuation">.</span>service
-<span class="token operator">/</span>usr/lib/tmpfiles<span class="token punctuation">.</span>d/svnserve<span class="token punctuation">.</span>conf
-<span class="token operator">/</span>usr/share/bash-completion/completions/svn
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h1 id="二、创建版本库目录（此仅为目录，为后面创建版本库提供存放位置"><a href="#二、创建版本库目录（此仅为目录，为后面创建版本库提供存放位置" class="headerlink" title="二、创建版本库目录（此仅为目录，为后面创建版本库提供存放位置"></a>二、创建版本库目录（此仅为目录，为后面创建版本库提供存放位置</h1><p>选择在var路径下创建版本库，当前处于根目录下，一次性创建如下：</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver ~]</span><span class="token comment"># mkdir /var/svnrepos</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h1 id="三、创建svn-版本库"><a href="#三、创建svn-版本库" class="headerlink" title="三、创建svn 版本库"></a>三、创建svn 版本库</h1><p>在第二步建立的路径基础上，创建版本库，命令如下：</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver ~]</span><span class="token comment"># svnadmin create /var/svnrepos/dujie</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>（dujie）为预期的版本库名称，可自定义<br>创建成功后，进入dujie目录下</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver ~]</span><span class="token comment"># cd /var/svnrepos/dujie/</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>进入目录，可以看见如下文件信息</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver dujie]</span><span class="token comment"># ll</span>
-total 8
-drwxr-xr-x 2 root root  54 Aug 26 08:45 conf
-drwxr-sr-x 6 root root 233 Aug 26 08:45 db
-<span class="token operator">-</span>r-<span class="token operator">-</span>r-<span class="token operator">-</span>r-<span class="token operator">-</span> 1 root root   2 Aug 26 08:45 format
-drwxr-xr-x 2 root root 231 Aug 26 08:45 hooks
-drwxr-xr-x 2 root root  41 Aug 26 08:45 locks
-<span class="token operator">-</span>rw-r-<span class="token operator">-</span>r-<span class="token operator">-</span> 1 root root 229 Aug 26 08:45 README<span class="token punctuation">.</span>txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h1 id="四、配置修改"><a href="#四、配置修改" class="headerlink" title="四、配置修改"></a>四、配置修改</h1><p>进入已经创建好的版本库目录下，也就是上面说的创建的dujie，进入conf</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver dujie]</span><span class="token comment"># cd conf/</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>conf目录下，一共存放三份重要的配置文件，如下：</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver conf]</span><span class="token comment"># ll</span>
-total 12
-<span class="token operator">-</span>rw-r-<span class="token operator">-</span>r-<span class="token operator">-</span> 1 root root 1094 Aug 26 08:46 authz
-<span class="token operator">-</span>rw-r-<span class="token operator">-</span>r-<span class="token operator">-</span> 1 root root  324 Aug 26 08:46 passwd
-<span class="token operator">-</span>rw-r-<span class="token operator">-</span>r-<span class="token operator">-</span> 1 root root 3074 Aug 26 08:48 svnserve<span class="token punctuation">.</span>conf<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<blockquote>
-<p><strong>authz:</strong> 负责账号权限的管理，控制账号是否读写权限<br><strong>passwd：</strong> 负责账号和密码的用户名单管理<br><strong>svnserve.conf ：</strong> svn服务器配置文件</p>
-</blockquote>
-<ol>
-<li>编辑authz 文件(注意：[&#x2F;]也是必须的)<blockquote>
-<p>[&#x2F;] ：表示根目录，即&#x2F;var&#x2F;svnrepos<br>dujie &#x3D; rw; 表示于用户dujie对跟目录具有读写权限</p>
-</blockquote>
-</li>
-</ol>
-<p><img src="https://img-blog.csdnimg.cn/9fbb9e7a490b450eb5e171ad027ff2ea.png#pic_center" alt="在这里插入图片描述"></p>
-<ol start="2">
-<li><p>编辑passwd文件<br><img src="https://img-blog.csdnimg.cn/b8170d7202ff44618a549fb3ceb38af9.png#pic_center" alt="在这里插入图片描述"><br>如上所示，用户名为dujie，认证密码为123456</p>
-</li>
-<li><p>编辑svnserve.conf 文件(注意：配置的前面不能有空格，一定要定格写)<br><img src="https://img-blog.csdnimg.cn/119603fd947241298f2a2c281e257a0a.png#pic_center" alt="在这里插入图片描述"></p>
-</li>
-</ol>
-<blockquote>
-<p>anon-access &#x3D; none ：表示禁止匿名用户访问<br>auth-access &#x3D; write：表示授权用户拥有读写权限<br>password-db &#x3D; passwd：指定用户名口令文件，即passwd文件。<br>authz-db &#x3D; authz：指定权限配置文件，即authz文件。<br>realm &#x3D; &#x2F;var&#x2F;svnrepos：指定认证域，即&#x2F;var&#x2F;svnrepos目录。</p>
-</blockquote>
-<h1 id="五、防火墙开启（这里以iptables防火墙为例）"><a href="#五、防火墙开启（这里以iptables防火墙为例）" class="headerlink" title="五、防火墙开启（这里以iptables防火墙为例）"></a>五、防火墙开启（这里以iptables防火墙为例）</h1><p>多数情况下服务器安装完成，配置完成以后，无法连接svn服务器，均是防火墙问题【注意：如果是阿里云，腾讯云的服务器，还需要在安全组添加端口开启规则】</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">vim <span class="token operator">/</span>etc/sysconfig/iptables<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>添加配置</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token operator">-</span>A INPUT <span class="token operator">-</span>p tcp <span class="token operator">-</span>m state <span class="token operator">--</span>state NEW <span class="token operator">-</span>m tcp <span class="token operator">--</span>dport 3690 <span class="token operator">-</span>j ACCEPT<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-<p>保存退出</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">systemctl restart iptables<span class="token punctuation">.</span>service <span class="token comment">#重启防火墙使配置生效</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-<h1 id="六、启动svn服务器"><a href="#六、启动svn服务器" class="headerlink" title="六、启动svn服务器"></a>六、启动svn服务器</h1><pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">svnserve <span class="token operator">-</span>d <span class="token operator">-</span>r <span class="token operator">/</span><span class="token keyword">var</span><span class="token operator">/</span>svnrepos<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>启动成功后，可以用ps -aux 查看服务器启动是否成功</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver conf]</span><span class="token comment"># ps -ef | grep 'svnserve'</span>
-root       8604      1  0 09:36 ?        00:00:00 svnserve <span class="token operator">-</span>d <span class="token operator">-</span>r <span class="token operator">/</span><span class="token keyword">var</span><span class="token operator">/</span>svnrepos/
-root       9379   8219  0 09:56 pts/0    00:00:00 grep <span class="token operator">--</span>color=auto svnserve<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<h1 id="七、客户端访问svn服务器"><a href="#七、客户端访问svn服务器" class="headerlink" title="七、客户端访问svn服务器"></a>七、客户端访问svn服务器</h1><p>在windows 客户端，输入地址：svn:&#x2F;&#x2F;ip地址:3690:xxxx（ip地址为linux的ip，xxxx为上面创建的版本库的名称，3690位svn默认端口）<br>弹出输入用户名和密码输入即可访问<br>或者在linux服务器输入命令测试</p>
-<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">svn co svn:<span class="token operator">/</span><span class="token operator">/</span>ip地址:3690/xxxx<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p><strong>遇到问题小结：</strong><br><em><strong>问题1：执行svn命令：svn co svn:&#x2F;&#x2F;ip地址:3690&#x2F;xxxx报错如下</strong></em><br><img src="https://img-blog.csdnimg.cn/6110d7c116284010a640c9d621d2358f.png#pic_center" alt="在这里插入图片描述"><br>这是因为修改svnserve.conf 时，打开注释时，配置的前面有空格，应该定格写。修改完成后即可</p>
-<p><em><strong>问题2：输入账号密码后，提示svn:Authorization failed 解决方法</strong></em><br>把authz文件[&#x2F;] 改为[]试试</p>
-<p>mac 电脑客户端连接方式：<br>下载cornerstone svn客户端<br><img src="https://img-blog.csdnimg.cn/254c5eb10e6b488abc1d9d0c267b2214.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/6791708bffcb445aa760772a4ee5dbfe.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/890804f0f2274053a22546e3fd5d0c8b.png#pic_center" alt="在这里插入图片描述"></p>
-]]></content>
-      <categories>
-        <category>svn</category>
-      </categories>
-      <tags>
-        <tag>svn</tag>
-        <tag>centos</tag>
       </tags>
   </entry>
   <entry>
@@ -2028,6 +1834,200 @@ iptables  <span class="token operator">-</span>A  POSTROUTING <span class="token
       </categories>
       <tags>
         <tag>iptables</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>kubernetes常用资源——RC/RS</title>
+    <url>/2022/07/01/RC%20RS%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="RC-x2F-RS副本控制器"><a href="#RC-x2F-RS副本控制器" class="headerlink" title="RC&#x2F;RS副本控制器"></a>RC&#x2F;RS副本控制器</h1><p>Replication Controller:副本控制器（selector &#x3D;  !&#x3D;）#第一代pod副本控制器</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@haproxy1 case3-controller<span class="token punctuation">]</span><span class="token comment"># cat rc.yml </span>
+apiVersion: v1  
+kind: ReplicationController  
+metadata:  
+  name: ng-rc
+spec:  
+  replicas: <span class="token number">2</span>
+  selector:  
+    app: ng-rc-80 
+    <span class="token comment">#app1: ng-rc-81</span>
+  template:   
+    metadata:  
+      labels:  
+        app: ng-rc-80
+        <span class="token comment">#app1: ng-rc-81</span>
+    spec:  
+      containers:  
+      - name: ng-rc-80 
+        image: nginx  
+        ports:  
+        - containerPort: <span class="token number">80</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>Replication Set: rs 支持matchlabels，可以支持labels  In 或者NotIn</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@haproxy1 case3-controller<span class="token punctuation">]</span><span class="token comment"># cat rs.yml </span>
+<span class="token comment">#apiVersion: extensions/v1beta1</span>
+apiVersion: apps/v1 
+kind: ReplicaSet
+metadata:
+  name: frontend
+spec:
+  replicas: <span class="token number">2</span>
+  selector:
+    matchLabels:
+      app: ng-rs-80
+    <span class="token comment">#matchExpressions:</span>
+    <span class="token comment">#  - &#123;key: app, operator: In, values: [ng-rs-80,ng-rs-81]&#125;</span>
+  template:
+    metadata:
+      labels:
+        app: ng-rs-80
+    spec:  
+      containers:  
+      - name: ng-rs-80 
+        image: nginx  
+        ports:  
+        - containerPort: <span class="token number">80</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>kubernetes</category>
+      </categories>
+      <tags>
+        <tag>kubernetes</tag>
+        <tag>云原生</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>kubernetes常用资源——deployment</title>
+    <url>/2022/07/01/Deployment%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="Deployment副本控制器"><a href="#Deployment副本控制器" class="headerlink" title="Deployment副本控制器"></a>Deployment副本控制器</h1><p>Deployment：比rs更高级的控制器，除了有rs的功能之外，还有很多高级的功能，比如最重要的滚动升级、回滚等</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@haproxy1 case3-controller<span class="token punctuation">]</span><span class="token comment"># cat deployment.yml </span>
+<span class="token comment">#apiVersion: extensions/v1beta1</span>
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: <span class="token number">3</span>
+  selector:
+    <span class="token comment">#app: ng-deploy-80 #rc</span>
+    matchLabels: <span class="token comment">#rs or deployment</span>
+      app: ng-deploy-80
+    
+    <span class="token comment">#matchExpressions:</span>
+    <span class="token comment">#  - &#123;key: app, operator: In, values: [ng-deploy-80,ng-rs-81]&#125;</span>
+  template:
+    metadata:
+      labels:
+        app: ng-deploy-80
+    spec:
+      containers:
+      - name: ng-deploy-80
+        image: nginx:1.16.0
+        ports:
+        - containerPort: <span class="token number">80</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment">#回滚</span>
+<span class="token punctuation">[</span>root@haproxy1 case3-controller<span class="token punctuation">]</span><span class="token comment"># kubectl rollout undo deployment nginx-deployment</span>
+deployment.apps/nginx-deployment rolled back<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+]]></content>
+      <categories>
+        <category>kubernetes</category>
+      </categories>
+      <tags>
+        <tag>kubernetes</tag>
+        <tag>云原生</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>centos7 安装svn服务器</title>
+    <url>/2020/09/08/centos7%E6%90%AD%E5%BB%BAsvn%E6%9C%8D%E5%8A%A1%E5%99%A8/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="一、安装svn服务器"><a href="#一、安装svn服务器" class="headerlink" title="一、安装svn服务器"></a>一、安装svn服务器</h1><pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver ~]</span><span class="token comment"># yum -y install subversion</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>查看svn 安装位置，可以用以下命令：</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver ~]</span><span class="token comment"># rpm -ql subversion</span>
+<span class="token operator">/</span>etc/subversion
+<span class="token operator">/</span>etc/sysconfig/svnserve
+<span class="token operator">/</span>run/svnserve
+<span class="token operator">/</span>usr/bin/svn
+<span class="token operator">/</span>usr/bin/svnadmin
+<span class="token operator">/</span>usr/bin/svndumpfilter
+<span class="token operator">/</span>usr/bin/svnlook
+<span class="token operator">/</span>usr/bin/svnrdump
+<span class="token operator">/</span>usr/bin/svnserve
+<span class="token operator">/</span>usr/bin/svnsync
+<span class="token operator">/</span>usr/bin/svnversion
+<span class="token operator">/</span>usr/lib/systemd/system/svnserve<span class="token punctuation">.</span>service
+<span class="token operator">/</span>usr/lib/tmpfiles<span class="token punctuation">.</span>d/svnserve<span class="token punctuation">.</span>conf
+<span class="token operator">/</span>usr/share/bash-completion/completions/svn
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="二、创建版本库目录（此仅为目录，为后面创建版本库提供存放位置"><a href="#二、创建版本库目录（此仅为目录，为后面创建版本库提供存放位置" class="headerlink" title="二、创建版本库目录（此仅为目录，为后面创建版本库提供存放位置"></a>二、创建版本库目录（此仅为目录，为后面创建版本库提供存放位置</h1><p>选择在var路径下创建版本库，当前处于根目录下，一次性创建如下：</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver ~]</span><span class="token comment"># mkdir /var/svnrepos</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h1 id="三、创建svn-版本库"><a href="#三、创建svn-版本库" class="headerlink" title="三、创建svn 版本库"></a>三、创建svn 版本库</h1><p>在第二步建立的路径基础上，创建版本库，命令如下：</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver ~]</span><span class="token comment"># svnadmin create /var/svnrepos/dujie</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>（dujie）为预期的版本库名称，可自定义<br>创建成功后，进入dujie目录下</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver ~]</span><span class="token comment"># cd /var/svnrepos/dujie/</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>进入目录，可以看见如下文件信息</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver dujie]</span><span class="token comment"># ll</span>
+total 8
+drwxr-xr-x 2 root root  54 Aug 26 08:45 conf
+drwxr-sr-x 6 root root 233 Aug 26 08:45 db
+<span class="token operator">-</span>r-<span class="token operator">-</span>r-<span class="token operator">-</span>r-<span class="token operator">-</span> 1 root root   2 Aug 26 08:45 format
+drwxr-xr-x 2 root root 231 Aug 26 08:45 hooks
+drwxr-xr-x 2 root root  41 Aug 26 08:45 locks
+<span class="token operator">-</span>rw-r-<span class="token operator">-</span>r-<span class="token operator">-</span> 1 root root 229 Aug 26 08:45 README<span class="token punctuation">.</span>txt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="四、配置修改"><a href="#四、配置修改" class="headerlink" title="四、配置修改"></a>四、配置修改</h1><p>进入已经创建好的版本库目录下，也就是上面说的创建的dujie，进入conf</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver dujie]</span><span class="token comment"># cd conf/</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>conf目录下，一共存放三份重要的配置文件，如下：</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver conf]</span><span class="token comment"># ll</span>
+total 12
+<span class="token operator">-</span>rw-r-<span class="token operator">-</span>r-<span class="token operator">-</span> 1 root root 1094 Aug 26 08:46 authz
+<span class="token operator">-</span>rw-r-<span class="token operator">-</span>r-<span class="token operator">-</span> 1 root root  324 Aug 26 08:46 passwd
+<span class="token operator">-</span>rw-r-<span class="token operator">-</span>r-<span class="token operator">-</span> 1 root root 3074 Aug 26 08:48 svnserve<span class="token punctuation">.</span>conf<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p><strong>authz:</strong> 负责账号权限的管理，控制账号是否读写权限<br><strong>passwd：</strong> 负责账号和密码的用户名单管理<br><strong>svnserve.conf ：</strong> svn服务器配置文件</p>
+</blockquote>
+<ol>
+<li>编辑authz 文件(注意：[&#x2F;]也是必须的)<blockquote>
+<p>[&#x2F;] ：表示根目录，即&#x2F;var&#x2F;svnrepos<br>dujie &#x3D; rw; 表示于用户dujie对跟目录具有读写权限</p>
+</blockquote>
+</li>
+</ol>
+<p><img src="https://img-blog.csdnimg.cn/9fbb9e7a490b450eb5e171ad027ff2ea.png#pic_center" alt="在这里插入图片描述"></p>
+<ol start="2">
+<li><p>编辑passwd文件<br><img src="https://img-blog.csdnimg.cn/b8170d7202ff44618a549fb3ceb38af9.png#pic_center" alt="在这里插入图片描述"><br>如上所示，用户名为dujie，认证密码为123456</p>
+</li>
+<li><p>编辑svnserve.conf 文件(注意：配置的前面不能有空格，一定要定格写)<br><img src="https://img-blog.csdnimg.cn/119603fd947241298f2a2c281e257a0a.png#pic_center" alt="在这里插入图片描述"></p>
+</li>
+</ol>
+<blockquote>
+<p>anon-access &#x3D; none ：表示禁止匿名用户访问<br>auth-access &#x3D; write：表示授权用户拥有读写权限<br>password-db &#x3D; passwd：指定用户名口令文件，即passwd文件。<br>authz-db &#x3D; authz：指定权限配置文件，即authz文件。<br>realm &#x3D; &#x2F;var&#x2F;svnrepos：指定认证域，即&#x2F;var&#x2F;svnrepos目录。</p>
+</blockquote>
+<h1 id="五、防火墙开启（这里以iptables防火墙为例）"><a href="#五、防火墙开启（这里以iptables防火墙为例）" class="headerlink" title="五、防火墙开启（这里以iptables防火墙为例）"></a>五、防火墙开启（这里以iptables防火墙为例）</h1><p>多数情况下服务器安装完成，配置完成以后，无法连接svn服务器，均是防火墙问题【注意：如果是阿里云，腾讯云的服务器，还需要在安全组添加端口开启规则】</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">vim <span class="token operator">/</span>etc/sysconfig/iptables<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>添加配置</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token operator">-</span>A INPUT <span class="token operator">-</span>p tcp <span class="token operator">-</span>m state <span class="token operator">--</span>state NEW <span class="token operator">-</span>m tcp <span class="token operator">--</span>dport 3690 <span class="token operator">-</span>j ACCEPT<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>保存退出</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">systemctl restart iptables<span class="token punctuation">.</span>service <span class="token comment">#重启防火墙使配置生效</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h1 id="六、启动svn服务器"><a href="#六、启动svn服务器" class="headerlink" title="六、启动svn服务器"></a>六、启动svn服务器</h1><pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">svnserve <span class="token operator">-</span>d <span class="token operator">-</span>r <span class="token operator">/</span><span class="token keyword">var</span><span class="token operator">/</span>svnrepos<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>启动成功后，可以用ps -aux 查看服务器启动是否成功</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@svnserver conf]</span><span class="token comment"># ps -ef | grep 'svnserve'</span>
+root       8604      1  0 09:36 ?        00:00:00 svnserve <span class="token operator">-</span>d <span class="token operator">-</span>r <span class="token operator">/</span><span class="token keyword">var</span><span class="token operator">/</span>svnrepos/
+root       9379   8219  0 09:56 pts/0    00:00:00 grep <span class="token operator">--</span>color=auto svnserve<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h1 id="七、客户端访问svn服务器"><a href="#七、客户端访问svn服务器" class="headerlink" title="七、客户端访问svn服务器"></a>七、客户端访问svn服务器</h1><p>在windows 客户端，输入地址：svn:&#x2F;&#x2F;ip地址:3690:xxxx（ip地址为linux的ip，xxxx为上面创建的版本库的名称，3690位svn默认端口）<br>弹出输入用户名和密码输入即可访问<br>或者在linux服务器输入命令测试</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">svn co svn:<span class="token operator">/</span><span class="token operator">/</span>ip地址:3690/xxxx<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><strong>遇到问题小结：</strong><br><em><strong>问题1：执行svn命令：svn co svn:&#x2F;&#x2F;ip地址:3690&#x2F;xxxx报错如下</strong></em><br><img src="https://img-blog.csdnimg.cn/6110d7c116284010a640c9d621d2358f.png#pic_center" alt="在这里插入图片描述"><br>这是因为修改svnserve.conf 时，打开注释时，配置的前面有空格，应该定格写。修改完成后即可</p>
+<p><em><strong>问题2：输入账号密码后，提示svn:Authorization failed 解决方法</strong></em><br>把authz文件[&#x2F;] 改为[]试试</p>
+<p>mac 电脑客户端连接方式：<br>下载cornerstone svn客户端<br><img src="https://img-blog.csdnimg.cn/254c5eb10e6b488abc1d9d0c267b2214.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/6791708bffcb445aa760772a4ee5dbfe.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/890804f0f2274053a22546e3fd5d0c8b.png#pic_center" alt="在这里插入图片描述"></p>
+]]></content>
+      <categories>
+        <category>svn</category>
+      </categories>
+      <tags>
+        <tag>svn</tag>
+        <tag>centos</tag>
       </tags>
   </entry>
   <entry>
@@ -2377,6 +2377,171 @@ net-test   1/1     Running   0          33h<span aria-hidden="true" class="line-
 <li>启动kube-apiserver&#x2F;controller-manager&#x2F;scheduler&#x2F;kubelet&#x2F;kube-proxy</li>
 <li>验证k8s master 状态及pod数据</li>
 </ol>
+]]></content>
+      <categories>
+        <category>kubernetes</category>
+      </categories>
+      <tags>
+        <tag>kubernetes</tag>
+        <tag>云原生</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>kubernetesHPA使用及测试</title>
+    <url>/2022/07/05/kubernetes%20HPA%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%B5%8B%E8%AF%95/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="一、安装metrics-server"><a href="#一、安装metrics-server" class="headerlink" title="一、安装metrics server"></a>一、安装metrics server</h1><p>Metrics Server是Kubernetes内置的容器资源指标来源。<br>Metrics Server从node节点上的Kubelet收集资源指标,并通过Metrics API在 Kubernetes apiserver中公开指标数据,以供Horizontal Pod Autoscaler和Vertical Pod Autoscaler使用,也可以通过访问kubectl top node&#x2F;pod查看指标数据。<img src="https://img-blog.csdnimg.cn/a3e96f87611e480084feaa655ab276f3.png" alt="请添加图片描述"><br>使用Metrics-Server监控node和pod计算资源使用情况，并提供给第三方使用<br>下载地址：<br><a href="https://github.com/kubernetes-sigs/metrics-server/releases">gituhub地址</a><br><img src="https://img-blog.csdnimg.cn/8c8ea20d5edc45929afa2321bfd509b3.png" alt="请添加图片描述"><br>修改资源定义文件</p>
+<pre class="line-numbers language-none"><code class="language-none">root@master:~&#x2F;.kube# vim components.yaml<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>修改镜像位置:</p>
+<pre class="line-numbers language-none"><code class="language-none">image: k8s.gcr.io&#x2F;metrics-server&#x2F;metrics-server:v0.6.1
+修改为：
+registry.cn-hangzhou.aliyuncs.com&#x2F;liangxiaohui&#x2F;metrics-server:0.6.1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>部署：</p>
+<pre class="line-numbers language-none"><code class="language-none">kubectl apply -f components.yaml
+serviceaccount&#x2F;metrics-server created
+clusterrole.rbac.authorization.k8s.io&#x2F;system:aggregated-metrics-reader created
+clusterrole.rbac.authorization.k8s.io&#x2F;system:metrics-server created
+rolebinding.rbac.authorization.k8s.io&#x2F;metrics-server-auth-reader created
+clusterrolebinding.rbac.authorization.k8s.io&#x2F;metrics-server:system:auth-delegator created
+clusterrolebinding.rbac.authorization.k8s.io&#x2F;system:metrics-server created
+service&#x2F;metrics-server created
+deployment.apps&#x2F;metrics-server created
+apiservice.apiregistration.k8s.io&#x2F;v1beta1.metrics.k8s.io created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>验证：</p>
+<pre class="line-numbers language-none"><code class="language-none">root@deploy:~&#x2F;yaml# kubectl get pods -n kube-system 
+NAME                                       READY   STATUS    RESTARTS       AGE
+calico-kube-controllers-7ff47c8649-mnwjh   1&#x2F;1     Running   31 (69m ago)   21d
+calico-node-8pqgz                          1&#x2F;1     Running   21 (69m ago)   21d
+calico-node-bqbj8                          1&#x2F;1     Running   21 (69m ago)   21d
+calico-node-zjrwp                          1&#x2F;1     Running   21 (69m ago)   21d
+coredns-778797657-zct55                    1&#x2F;1     Running   18 (69m ago)   21d
+coredns-778797657-zlgfg                    1&#x2F;1     Running   14 (69m ago)   21d
+metrics-server-597c6f68ff-68hpv            1&#x2F;1     Running   0              63s
+root@deploy:~&#x2F;yaml# kubectl top nodes
+NAME            CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%   
+192.168.100.2   76m          3%     1073Mi          64%       
+192.168.100.5   141m         7%     1543Mi          20%       
+192.168.100.6   50m          2%     652Mi           8%<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>验证：查看可以采集pods和nodes节点资源</p>
+<pre class="line-numbers language-none"><code class="language-none">root@deploy:~&#x2F;yaml# kubectl top pod -n test
+NAME                                         CPU(cores)   MEMORY(bytes)   
+dubbo-consumer-deployment-b55c7cdff-k8lm7    1m           3Mi 
+dubbo-provider-deployment-5cc994c8b4-sd72z   1m           6Mi 
+dubboadmin-deployment-d98765c7-mwt5v         71m          717Mi 
+zookeeper1-654c4f44c-9cbqb                   1m           80Mi 
+zookeeper2-645fdbd686-rmwrl                  2m           81Mi
+zookeeper3-b879d8d8f-prhmb                   2m           74Mi<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="二、HPA自动伸缩"><a href="#二、HPA自动伸缩" class="headerlink" title="二、HPA自动伸缩"></a>二、HPA自动伸缩</h1><p>HorizontalPodAutoscaler（简称HPA）自动更新工作负载资源（例如Deployment或者StatefulSet），基于pod资源利用率横向调整pod副本数量。目的是自动扩缩工作负载以满足需求。</p>
+<p>根据当前pod的负载，动态调整pod副本数量，业务高峰期自动扩容pod的副本数以尽快相应pod的请求。</p>
+<p>水平扩缩意味着对增加的负载的响应是部署更多的Pods。这与“垂直（Vertical）”扩缩不同，对于Kubernetes，垂直扩缩意味着将更多资源（例如：内存或CPU）分配给已经为工作负载运行的Pod。</p>
+<p>如果负载减少，并且Pod的数量高于配置的最小值， HorizontalPodAutoscaler会指示工作负载资源（Deployment、StatefulSet或其他类似资源）缩减。</p>
+<p><strong>相关的其他动态伸缩控制器类型</strong></p>
+<blockquote>
+<p>垂直pod自动缩放器(VPA)：基于pod资源利用率，调整对单个pod的最大资源限制，不能与HPA同时使用<br>       集群伸缩(Cluster Autoscaler,CA)：基于集群中node资源使用情况，动态伸缩node节点，从而保证有CPU和内存资源用于创建pod。</p>
+</blockquote>
+<p> <strong>HPA控制器简介：</strong></p>
+<blockquote>
+<p> Horizontal Pod Autoscaling (HPA)控制器，根据预定义好的阈值及pod当前的资源利用率，自动控制在k8s集群中运行的pod数量(自动弹性水平自动伸缩).</p>
+</blockquote>
+<p><strong>HPA重要参数：</strong></p>
+<blockquote>
+<pre><code> 使用kube-controller-manager --help|grep &lt;options&gt;,进行查询
+</code></pre>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">##默认每隔15s，可以通过此选项修改查询metrics的资源使用
+--horizontal-pod-autoscaler-sync-period
+
+#缩容间隔周期，默认5分钟。
+--horizontal-pod-autoscaler-downscale-stabilization
+
+#HPA控制器同步pod副本数的间隔周期
+--horizontal-pod-autoscaler-sync-period
+
+#初始化延迟时间，在此时间内pod的CPU资源指标将不会生效，默认为5分钟。
+--horizontal-pod-autoscaler-cpu-initialization-period
+
+#用于设置pod准备时间，在此时间内的pod统统被认为未就绪及不采集数据,默认为30秒。
+--horizontal-pod-autoscaler-initial-readiness-delay
+
+#HPA控制器能容忍的数据差异(浮点数，默认为0.1)，即新的指标要与当前的阈值差异在0.1或以上，即要大于1+0.1&#x3D;1.1，或小于1-0.1&#x3D;0.9，比如阈值为CPU利用率50%,当前为80%,那么80&#x2F;50&#x3D;1.6 &gt; 1.1则会触发扩容，反之会缩容。
+--horizontal-pod-autoscaler-tolerance
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>即触发条件：avg(CurrentPodsConsumption) &#x2F; Target &gt;1.1 或 &lt;0.9&#x3D;把N个pod的数据相加后根据pod的数量计算出平均数除以阈值,大于1.1就扩容，小于0.9就缩容。<br> 计算公式：TargetNumOfPods &#x3D; ceil(sum(CurrentPodsCPUUtilization) &#x2F; Target) #ceil是一个向上取整的目的pod整数。</p>
+</blockquote>
+<pre><code>指标数据需要部署metrics-server，即HPA使用metrics-server作为数据源。
+https://github.com/kubernetes-sigs/metrics-server
+</code></pre>
+<blockquote>
+<p>在k8s 1.1引入HPA控制器，早期使用Heapster组件采集pod指标数据，在k8s 1.11版本开始使用Metrices Server完成数据采集，然后将采集到的数据通过API（Aggregated API，汇总API），例如metrics.k8s.io、custom.metrics.k8s.io、external.metrics.k8s.io，然后再把数据提供给HPA控制器进行查询，以实现基于某个资源利用率对pod进行扩缩容的目的。</p>
+</blockquote>
+<h2 id="根据cpu利用率伸缩"><a href="#根据cpu利用率伸缩" class="headerlink" title="根据cpu利用率伸缩"></a>根据cpu利用率伸缩</h2><p>创建deployment</p>
+<pre class="line-numbers language-none"><code class="language-none">apiVersion: apps&#x2F;v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        imagePullPolicy: IfNotPresent<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建hpa</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@master10 hpa]# kubectl autoscale deployment nginx --max&#x3D;5 --min&#x3D;2 --cpu-percent&#x3D;80 --dry-run&#x3D;client -o yaml &gt; hpa.yaml
+
+[root@master10 hpa]# vim hpa.yaml
+apiVersion: autoscaling&#x2F;v1
+kind: HorizontalPodAutoscaler
+metadata:
+  creationTimestamp: null
+  name: nginx
+spec:
+  maxReplicas: 5
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps&#x2F;v1
+    kind: Deployment
+    name: nginx
+  targetCPUUtilizationPercentage: 80
+status:
+  currentReplicas: 0
+  desiredReplicas: 0
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>要想看到HPA的TARGETS值必须满足2个条件：</p>
+<ol>
+<li>安装metric server</li>
+<li>为pod设定资源限制。</li>
+</ol>
+<p> 配置deployment 限制cpu和内存<br> 添加resource资源限制</p>
+<pre class="line-numbers language-none"><code class="language-none">kubectl edit deployments.apps nginx
+
+    spec:
+      containers:
+      - image: nginx
+        imagePullPolicy: IfNotPresent
+        name: nginx
+        resources:
+          limits:
+            memory: &quot;200m&quot;
+            cpu: &quot;100m&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>修改后，自动创建两个新的pod来替换旧的pod资源限制<img src="https://img-blog.csdnimg.cn/5171b5b5c996437ca7a575f7f8e62072.png" alt="请添加图片描述"><br>暴露deployment端口，创建svc</p>
+<pre class="line-numbers language-none"><code class="language-none">kubectl expose deployment nginx --port&#x3D;80 --target-port&#x3D;80<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><img src="https://img-blog.csdnimg.cn/cf96dab942e44a1285fe17304cf6a67c.png" alt="请添加图片描述"><br>apt-install httpd-tools 安装ab工具进行压力测试</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@master10 hpa]# ab -n 300000 -c 100 http:&#x2F;&#x2F;10.102.118.93&#x2F;
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><img src="https://img-blog.csdnimg.cn/ecd14c1de69643789dbdfcd1b024b4ff.png" alt="请添加图片描述"><br>容器cpu达到80%则hpa自动水平伸缩，扩容pods，直到扩容到cpu负载均匀到各个pods中，或者hpa扩容到最大pods数量。<br><img src="https://img-blog.csdnimg.cn/e64f2768643c4b0b8bd64f4c953a6696.png" alt="请添加图片描述"></p>
 ]]></content>
       <categories>
         <category>kubernetes</category>
@@ -2979,171 +3144,6 @@ root@k8sm1:<span class="token operator">/</span>etc/kubeasz<span class="token co
       </tags>
   </entry>
   <entry>
-    <title>kubernetesHPA使用及测试</title>
-    <url>/2022/07/05/kubernetes%20HPA%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%B5%8B%E8%AF%95/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="一、安装metrics-server"><a href="#一、安装metrics-server" class="headerlink" title="一、安装metrics server"></a>一、安装metrics server</h1><p>Metrics Server是Kubernetes内置的容器资源指标来源。<br>Metrics Server从node节点上的Kubelet收集资源指标,并通过Metrics API在 Kubernetes apiserver中公开指标数据,以供Horizontal Pod Autoscaler和Vertical Pod Autoscaler使用,也可以通过访问kubectl top node&#x2F;pod查看指标数据。<img src="https://img-blog.csdnimg.cn/a3e96f87611e480084feaa655ab276f3.png" alt="请添加图片描述"><br>使用Metrics-Server监控node和pod计算资源使用情况，并提供给第三方使用<br>下载地址：<br><a href="https://github.com/kubernetes-sigs/metrics-server/releases">gituhub地址</a><br><img src="https://img-blog.csdnimg.cn/8c8ea20d5edc45929afa2321bfd509b3.png" alt="请添加图片描述"><br>修改资源定义文件</p>
-<pre class="line-numbers language-none"><code class="language-none">root@master:~&#x2F;.kube# vim components.yaml<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>修改镜像位置:</p>
-<pre class="line-numbers language-none"><code class="language-none">image: k8s.gcr.io&#x2F;metrics-server&#x2F;metrics-server:v0.6.1
-修改为：
-registry.cn-hangzhou.aliyuncs.com&#x2F;liangxiaohui&#x2F;metrics-server:0.6.1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>部署：</p>
-<pre class="line-numbers language-none"><code class="language-none">kubectl apply -f components.yaml
-serviceaccount&#x2F;metrics-server created
-clusterrole.rbac.authorization.k8s.io&#x2F;system:aggregated-metrics-reader created
-clusterrole.rbac.authorization.k8s.io&#x2F;system:metrics-server created
-rolebinding.rbac.authorization.k8s.io&#x2F;metrics-server-auth-reader created
-clusterrolebinding.rbac.authorization.k8s.io&#x2F;metrics-server:system:auth-delegator created
-clusterrolebinding.rbac.authorization.k8s.io&#x2F;system:metrics-server created
-service&#x2F;metrics-server created
-deployment.apps&#x2F;metrics-server created
-apiservice.apiregistration.k8s.io&#x2F;v1beta1.metrics.k8s.io created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>验证：</p>
-<pre class="line-numbers language-none"><code class="language-none">root@deploy:~&#x2F;yaml# kubectl get pods -n kube-system 
-NAME                                       READY   STATUS    RESTARTS       AGE
-calico-kube-controllers-7ff47c8649-mnwjh   1&#x2F;1     Running   31 (69m ago)   21d
-calico-node-8pqgz                          1&#x2F;1     Running   21 (69m ago)   21d
-calico-node-bqbj8                          1&#x2F;1     Running   21 (69m ago)   21d
-calico-node-zjrwp                          1&#x2F;1     Running   21 (69m ago)   21d
-coredns-778797657-zct55                    1&#x2F;1     Running   18 (69m ago)   21d
-coredns-778797657-zlgfg                    1&#x2F;1     Running   14 (69m ago)   21d
-metrics-server-597c6f68ff-68hpv            1&#x2F;1     Running   0              63s
-root@deploy:~&#x2F;yaml# kubectl top nodes
-NAME            CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%   
-192.168.100.2   76m          3%     1073Mi          64%       
-192.168.100.5   141m         7%     1543Mi          20%       
-192.168.100.6   50m          2%     652Mi           8%<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>验证：查看可以采集pods和nodes节点资源</p>
-<pre class="line-numbers language-none"><code class="language-none">root@deploy:~&#x2F;yaml# kubectl top pod -n test
-NAME                                         CPU(cores)   MEMORY(bytes)   
-dubbo-consumer-deployment-b55c7cdff-k8lm7    1m           3Mi 
-dubbo-provider-deployment-5cc994c8b4-sd72z   1m           6Mi 
-dubboadmin-deployment-d98765c7-mwt5v         71m          717Mi 
-zookeeper1-654c4f44c-9cbqb                   1m           80Mi 
-zookeeper2-645fdbd686-rmwrl                  2m           81Mi
-zookeeper3-b879d8d8f-prhmb                   2m           74Mi<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h1 id="二、HPA自动伸缩"><a href="#二、HPA自动伸缩" class="headerlink" title="二、HPA自动伸缩"></a>二、HPA自动伸缩</h1><p>HorizontalPodAutoscaler（简称HPA）自动更新工作负载资源（例如Deployment或者StatefulSet），基于pod资源利用率横向调整pod副本数量。目的是自动扩缩工作负载以满足需求。</p>
-<p>根据当前pod的负载，动态调整pod副本数量，业务高峰期自动扩容pod的副本数以尽快相应pod的请求。</p>
-<p>水平扩缩意味着对增加的负载的响应是部署更多的Pods。这与“垂直（Vertical）”扩缩不同，对于Kubernetes，垂直扩缩意味着将更多资源（例如：内存或CPU）分配给已经为工作负载运行的Pod。</p>
-<p>如果负载减少，并且Pod的数量高于配置的最小值， HorizontalPodAutoscaler会指示工作负载资源（Deployment、StatefulSet或其他类似资源）缩减。</p>
-<p><strong>相关的其他动态伸缩控制器类型</strong></p>
-<blockquote>
-<p>垂直pod自动缩放器(VPA)：基于pod资源利用率，调整对单个pod的最大资源限制，不能与HPA同时使用<br>       集群伸缩(Cluster Autoscaler,CA)：基于集群中node资源使用情况，动态伸缩node节点，从而保证有CPU和内存资源用于创建pod。</p>
-</blockquote>
-<p> <strong>HPA控制器简介：</strong></p>
-<blockquote>
-<p> Horizontal Pod Autoscaling (HPA)控制器，根据预定义好的阈值及pod当前的资源利用率，自动控制在k8s集群中运行的pod数量(自动弹性水平自动伸缩).</p>
-</blockquote>
-<p><strong>HPA重要参数：</strong></p>
-<blockquote>
-<pre><code> 使用kube-controller-manager --help|grep &lt;options&gt;,进行查询
-</code></pre>
-</blockquote>
-<pre class="line-numbers language-none"><code class="language-none">##默认每隔15s，可以通过此选项修改查询metrics的资源使用
---horizontal-pod-autoscaler-sync-period
-
-#缩容间隔周期，默认5分钟。
---horizontal-pod-autoscaler-downscale-stabilization
-
-#HPA控制器同步pod副本数的间隔周期
---horizontal-pod-autoscaler-sync-period
-
-#初始化延迟时间，在此时间内pod的CPU资源指标将不会生效，默认为5分钟。
---horizontal-pod-autoscaler-cpu-initialization-period
-
-#用于设置pod准备时间，在此时间内的pod统统被认为未就绪及不采集数据,默认为30秒。
---horizontal-pod-autoscaler-initial-readiness-delay
-
-#HPA控制器能容忍的数据差异(浮点数，默认为0.1)，即新的指标要与当前的阈值差异在0.1或以上，即要大于1+0.1&#x3D;1.1，或小于1-0.1&#x3D;0.9，比如阈值为CPU利用率50%,当前为80%,那么80&#x2F;50&#x3D;1.6 &gt; 1.1则会触发扩容，反之会缩容。
---horizontal-pod-autoscaler-tolerance
-
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<blockquote>
-<p>即触发条件：avg(CurrentPodsConsumption) &#x2F; Target &gt;1.1 或 &lt;0.9&#x3D;把N个pod的数据相加后根据pod的数量计算出平均数除以阈值,大于1.1就扩容，小于0.9就缩容。<br> 计算公式：TargetNumOfPods &#x3D; ceil(sum(CurrentPodsCPUUtilization) &#x2F; Target) #ceil是一个向上取整的目的pod整数。</p>
-</blockquote>
-<pre><code>指标数据需要部署metrics-server，即HPA使用metrics-server作为数据源。
-https://github.com/kubernetes-sigs/metrics-server
-</code></pre>
-<blockquote>
-<p>在k8s 1.1引入HPA控制器，早期使用Heapster组件采集pod指标数据，在k8s 1.11版本开始使用Metrices Server完成数据采集，然后将采集到的数据通过API（Aggregated API，汇总API），例如metrics.k8s.io、custom.metrics.k8s.io、external.metrics.k8s.io，然后再把数据提供给HPA控制器进行查询，以实现基于某个资源利用率对pod进行扩缩容的目的。</p>
-</blockquote>
-<h2 id="根据cpu利用率伸缩"><a href="#根据cpu利用率伸缩" class="headerlink" title="根据cpu利用率伸缩"></a>根据cpu利用率伸缩</h2><p>创建deployment</p>
-<pre class="line-numbers language-none"><code class="language-none">apiVersion: apps&#x2F;v1
-kind: Deployment
-metadata:
-  labels:
-    app: nginx
-  name: nginx
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - image: nginx
-        name: nginx
-        imagePullPolicy: IfNotPresent<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>创建hpa</p>
-<pre class="line-numbers language-none"><code class="language-none">[root@master10 hpa]# kubectl autoscale deployment nginx --max&#x3D;5 --min&#x3D;2 --cpu-percent&#x3D;80 --dry-run&#x3D;client -o yaml &gt; hpa.yaml
-
-[root@master10 hpa]# vim hpa.yaml
-apiVersion: autoscaling&#x2F;v1
-kind: HorizontalPodAutoscaler
-metadata:
-  creationTimestamp: null
-  name: nginx
-spec:
-  maxReplicas: 5
-  minReplicas: 2
-  scaleTargetRef:
-    apiVersion: apps&#x2F;v1
-    kind: Deployment
-    name: nginx
-  targetCPUUtilizationPercentage: 80
-status:
-  currentReplicas: 0
-  desiredReplicas: 0
-<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>要想看到HPA的TARGETS值必须满足2个条件：</p>
-<ol>
-<li>安装metric server</li>
-<li>为pod设定资源限制。</li>
-</ol>
-<p> 配置deployment 限制cpu和内存<br> 添加resource资源限制</p>
-<pre class="line-numbers language-none"><code class="language-none">kubectl edit deployments.apps nginx
-
-    spec:
-      containers:
-      - image: nginx
-        imagePullPolicy: IfNotPresent
-        name: nginx
-        resources:
-          limits:
-            memory: &quot;200m&quot;
-            cpu: &quot;100m&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>修改后，自动创建两个新的pod来替换旧的pod资源限制<img src="https://img-blog.csdnimg.cn/5171b5b5c996437ca7a575f7f8e62072.png" alt="请添加图片描述"><br>暴露deployment端口，创建svc</p>
-<pre class="line-numbers language-none"><code class="language-none">kubectl expose deployment nginx --port&#x3D;80 --target-port&#x3D;80<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p><img src="https://img-blog.csdnimg.cn/cf96dab942e44a1285fe17304cf6a67c.png" alt="请添加图片描述"><br>apt-install httpd-tools 安装ab工具进行压力测试</p>
-<pre class="line-numbers language-none"><code class="language-none">[root@master10 hpa]# ab -n 300000 -c 100 http:&#x2F;&#x2F;10.102.118.93&#x2F;
-<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p><img src="https://img-blog.csdnimg.cn/ecd14c1de69643789dbdfcd1b024b4ff.png" alt="请添加图片描述"><br>容器cpu达到80%则hpa自动水平伸缩，扩容pods，直到扩容到cpu负载均匀到各个pods中，或者hpa扩容到最大pods数量。<br><img src="https://img-blog.csdnimg.cn/e64f2768643c4b0b8bd64f4c953a6696.png" alt="请添加图片描述"></p>
-]]></content>
-      <categories>
-        <category>kubernetes</category>
-      </categories>
-      <tags>
-        <tag>kubernetes</tag>
-        <tag>云原生</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>kubernetes-ETCD说明及常用命令</title>
     <url>/2022/06/23/kubernetes-ETCD/</url>
     <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><p><strong>etcd 是CoreOS团队于2013年6月发起的开源项目，它的目标是构建一个高可用的分布式键值数据库。etcd内部采用raft协议作为一致性算法，etcd基于Go语言实现</strong><br><strong>官方网址：</strong><br><a href="https://etcd.io/">https://etcd.io</a><br><strong>github地址：</strong><br><a href="https://github.com/etcd-io/etcd">https://github.com/etcd-io/etcd</a><br><strong>官方硬件推荐：</strong><br><a href="https://etcd.io/docs/v3.5/op-guide/hardware">https://etcd.io/docs/v3.5/op-guide/hardware</a></p>
@@ -3499,6 +3499,264 @@ PUT
       </tags>
   </entry>
   <entry>
+    <title>Kubernetes 安装coreDNS组件</title>
+    <url>/2022/06/21/kubernetes%E5%AE%89%E8%A3%85coreDNS%E7%BB%84%E4%BB%B6/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><p><strong>DNS  组件历史版本有skydns、kube-dns和coredns三个，k8s1.3版本之前使用skydns，之后的版本到1.17及之间的版本使用kube-dns，目前主要使用coredns，DNS组件用于解析k8s集群中service name 所对应的ip地址</strong><br>官方文档：<br><a href="https://coredns.io/">coreDNS官方文档</a><br><img src="https://img-blog.csdnimg.cn/e8734359c36a4a77a1e0b49fb5508ad2.jpeg#pic_center" alt="在这里插入图片描述"><br>获取官方包和yaml文件：<br><a href="https://github.com/kubernetes/kubernetes/releases">官方包和yaml文件地址</a></p>
+<p>github搜索kubernetes，找到相应的k8s版本，点击changelog<br><img src="https://img-blog.csdnimg.cn/7e44efaad8044d10bff334cbaac5e191.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/daa536e81e88483da10ff481699a183e.png#pic_center" alt="在这里插入图片描述"><br>需要下载这几个包：<br><img src="https://img-blog.csdnimg.cn/ec6df00401784d8d8bd63229aeefc81d.png#pic_center" alt="在这里插入图片描述"><br>client：<br><img src="https://img-blog.csdnimg.cn/ea43686726c54dd484345ac283aead39.png#pic_center" alt="在这里插入图片描述"><br>server：<br><img src="https://img-blog.csdnimg.cn/52564cd948c14e2f80a616705c694a3c.png#pic_center" alt="在这里插入图片描述"><br>node：<br><img src="https://img-blog.csdnimg.cn/7a26c8c3c55943dc8ac34a760d851287.png#pic_center" alt="在这里插入图片描述"><br>下载之后上传到master并解压，解压之后的目录结构如下图：<br><img src="https://img-blog.csdnimg.cn/f76cd1c43fca447ba3ea4dcf7164a55d.png#pic_center" alt="在这里插入图片描述"><br>相关yaml文件和插件目录，如dns，dashboard等<br><img src="https://img-blog.csdnimg.cn/10871876b5a74482b1932c64391669a7.png#pic_center" alt="在这里插入图片描述"><br>相关二进制文件：<br><img src="https://img-blog.csdnimg.cn/757ef1ccc20b482d8745f45b07249e8a.png#pic_center" alt="在这里插入图片描述"><br>coredns一般用coredns.yaml.base 修改<br><img src="https://img-blog.csdnimg.cn/3af66c8f609449f5b399b1bdf5b138dd.png#pic_center" alt="在这里插入图片描述"></p>
+<p>官方yaml文件：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># __MACHINE_GENERATED_WARNING__</span>
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+      kubernetes.io/cluster-service: <span class="token string">"true"</span>
+      addonmanager.kubernetes.io/mode: Reconcile
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+    addonmanager.kubernetes.io/mode: Reconcile
+  name: system:coredns
+rules:
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - endpoints
+  - services
+  - pods
+  - namespaces
+  verbs:
+  - list
+  - <span class="token function">watch</span>
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - nodes
+  verbs:
+  - get
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - list
+  - <span class="token function">watch</span>
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: <span class="token string">"true"</span>
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+    addonmanager.kubernetes.io/mode: EnsureExists
+  name: system:coredns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:coredns
+subjects:
+- kind: ServiceAccount
+  name: coredns
+  namespace: kube-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+      addonmanager.kubernetes.io/mode: EnsureExists
+data:
+  Corefile: <span class="token operator">|</span>
+    .:53 <span class="token punctuation">&#123;</span>
+    <span class="token comment">#errors:错误信息标准输出</span>
+        errors
+        <span class="token comment">#心跳检测，检测服务是否存活，在CoreDNS的http://localhost:8080/health端口提供CoreDNS服务的健康报告</span>
+        health <span class="token punctuation">&#123;</span>
+            lameduck 5s
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">#监听8181端口，当coredns的插件已经就绪时，访问该接口会返回200 OK</span>
+        ready
+        <span class="token comment">#需要修改的地方（__DNS__DOMAIN__），这个是在创建k8s集群时在/etc/kubeasz/clusters/k8s-cluster/hosts中指定的CLUSTER_DNS_DOMAIN="clusterdujie.local"</span>
+        kubernetes kubernetes  clusterdujie.local in-addr.arpa ip6.arpa <span class="token punctuation">&#123;</span>  
+
+            pods insecure
+            fallthrough in-addr.arpa ip6.arpa
+            ttl <span class="token number">30</span>
+        <span class="token punctuation">&#125;</span>
+        prometheus :9153
+        <span class="token comment">#forward就表示coredns解析不了的dns域名往哪里转发。可以指向公司内部dns地址</span>
+        forward <span class="token builtin class-name">.</span> <span class="token number">223.6</span>.6.6 <span class="token punctuation">&#123;</span>
+            max_concurrent <span class="token number">1000</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">#dns缓存，如果第一次请求，先去etcd查询再用coredns缓存30s，如果30s内再有请求访问直接通过缓存返回</span>
+        cache <span class="token number">30</span>
+        <span class="token comment">#检测域名解析是否有死循环，如coredns转发给内网DNS服务器，而内网服务器又转发给coredns，如果发现解析时死循环，则强制终止coredns进程（kubernetes会重建），如果不加该参数可能会导致coredns资源利用率非常高甚至卡死</span>
+        loop
+        <span class="token comment">#检测corefile是否更改，再重新编辑configmap配置后，默认2分钟会优雅的自动加载新的配置</span>
+        reload
+        <span class="token comment">#轮询DNS域名解析，如果一个域名存在多个记录则轮询解析</span>
+        loadbalance
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">#把myserver。online的请求转发到下面的地址</span>
+    myserver.online <span class="token punctuation">&#123;</span>
+      forward <span class="token builtin class-name">.</span> <span class="token number">192.168</span>.17.131:53
+    <span class="token punctuation">&#125;</span>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: <span class="token string">"true"</span>
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/name: <span class="token string">"CoreDNS"</span>
+spec:
+  <span class="token comment"># replicas: not specified here:</span>
+  <span class="token comment"># 1. In order to make Addon Manager do not reconcile this replicas parameter.</span>
+  <span class="token comment"># 2. Default is 1.</span>
+  <span class="token comment"># 3. Will be tuned in real time if DNS horizontal auto-scaling is turned on.</span>
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: <span class="token number">1</span>
+  selector:
+    matchLabels:
+      k8s-app: kube-dns
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-dns
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      priorityClassName: system-cluster-critical
+      serviceAccountName: coredns
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: <span class="token number">100</span>
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: k8s-app
+                    operator: In
+                    values: <span class="token punctuation">[</span><span class="token string">"kube-dns"</span><span class="token punctuation">]</span>
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+        - key: <span class="token string">"CriticalAddonsOnly"</span>
+          operator: <span class="token string">"Exists"</span>
+      nodeSelector:
+        kubernetes.io/os: linux
+      containers:
+      - name: coredns
+      <span class="token comment">#镜像地址默认是谷歌的，需要更换成国内镜像源或者官方hub仓库源，下面可以看图</span>
+        image:  coredns/coredns:1.8.6
+        imagePullPolicy: IfNotPresent
+        resources:
+        <span class="token comment">#限制coredns可以使用多少资源</span>
+          limits:
+            memory: 200Mi  <span class="token comment">#200毫核 ，一般生产会写2000Mi 或者直接写2</span>
+          requests:
+            cpu: 100m
+            memory: 70Mi
+        args: <span class="token punctuation">[</span> <span class="token string">"-conf"</span>, <span class="token string">"/etc/coredns/Corefile"</span> <span class="token punctuation">]</span>
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/coredns
+          readOnly: <span class="token boolean">true</span>
+        ports:
+        - containerPort: <span class="token number">53</span>
+          name: dns
+          protocol: UDP
+        - containerPort: <span class="token number">53</span>
+          name: dns-tcp
+          protocol: TCP
+        - containerPort: <span class="token number">9153</span>
+          name: metrics
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: <span class="token number">8080</span>
+            scheme: HTTP
+          initialDelaySeconds: <span class="token number">60</span>
+          timeoutSeconds: <span class="token number">5</span>
+          successThreshold: <span class="token number">1</span>
+          failureThreshold: <span class="token number">5</span>
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: <span class="token number">8181</span>
+            scheme: HTTP
+        securityContext:
+          allowPrivilegeEscalation: <span class="token boolean">false</span>
+          capabilities:
+            add:
+            - NET_BIND_SERVICE
+            drop:
+            - all
+          readOnlyRootFilesystem: <span class="token boolean">true</span>
+      dnsPolicy: Default
+      volumes:
+        - name: config-volume
+          configMap:
+            name: coredns
+            items:
+            - key: Corefile
+              path: Corefile
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-dns
+  namespace: kube-system
+  annotations:
+    prometheus.io/port: <span class="token string">"9153"</span>
+    prometheus.io/scrape: <span class="token string">"true"</span>
+  labels:
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: <span class="token string">"true"</span>
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/name: <span class="token string">"CoreDNS"</span>
+spec:
+  selector:
+    k8s-app: kube-dns
+    <span class="token comment">#clusterIP：dns地址，这个地址可以创建一个pod然后查看pod的/etc/resolv.conf的namespaces查看，如下面</span>
+  clusterIP: <span class="token number">10.100</span>.0.2
+  ports:
+  - name: dns
+    port: <span class="token number">53</span>
+    protocol: UDP
+  - name: dns-tcp
+    port: <span class="token number">53</span>
+    protocol: TCP
+  - name: metrics
+    port: <span class="token number">9153</span>
+    protocol: TCP<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>查看coredns的svc地址，上面的10.100.0.1是kubernetes的api的地址，k8s内部会将第一个地址分配给apiserver<br><img src="https://img-blog.csdnimg.cn/230ef23b6bfe40d59e8e224c657a995e.png#pic_center" alt="在这里插入图片描述"><br>镜像更换：</p>
+<p><img src="https://img-blog.csdnimg.cn/d484214680ba4da492a4757d042e4c3a.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/19bfc52cd197427481ba6ce9237e4192.png#pic_center" alt="在这里插入图片描述"><br>修改完成后apply -f coredns.yaml，启动成功后进入pod查看是否能够进行域名解析测试<br><img src="https://img-blog.csdnimg.cn/3648c3e121f44cc596498d26d33d6182.jpeg#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/0e9cd09ba5d44c98bf0ce809938251ec.jpeg#pic_center" alt="在这里插入图片描述"><br>nslookup测试该域名是否可以解析<br><img src="https://img-blog.csdnimg.cn/cf1e835147824bcd83c6595b74fbb36e.jpeg#pic_center" alt="在这里插入图片描述"><br>一般会将coredns多副本，保证业务解析正常，会以轮询的方式请求，或者修改limit占用资源。一般cpu为2核，内存为3个Gi就够了，如果不够就多副本<br><img src="https://img-blog.csdnimg.cn/60bb06c121a7427cb1ffe1d5351fe7b9.jpeg#pic_center" alt="在这里插入图片描述"><br>k8s域名固定格式：<br> ping kube-dns.kube-system.svc.clusterdujie.local<br> 名称.namespace.svc.域名后缀<br> <img src="https://img-blog.csdnimg.cn/f9e448b76af54f17b324064b4f5ac91e.jpeg#pic_center" alt="在这里插入图片描述"><br><strong>coredns性能优化：</strong><br>1、（pod级别缓存）在pod中添加dnsmasq缓存，优缺点：pod自己缓存自己的，缓存不共享是隔离的，每个容器中都需要添加域名解析记录<br>2、（node级别缓存）缓存放在node上，localdns，pod第一次宿主机请求的时候，宿主机向coredns请求解析，获取解析后缓存到node，下次pod再请求直接通过node节点的localdns直接返回给pod</p>
+<p>[root@master01 ~]# vim &#x2F;etc&#x2F;kubeasz&#x2F;clusters&#x2F;k8s-cluster&#x2F;config.yml<br><img src="https://img-blog.csdnimg.cn/909e03bb1caa4127b595dad46d958cdc.jpeg#pic_center" alt="在这里插入图片描述"><br>3、（coredns级别缓存）在coredns容器里，修改缓存时间，默认30s，可以调成180s，不过需要coredns内存比较大，，缓存时间设置不要太长也不要太短</p>
+]]></content>
+      <categories>
+        <category>kubernetes</category>
+      </categories>
+      <tags>
+        <tag>kubernetes</tag>
+        <tag>云原生</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>kubernetes常用资源——secret</title>
     <url>/2022/07/03/secret/</url>
     <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="secret"><a href="#secret" class="headerlink" title="secret"></a>secret</h1><p>Secret 的功能类似于configmap给pod提供额外的配置信息，但是secret是一种包含少量敏感信息例如密码，令牌或秘钥的对象</p>
@@ -3787,285 +4045,6 @@ vVKqxA6M1+5+O9TbxeufFUbfV14vzncKSlJ+gAoIcLemHMZRELQ<span class="token operator">
       </tags>
   </entry>
   <entry>
-    <title>使用阿里云oss静态页面部署服务</title>
-    <url>/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h3 id="一、使用阿里云OSS静态页面部署公司服务"><a href="#一、使用阿里云OSS静态页面部署公司服务" class="headerlink" title="一、使用阿里云OSS静态页面部署公司服务"></a>一、使用阿里云OSS静态页面部署公司服务</h3><p>场景：因公司新业务需要将项目部署在阿里云oss上，并配置域名解析</p>
-<ol>
-<li><p><strong>创建bucket桶</strong><br><img src="/images/pasted-4.png" alt="bucket"><br>注意：读写权限选择公共读<br><img src="/images/pasted-5.png" alt="bucket2"></p>
-</li>
-<li><p><strong>将bucket上传到bucket中</strong><br><img src="/images/pasted-6.png" alt="upload successful"></p>
-</li>
-<li><p><strong>配置静态页面</strong><br><img src="/images/pasted-7.png" alt="upload successful"></p>
-</li>
-</ol>
-<p><strong>如果不配置静态页面会无法访问，注意要添加默认404规则，如果不添加则会报下面的错误：</strong></p>
-<p><img src="/images/pasted-9.png" alt="upload successful"><br> <strong>添加域名解析</strong></p>
-<p><strong>查看oss外网访问域名,在域名解析界面将二级域名指向oss的外网域名，如果公司有内网dns则需要在内网dns中也添加相关记录</strong></p>
-<p><img src="/images/pasted-10.png" alt="upload successful"></p>
-]]></content>
-      <tags>
-        <tag>阿里云</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Kubernetes 安装coreDNS组件</title>
-    <url>/2022/06/21/kubernetes%E5%AE%89%E8%A3%85coreDNS%E7%BB%84%E4%BB%B6/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><p><strong>DNS  组件历史版本有skydns、kube-dns和coredns三个，k8s1.3版本之前使用skydns，之后的版本到1.17及之间的版本使用kube-dns，目前主要使用coredns，DNS组件用于解析k8s集群中service name 所对应的ip地址</strong><br>官方文档：<br><a href="https://coredns.io/">coreDNS官方文档</a><br><img src="https://img-blog.csdnimg.cn/e8734359c36a4a77a1e0b49fb5508ad2.jpeg#pic_center" alt="在这里插入图片描述"><br>获取官方包和yaml文件：<br><a href="https://github.com/kubernetes/kubernetes/releases">官方包和yaml文件地址</a></p>
-<p>github搜索kubernetes，找到相应的k8s版本，点击changelog<br><img src="https://img-blog.csdnimg.cn/7e44efaad8044d10bff334cbaac5e191.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/daa536e81e88483da10ff481699a183e.png#pic_center" alt="在这里插入图片描述"><br>需要下载这几个包：<br><img src="https://img-blog.csdnimg.cn/ec6df00401784d8d8bd63229aeefc81d.png#pic_center" alt="在这里插入图片描述"><br>client：<br><img src="https://img-blog.csdnimg.cn/ea43686726c54dd484345ac283aead39.png#pic_center" alt="在这里插入图片描述"><br>server：<br><img src="https://img-blog.csdnimg.cn/52564cd948c14e2f80a616705c694a3c.png#pic_center" alt="在这里插入图片描述"><br>node：<br><img src="https://img-blog.csdnimg.cn/7a26c8c3c55943dc8ac34a760d851287.png#pic_center" alt="在这里插入图片描述"><br>下载之后上传到master并解压，解压之后的目录结构如下图：<br><img src="https://img-blog.csdnimg.cn/f76cd1c43fca447ba3ea4dcf7164a55d.png#pic_center" alt="在这里插入图片描述"><br>相关yaml文件和插件目录，如dns，dashboard等<br><img src="https://img-blog.csdnimg.cn/10871876b5a74482b1932c64391669a7.png#pic_center" alt="在这里插入图片描述"><br>相关二进制文件：<br><img src="https://img-blog.csdnimg.cn/757ef1ccc20b482d8745f45b07249e8a.png#pic_center" alt="在这里插入图片描述"><br>coredns一般用coredns.yaml.base 修改<br><img src="https://img-blog.csdnimg.cn/3af66c8f609449f5b399b1bdf5b138dd.png#pic_center" alt="在这里插入图片描述"></p>
-<p>官方yaml文件：</p>
-<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># __MACHINE_GENERATED_WARNING__</span>
-
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: coredns
-  namespace: kube-system
-  labels:
-      kubernetes.io/cluster-service: <span class="token string">"true"</span>
-      addonmanager.kubernetes.io/mode: Reconcile
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    kubernetes.io/bootstrapping: rbac-defaults
-    addonmanager.kubernetes.io/mode: Reconcile
-  name: system:coredns
-rules:
-- apiGroups:
-  - <span class="token string">""</span>
-  resources:
-  - endpoints
-  - services
-  - pods
-  - namespaces
-  verbs:
-  - list
-  - <span class="token function">watch</span>
-- apiGroups:
-  - <span class="token string">""</span>
-  resources:
-  - nodes
-  verbs:
-  - get
-- apiGroups:
-  - discovery.k8s.io
-  resources:
-  - endpointslices
-  verbs:
-  - list
-  - <span class="token function">watch</span>
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  annotations:
-    rbac.authorization.kubernetes.io/autoupdate: <span class="token string">"true"</span>
-  labels:
-    kubernetes.io/bootstrapping: rbac-defaults
-    addonmanager.kubernetes.io/mode: EnsureExists
-  name: system:coredns
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:coredns
-subjects:
-- kind: ServiceAccount
-  name: coredns
-  namespace: kube-system
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: coredns
-  namespace: kube-system
-  labels:
-      addonmanager.kubernetes.io/mode: EnsureExists
-data:
-  Corefile: <span class="token operator">|</span>
-    .:53 <span class="token punctuation">&#123;</span>
-    <span class="token comment">#errors:错误信息标准输出</span>
-        errors
-        <span class="token comment">#心跳检测，检测服务是否存活，在CoreDNS的http://localhost:8080/health端口提供CoreDNS服务的健康报告</span>
-        health <span class="token punctuation">&#123;</span>
-            lameduck 5s
-        <span class="token punctuation">&#125;</span>
-        <span class="token comment">#监听8181端口，当coredns的插件已经就绪时，访问该接口会返回200 OK</span>
-        ready
-        <span class="token comment">#需要修改的地方（__DNS__DOMAIN__），这个是在创建k8s集群时在/etc/kubeasz/clusters/k8s-cluster/hosts中指定的CLUSTER_DNS_DOMAIN="clusterdujie.local"</span>
-        kubernetes kubernetes  clusterdujie.local in-addr.arpa ip6.arpa <span class="token punctuation">&#123;</span>  
-
-            pods insecure
-            fallthrough in-addr.arpa ip6.arpa
-            ttl <span class="token number">30</span>
-        <span class="token punctuation">&#125;</span>
-        prometheus :9153
-        <span class="token comment">#forward就表示coredns解析不了的dns域名往哪里转发。可以指向公司内部dns地址</span>
-        forward <span class="token builtin class-name">.</span> <span class="token number">223.6</span>.6.6 <span class="token punctuation">&#123;</span>
-            max_concurrent <span class="token number">1000</span>
-        <span class="token punctuation">&#125;</span>
-        <span class="token comment">#dns缓存，如果第一次请求，先去etcd查询再用coredns缓存30s，如果30s内再有请求访问直接通过缓存返回</span>
-        cache <span class="token number">30</span>
-        <span class="token comment">#检测域名解析是否有死循环，如coredns转发给内网DNS服务器，而内网服务器又转发给coredns，如果发现解析时死循环，则强制终止coredns进程（kubernetes会重建），如果不加该参数可能会导致coredns资源利用率非常高甚至卡死</span>
-        loop
-        <span class="token comment">#检测corefile是否更改，再重新编辑configmap配置后，默认2分钟会优雅的自动加载新的配置</span>
-        reload
-        <span class="token comment">#轮询DNS域名解析，如果一个域名存在多个记录则轮询解析</span>
-        loadbalance
-    <span class="token punctuation">&#125;</span>
-    <span class="token comment">#把myserver。online的请求转发到下面的地址</span>
-    myserver.online <span class="token punctuation">&#123;</span>
-      forward <span class="token builtin class-name">.</span> <span class="token number">192.168</span>.17.131:53
-    <span class="token punctuation">&#125;</span>
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: coredns
-  namespace: kube-system
-  labels:
-    k8s-app: kube-dns
-    kubernetes.io/cluster-service: <span class="token string">"true"</span>
-    addonmanager.kubernetes.io/mode: Reconcile
-    kubernetes.io/name: <span class="token string">"CoreDNS"</span>
-spec:
-  <span class="token comment"># replicas: not specified here:</span>
-  <span class="token comment"># 1. In order to make Addon Manager do not reconcile this replicas parameter.</span>
-  <span class="token comment"># 2. Default is 1.</span>
-  <span class="token comment"># 3. Will be tuned in real time if DNS horizontal auto-scaling is turned on.</span>
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: <span class="token number">1</span>
-  selector:
-    matchLabels:
-      k8s-app: kube-dns
-  template:
-    metadata:
-      labels:
-        k8s-app: kube-dns
-    spec:
-      securityContext:
-        seccompProfile:
-          type: RuntimeDefault
-      priorityClassName: system-cluster-critical
-      serviceAccountName: coredns
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: <span class="token number">100</span>
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                  - key: k8s-app
-                    operator: In
-                    values: <span class="token punctuation">[</span><span class="token string">"kube-dns"</span><span class="token punctuation">]</span>
-              topologyKey: kubernetes.io/hostname
-      tolerations:
-        - key: <span class="token string">"CriticalAddonsOnly"</span>
-          operator: <span class="token string">"Exists"</span>
-      nodeSelector:
-        kubernetes.io/os: linux
-      containers:
-      - name: coredns
-      <span class="token comment">#镜像地址默认是谷歌的，需要更换成国内镜像源或者官方hub仓库源，下面可以看图</span>
-        image:  coredns/coredns:1.8.6
-        imagePullPolicy: IfNotPresent
-        resources:
-        <span class="token comment">#限制coredns可以使用多少资源</span>
-          limits:
-            memory: 200Mi  <span class="token comment">#200毫核 ，一般生产会写2000Mi 或者直接写2</span>
-          requests:
-            cpu: 100m
-            memory: 70Mi
-        args: <span class="token punctuation">[</span> <span class="token string">"-conf"</span>, <span class="token string">"/etc/coredns/Corefile"</span> <span class="token punctuation">]</span>
-        volumeMounts:
-        - name: config-volume
-          mountPath: /etc/coredns
-          readOnly: <span class="token boolean">true</span>
-        ports:
-        - containerPort: <span class="token number">53</span>
-          name: dns
-          protocol: UDP
-        - containerPort: <span class="token number">53</span>
-          name: dns-tcp
-          protocol: TCP
-        - containerPort: <span class="token number">9153</span>
-          name: metrics
-          protocol: TCP
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: <span class="token number">8080</span>
-            scheme: HTTP
-          initialDelaySeconds: <span class="token number">60</span>
-          timeoutSeconds: <span class="token number">5</span>
-          successThreshold: <span class="token number">1</span>
-          failureThreshold: <span class="token number">5</span>
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: <span class="token number">8181</span>
-            scheme: HTTP
-        securityContext:
-          allowPrivilegeEscalation: <span class="token boolean">false</span>
-          capabilities:
-            add:
-            - NET_BIND_SERVICE
-            drop:
-            - all
-          readOnlyRootFilesystem: <span class="token boolean">true</span>
-      dnsPolicy: Default
-      volumes:
-        - name: config-volume
-          configMap:
-            name: coredns
-            items:
-            - key: Corefile
-              path: Corefile
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kube-dns
-  namespace: kube-system
-  annotations:
-    prometheus.io/port: <span class="token string">"9153"</span>
-    prometheus.io/scrape: <span class="token string">"true"</span>
-  labels:
-    k8s-app: kube-dns
-    kubernetes.io/cluster-service: <span class="token string">"true"</span>
-    addonmanager.kubernetes.io/mode: Reconcile
-    kubernetes.io/name: <span class="token string">"CoreDNS"</span>
-spec:
-  selector:
-    k8s-app: kube-dns
-    <span class="token comment">#clusterIP：dns地址，这个地址可以创建一个pod然后查看pod的/etc/resolv.conf的namespaces查看，如下面</span>
-  clusterIP: <span class="token number">10.100</span>.0.2
-  ports:
-  - name: dns
-    port: <span class="token number">53</span>
-    protocol: UDP
-  - name: dns-tcp
-    port: <span class="token number">53</span>
-    protocol: TCP
-  - name: metrics
-    port: <span class="token number">9153</span>
-    protocol: TCP<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>查看coredns的svc地址，上面的10.100.0.1是kubernetes的api的地址，k8s内部会将第一个地址分配给apiserver<br><img src="https://img-blog.csdnimg.cn/230ef23b6bfe40d59e8e224c657a995e.png#pic_center" alt="在这里插入图片描述"><br>镜像更换：</p>
-<p><img src="https://img-blog.csdnimg.cn/d484214680ba4da492a4757d042e4c3a.png#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/19bfc52cd197427481ba6ce9237e4192.png#pic_center" alt="在这里插入图片描述"><br>修改完成后apply -f coredns.yaml，启动成功后进入pod查看是否能够进行域名解析测试<br><img src="https://img-blog.csdnimg.cn/3648c3e121f44cc596498d26d33d6182.jpeg#pic_center" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/0e9cd09ba5d44c98bf0ce809938251ec.jpeg#pic_center" alt="在这里插入图片描述"><br>nslookup测试该域名是否可以解析<br><img src="https://img-blog.csdnimg.cn/cf1e835147824bcd83c6595b74fbb36e.jpeg#pic_center" alt="在这里插入图片描述"><br>一般会将coredns多副本，保证业务解析正常，会以轮询的方式请求，或者修改limit占用资源。一般cpu为2核，内存为3个Gi就够了，如果不够就多副本<br><img src="https://img-blog.csdnimg.cn/60bb06c121a7427cb1ffe1d5351fe7b9.jpeg#pic_center" alt="在这里插入图片描述"><br>k8s域名固定格式：<br> ping kube-dns.kube-system.svc.clusterdujie.local<br> 名称.namespace.svc.域名后缀<br> <img src="https://img-blog.csdnimg.cn/f9e448b76af54f17b324064b4f5ac91e.jpeg#pic_center" alt="在这里插入图片描述"><br><strong>coredns性能优化：</strong><br>1、（pod级别缓存）在pod中添加dnsmasq缓存，优缺点：pod自己缓存自己的，缓存不共享是隔离的，每个容器中都需要添加域名解析记录<br>2、（node级别缓存）缓存放在node上，localdns，pod第一次宿主机请求的时候，宿主机向coredns请求解析，获取解析后缓存到node，下次pod再请求直接通过node节点的localdns直接返回给pod</p>
-<p>[root@master01 ~]# vim &#x2F;etc&#x2F;kubeasz&#x2F;clusters&#x2F;k8s-cluster&#x2F;config.yml<br><img src="https://img-blog.csdnimg.cn/909e03bb1caa4127b595dad46d958cdc.jpeg#pic_center" alt="在这里插入图片描述"><br>3、（coredns级别缓存）在coredns容器里，修改缓存时间，默认30s，可以调成180s，不过需要coredns内存比较大，，缓存时间设置不要太长也不要太短</p>
-]]></content>
-      <categories>
-        <category>kubernetes</category>
-      </categories>
-      <tags>
-        <tag>kubernetes</tag>
-        <tag>云原生</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>基于centos7的Openssh版本升级</title>
     <url>/2022/08/04/%E5%9F%BA%E4%BA%8Ecentos7%E7%9A%84Openssh%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/</url>
     <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><hr>
@@ -4120,6 +4099,27 @@ OpenSSH_9<span class="token punctuation">.</span>0p1<span class="token punctuati
       </categories>
       <tags>
         <tag>linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>使用阿里云oss静态页面部署服务</title>
+    <url>/2022/08/02/%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91oss%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2%E9%83%A8%E7%BD%B2%E6%9C%8D%E5%8A%A1/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h3 id="一、使用阿里云OSS静态页面部署公司服务"><a href="#一、使用阿里云OSS静态页面部署公司服务" class="headerlink" title="一、使用阿里云OSS静态页面部署公司服务"></a>一、使用阿里云OSS静态页面部署公司服务</h3><p>场景：因公司新业务需要将项目部署在阿里云oss上，并配置域名解析</p>
+<ol>
+<li><p><strong>创建bucket桶</strong><br><img src="/images/pasted-4.png" alt="bucket"><br>注意：读写权限选择公共读<br><img src="/images/pasted-5.png" alt="bucket2"></p>
+</li>
+<li><p><strong>将bucket上传到bucket中</strong><br><img src="/images/pasted-6.png" alt="upload successful"></p>
+</li>
+<li><p><strong>配置静态页面</strong><br><img src="/images/pasted-7.png" alt="upload successful"></p>
+</li>
+</ol>
+<p><strong>如果不配置静态页面会无法访问，注意要添加默认404规则，如果不添加则会报下面的错误：</strong></p>
+<p><img src="/images/pasted-9.png" alt="upload successful"><br> <strong>添加域名解析</strong></p>
+<p><strong>查看oss外网访问域名,在域名解析界面将二级域名指向oss的外网域名，如果公司有内网dns则需要在内网dns中也添加相关记录</strong></p>
+<p><img src="/images/pasted-10.png" alt="upload successful"></p>
+]]></content>
+      <tags>
+        <tag>阿里云</tag>
       </tags>
   </entry>
   <entry>
