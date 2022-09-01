@@ -1,3 +1,4 @@
+http://dycloudnavite.love/2019/10/10/centos7%E7%94%9F%E6%88%90%E9%9A%8F%E6%9C%BA%E6%95%B0/
 http://dycloudnavite.love/2020/10/15/ab%E5%91%BD%E4%BB%A4%E5%8E%8B%E6%B5%8B/
 http://dycloudnavite.love/2022/07/05/kubernetes%20HPA%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%B5%8B%E8%AF%95/
 http://dycloudnavite.love/2022/07/03/Volume%E5%AD%98%E5%82%A8%E5%8D%B7/

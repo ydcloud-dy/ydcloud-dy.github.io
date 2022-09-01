@@ -4453,4 +4453,61 @@ Percentage of the requests served within a certain time (ms)
         <tag>linux</tag>
       </tags>
   </entry>
+  <entry>
+    <title>生成随机数</title>
+    <url>/2019/10/10/centos7%E7%94%9F%E6%88%90%E9%9A%8F%E6%9C%BA%E6%95%B0/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><p>1、通过系统环境变量($RANDOM)实现</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@i-1pbhgm8j ~]# echo $RANDOM | md5sum | cut -c 5-11
+3edb8e2
+urandomNum&#x3D;&#96;tr -dc &#39;a-z&#39; &lt;&#x2F;dev&#x2F;urandom | head -c 10; echo&#96;
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>2、通过openssl产生随机数</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@i-1pbhgm8j ~]# openssl rand -base64 30
+K2M6kqd&#x2F;&#x2F;nWnOcn0l+jZdQPLhojKwuiqKJmZjj5H<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>这里后面的数字30是产生随机数的位数</p>
+<p>3、通过时间data产生随机数</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@i-1pbhgm8j ~]# date +%s%N
+1507534201869428907<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+<p>4、通过&#x2F;dev&#x2F;urandom配合chksum生成随机数</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@i-1pbhgm8j ~]# head &#x2F;dev&#x2F;urandom | cksum
+3529852297 1731<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>5、通过UUID生成产生随机数</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@i-1pbhgm8j ~]# cat &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;random&#x2F;uuid 
+1a2f4db2-5ec6-46b1-8c08-f0fdf17e76eb
+[root@i-1pbhgm8j ~]# cat &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;random&#x2F;uuid 
+6c2be32b-6f8c-4cdc-9f6f-224a3d966f7a
+[root@i-1pbhgm8j ~]# cat &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;random&#x2F;uuid 
+4a11c9e6-0b42-4401-bad3-f492dcb28baa<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>6、使用expect附带的mkpasswd生成随机数</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@i-1pbhgm8j ~]# yum install expect -y
+
+[root@i-1pbhgm8j ~]# mkpasswd -l 10 -d 4 -c 2 -C 2 -s 1
+y78UF&#x2F;o93b
+[root@i-1pbhgm8j ~]# mkpasswd -l 10 -d 4 -c 2 -C 2 -s 1
+hELs1(n297
+[root@i-1pbhgm8j ~]# mkpasswd -l 10 -d 4 -c 2 -C 2 -s 1
+gWC$s1239z
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>小结：<br>-l 指定密码长度<br>-d 指定密码中数字的数量<br>-c 指定密码中小写字母的数量<br>-C 指定密码中大写字母的数量<br>-s 指定密码中特殊字符的数量<br>生成1-39内的随机数</p>
+<pre class="line-numbers language-none"><code class="language-none">#!&#x2F;bin&#x2F;bash
+num&#x3D;$(date +%N);
+a&#x3D;&#96;expr $num % 39 &#96;
+b&#x3D;&#96;expr $a + 1 &#96;
+echo $b<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>centos</tag>
+      </tags>
+  </entry>
 </search>
