@@ -4510,4 +4510,123 @@ echo $b<span aria-hidden="true" class="line-numbers-rows"><span></span><span></s
         <tag>centos</tag>
       </tags>
   </entry>
+  <entry>
+    <title>生成随机数</title>
+    <url>/2019/06/10/%E6%89%A9%E5%AE%B9%E6%A0%B9%E5%88%86%E5%8C%BA/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><p>基本的逻辑卷管理概念：</p>
+<blockquote>
+<p>PV（Physical Volume）- 物理卷<br>物理卷在逻辑卷管理中处于最底层，它可以是实际物理硬盘上的分区，也可以是整个物理硬盘，也可以是raid设备。</p>
+</blockquote>
+<blockquote>
+<p>VG（Volumne Group）- 卷组<br>卷组建立在物理卷之上，一个卷组中至少要包括一个物理卷，在卷组建立之后可动态添加物理卷到卷组中。一个逻辑卷管理系统工程中可以只有一个卷组，也可以拥有多个卷组。</p>
+</blockquote>
+<blockquote>
+<p>PE（Physical Extent）- 物理块</p>
+<p>LVM 默认使用4MB的PE区块，而LVM的LV最多仅能含有65534个PE (lvm1<br>的格式)，因此默认的LVM的LV最大容量为4M*65534&#x2F;(1024M&#x2F;G)&#x3D;256G。PE是整个LVM<br>最小的储存区块，也就是说，其实我们的资料都是由写入PE 来处理的。简单的说，这个PE 就有点像文件系统里面的block 大小。所以调整PE<br>会影响到LVM 的最大容量！不过，在 CentOS 6.x 以后，由于直接使用 lvm2 的各项格式功能，因此这个限制已经不存在了。</p>
+</blockquote>
+<h1 id="一、增加新硬盘并分区"><a href="#一、增加新硬盘并分区" class="headerlink" title="一、增加新硬盘并分区"></a>一、增加新硬盘并分区</h1><pre class="line-numbers language-none"><code class="language-none">[root@test ~]# df -h
+
+文件系统                                                         容量    已用   可用  已用%  挂载点
+
+&#x2F;dev&#x2F;mapper&#x2F;centos_test2-root                        28G     14G   15G    48%    &#x2F;
+
+devtmpfs                                                         1.9G     0    1.9G    0%   
+
+ &#x2F;dev&#x2F;dev&#x2F;xvda1                                           497M    267M  231M   54%    &#x2F;boot
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-none"><code class="language-none">[root@test ~]# fdisk -l            #新添加一块100G硬盘并查看是否已有新磁盘&#x2F;dev&#x2F;sdb
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<pre class="line-numbers language-none"><code class="language-none">[root@test ~]# fdisk &#x2F;dev&#x2F;sdb     #对新磁盘进行分区
+
+在fdisk的交互模式中，依次输入：
+
+n  　　　　--创建新分区
+
+p  　　　　--创建主分区
+
+分区号  　--默认分区编号 1
+
+&lt;回车&gt;  　--默认起始扇区位置。
+
+&lt;回车&gt;  　--默认结束扇区位置。 如果要把100G全部分给这个分区，直接两次回车。如果分60G输入+60GFDISK<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-none"><code class="language-none">t 　　　　--修改分区类型
+8e　　　　--修改为LVM
+p　　　　 --打印分区查看类型
+w　　     --保存<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这样就把整个磁盘分成了一个区。再看一下现有磁盘情况：</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@test ~]# fdisk -l
+
+已经多出了一个新分区：
+
+ Device Boot      Start         End      Blocks     Id  System
+
+&#x2F;dev&#x2F;sdb1        2048     6291455     3144704       8e  Linux
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h1 id="二、初始化分区-加入卷组"><a href="#二、初始化分区-加入卷组" class="headerlink" title="二、初始化分区,加入卷组"></a>二、初始化分区,加入卷组</h1><ol>
+<li>创建PV</li>
+</ol>
+<pre class="line-numbers language-none"><code class="language-none">[root@test ~]#pvcreate &#x2F;dev&#x2F;sdb1  
+
+有可能会提示是否擦除xfs签名，我选了y：
+
+WARNING: xfs signature detected on &#x2F;dev&#x2F;sdb1 at offset 0. Wipe it? [y&#x2F;n] y
+
+  Wiping xfs signature on &#x2F;dev&#x2F;sdb1.
+
+  Physical volume &quot;&#x2F;dev&#x2F;sdb1&quot; successfully created
+  查看结果：
+
+[root@test ~]#pvdisplay<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ol start="2">
+<li>查看卷组,并将初始化的分区加入到虚拟卷组</li>
+</ol>
+<pre class="line-numbers language-none"><code class="language-none">为卷组&quot;centos&quot;添加新的物理卷sdb1增加卷组的容量.&quot;centos&quot;是vgdisplay命令查到的卷分组名：
+
+[root@test ~]#vgextend centos &#x2F;dev&#x2F;sdb1
+
+下面查看一下逻辑卷：
+
+# lvdisplay
+
+可以看到&#x2F;dev&#x2F;centos&#x2F;root目前的LV Size是1000MiB。
+
+下面扩展逻辑卷&#x2F;dev&#x2F;centos&#x2F;root:
+
+# lvextend -L +60G &#x2F;dev&#x2F;centos&#x2F;root
+
+注：+60G是我们新增加的分区大小。
+
+扩展后，还要执行一步：
+
+# xfs_growfs &#x2F;dev&#x2F;centos&#x2F;root
+
+将文件系统扩大。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>命令总结：</p>
+<pre class="line-numbers language-none"><code class="language-none">
+fdisk &#x2F;dev&#x2F;sdb
+fdisk -l
+vgdisplay -v
+fdisk -l
+pvcreate &#x2F;dev&#x2F;xvdb1
+ pvdisplay 
+vgextend centos &#x2F;dev&#x2F;sdb1
+lvextend -L +20G &#x2F;dev&#x2F;centos&#x2F;root 
+xfs_growfs &#x2F;dev&#x2F;mapper&#x2F;centos-root<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>centos</tag>
+      </tags>
+  </entry>
 </search>
