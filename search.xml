@@ -7414,4 +7414,510 @@ xfs_growfs &#x2F;dev&#x2F;mapper&#x2F;centos-root<span aria-hidden="true" class=
         <tag>centos</tag>
       </tags>
   </entry>
+  <entry>
+    <title>pipeline分布式构建和pipline基础语法</title>
+    <url>/2020/05/02/pipeline%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%84%E5%BB%BA%E5%92%8Cpipline%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="一、pipeline"><a href="#一、pipeline" class="headerlink" title="一、pipeline"></a>一、pipeline</h1><p>官方介绍: <a href="http://jenkins.io/2.0">http://jenkins.io/2.0</a></p>
+<blockquote>
+<p>pipeline是帮助Jenkins实现CI到CD转变的重要角色，是运行在jenkins2.x版本的核心插件，简单来说，pipeline就是一套运行与Jenkins上的工作流框架，将原本独立运行与单个或者多个节点的任务连接起来，实现单个任务难以完成的复杂发布流程，从而实现单个任务很难实现的复杂流程编排和任何可视化，pipeline的实现方式是一套GroovyDSL，任何发布流程都可以表述为一段Groovy脚本。</p>
+</blockquote>
+<h3 id="1、pipeline优势"><a href="#1、pipeline优势" class="headerlink" title="1、pipeline优势"></a>1、pipeline优势</h3><blockquote>
+<p>可持续性：jenkins的重启或者中断后不影响已经执行的pipeline Job<br>支持暂停：pipeline可以选择停止并等待人工输入或批准后再继续执行。<br>可扩展：通过groovy的变成更容易的扩展插件。<br>并行执行：通过groovy脚本可以实现step，stage间的并行执行，和更复杂的相互依赖关系。</p>
+</blockquote>
+<h3 id="2、pipeline语法"><a href="#2、pipeline语法" class="headerlink" title="2、pipeline语法"></a>2、pipeline语法</h3><pre class="line-numbers language-none"><code class="language-none">Stage：阶段，一个pipeline可以划分为若干个stage，每个stage都是一个操作，比如clone代码、代码编译、代码测试和代码部署，阶段是一个逻辑分组，可以跨多个node执行。
+Node：节点，每个node都是一个jenkins节点，可以使jenkinsmaster也可以是jenkinsagent，node是执行step的具体服务器。
+Step：步骤，step是jenkinspipeline最基本的操作单元，从在服务器创建目录到构建容器镜像，由各类Jenkins插件提供实现，例如：sh “make”<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>创建新任务选择流水线<br><img src="https://img-blog.csdnimg.cn/16dc865c04a44038877d66158c9c3b73.png" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/8f8853d1bdb14b4aafd736f2d930dabf.png" alt="在这里插入图片描述"><br>这里写groovy脚本代码可以点击Pipeline Syntax 语法转换<br><img src="https://img-blog.csdnimg.cn/c02dce1b543a49e5b700c2320b86fe87.png" alt="在这里插入图片描述"><br>URL写的是git地址<br><img src="https://img-blog.csdnimg.cn/06c36b7354c8434d9a9cc23940a4ed11.png" alt="在这里插入图片描述"><br>Sample Step 选择git<br>然后选择认证方式为免秘钥，然后点击Generate Pipeline Script<br>就会出现拉取的代码<br>将这段代码复制到pipeline 然后保存，再构建版本<br><img src="https://img-blog.csdnimg.cn/5e998ca46f014b96a957a03f1f24b1d8.png" alt="在这里插入图片描述"><br>可以看到已经构建成功，显示已经拉取代码成功，目录是&#x2F;backup&#x2F;jenkins&#x2F;slave&#x2F;workspace&#x2F;pipeline-test2,我们查看一下代码是否已经下载成功<br><img src="https://img-blog.csdnimg.cn/e4622a3a31954c4fbab060d171f7508c.png" alt="在这里插入图片描述"><br>可以看到代码已经拉取成功</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@jenkins-slave ~]# ll &#x2F;backup&#x2F;jenkins&#x2F;slave&#x2F;workspace&#x2F;pipline-test2
+total 4
+-rw-r--r-- 1 root root 111 Aug 22 15:27 index.html<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>然后需要将slave上的代码拷贝到web服务器，需要修改pipeline的配置<br>如果不想使用groovy代码就在前面用sh “里面填写shell命令”<br><img src="https://img-blog.csdnimg.cn/c4fda88186324ffb8ea85a968a8b66b0.png" alt="在这里插入图片描述"><br>此时还需要设置slave和web服务器免秘钥登陆，所以需要把slave的公钥发送到Web服务器</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@jenkins-slave ~]# ssh-copy-id 10.0.0.8
+&#x2F;usr&#x2F;bin&#x2F;ssh-copy-id: INFO: Source of key(s) to be installed: &quot;&#x2F;root&#x2F;.ssh&#x2F;id_rsa.pub&quot;
+The authenticity of host &#39;10.0.0.8 (10.0.0.8)&#39; can&#39;t be established.
+ECDSA key fingerprint is SHA256:6dnMaIY2HylZXAKj9eRf6BQLls+CyGg25+kKdWOBtbw.
+ECDSA key fingerprint is MD5:44:5b:03:33:ff:e0:6e:69:87:b5:9c:be:13:b3:2a:b7.
+Are you sure you want to continue connecting (yes&#x2F;no)? yes
+&#x2F;usr&#x2F;bin&#x2F;ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+&#x2F;usr&#x2F;bin&#x2F;ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+root@10.0.0.8&#39;s password: 
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   &quot;ssh &#39;10.0.0.8&#39;&quot;
+and check to make sure that only the key(s) you wanted were added.
+
+[root@jenkins-slave ~]# 
+[root@jenkins-slave ~]# 
+[root@jenkins-slave ~]# ssh 10.0.0.8
+Last login: Thu Aug 22 10:29:18 2019 from 10.0.0.176
+*************当你的才华撑不起野心的时候，就请安静下来学习吧*************
+[root@web02 ~]# exit
+logout
+Connection to 10.0.0.8 closed.
+[root@jenkins-slave ~]# <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>然后重新构建版本可以看到已经成功<br><img src="https://img-blog.csdnimg.cn/5f5c51c8e6234f54a8555286e4600652.png" alt="在这里插入图片描述"><br>然后查看Web服务器的站点目录是否已经有slave传来的代码<br>可以看到web服务器已经收到slave传来的代码</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@web02 webapps]# ll &#x2F;data&#x2F;tomcat&#x2F;webapps&#x2F;test&#x2F;index.html    
+-rw-r--r-- 1 root root 111 Aug 22 15:47 &#x2F;data&#x2F;tomcat&#x2F;webapps&#x2F;test&#x2F;index.html<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>然后在scp的时候需要先停止服务然后在重启启动服务<br><img src="https://img-blog.csdnimg.cn/d493187e2a6c4694a8d1c4c06d125cb1.png" alt="在这里插入图片描述"><br>如果报错<br><img src="https://img-blog.csdnimg.cn/91892776f7fc48ca9c3c5a9fe376b69c.png" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/4d92dc979877462db8a1d518b2eb2b5f.png" alt="在这里插入图片描述"><br>这是因为tomcat启动的时候找不到JAVA_HOME路径，需要添加以下变更<br>vim catalina.sh<br>加入以下信息</p>
+<pre class="line-numbers language-none"><code class="language-none">export JAVA_HOME&#x3D;&#x2F;application&#x2F;jdk
+export JRE_HOME&#x3D;&#x2F;application&#x2F;jdk&#x2F;jre<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>再次构建版本可以看到此时已经构建成功<br><img src="https://img-blog.csdnimg.cn/5c40ea3cdea2425dbf6fa9b27338c7a4.png" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/a56e5ca042b3432c8c7712d875bd5267.png" alt="在这里插入图片描述"><br>可以再去web服务器查看tomcat是否启动，可以看到时间是刚上线的</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@web02 webapps]# ps -ef |grep tomcat
+root      75218      1  2 16:36 ?        00:00:01 &#x2F;application&#x2F;jdk&#x2F;jre&#x2F;bin&#x2F;java -Djava.util.logging.config.file&#x3D;&#x2F;application&#x2F;tomca&#x2F;conf&#x2F;logging.properties -Djava.util.logging.manager&#x3D;org.apache.juli.ClassLoaderLogManager -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port&#x3D;12345 -Dcom.sun.management.jmxremote.authenticate&#x3D;false -Dcom.sun.management.jmxremote.ssl&#x3D;false -Djava.rmi.server.hostname&#x3D;10.0.0.8 -Djava.endorsed.dirs&#x3D;&#x2F;application&#x2F;tomcat&#x2F;endorsed -classpath &#x2F;application&#x2F;tomcat&#x2F;bin&#x2F;bootstrap.jar:&#x2F;application&#x2F;tomcat&#x2F;bin&#x2F;tomcat-juli.jar -Dcatalina.base&#x3D;&#x2F;application&#x2F;tomcat -Dcatalina.home&#x3D;&#x2F;application&#x2F;tomcat -Djava.io.tmpdir&#x3D;&#x2F;application&#x2F;tomcat&#x2F;temp org.apache.catalina.startup.Bootstrap start
+root      75249  71741  0 16:37 pts&#x2F;0    00:00:00 grep --color&#x3D;auto tomcat<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+]]></content>
+      <categories>
+        <category>jenkins</category>
+      </categories>
+      <tags>
+        <tag>jenkins</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>promehteus+grafana</title>
+    <url>/2020/02/14/promehteus+grafana/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="/assets/js/Meting.min.js"></script><h1 id="一、Promethes和zabbix对比"><a href="#一、Promethes和zabbix对比" class="headerlink" title="一、Promethes和zabbix对比"></a>一、Promethes和zabbix对比</h1><table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>Prometheus</th>
+<th>zabbix</th>
+<th>Prometheus优势</th>
+<th>zabbix优势</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>管理</td>
+<td>二进制文件启动</td>
+<td>LNMP+编译</td>
+<td>轻量级server，便于迁移和维护</td>
+<td></td>
+</tr>
+<tr>
+<td>配置</td>
+<td>配置文件</td>
+<td>图形化</td>
+<td>更好的支持自动化配置</td>
+<td>成本低</td>
+</tr>
+<tr>
+<td>client</td>
+<td>丰富的client库</td>
+<td>zabbix_agent自定义脚本</td>
+<td>为各种中间件、应用提供专业的exporter，监控项更全面</td>
+<td>支持自定义监控项，对监控涉及者的格局要求较高</td>
+</tr>
+<tr>
+<td>数据存储方式</td>
+<td>Prometheus TSDB</td>
+<td>MySQL</td>
+<td>监控数据以时间维度统计情况较多，时序数据库更实用与监控数据的次敦促，按时间索引性能更高</td>
+<td>Mysql比较常用</td>
+</tr>
+<tr>
+<td>数据处理</td>
+<td>PromQl</td>
+<td>MySQL</td>
+<td>PromQL计算函数丰富，统计维度广</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>二次开发</td>
+<td>丰富的SDK</td>
+<td>api</td>
+<td>提供了Go、Java&#x2F;Scala、Python、Ruby等sdk二次开发更便捷</td>
+<td>api适配较为常用</td>
+</tr>
+<tr>
+<td>对云环境的支持</td>
+<td>原生支持容器监控</td>
+<td>更适合物理机监控</td>
+<td>自动发现容器，更好的适配k8s</td>
+<td></td>
+</tr>
+<tr>
+<td>告警方式</td>
+<td>可按照标签分组，收敛</td>
+<td>在次数上收敛</td>
+<td>告警收敛方式更多样化</td>
+<td></td>
+</tr>
+<tr>
+<td>监控项值</td>
+<td>支持数字</td>
+<td>支持数字字符串</td>
+<td></td>
+<td>可做日志监控</td>
+</tr>
+</tbody></table>
+<h1 id="二、Prometheus工作流程："><a href="#二、Prometheus工作流程：" class="headerlink" title="二、Prometheus工作流程："></a>二、Prometheus工作流程：</h1><h4 id="1、服务端"><a href="#1、服务端" class="headerlink" title="1、服务端"></a>1、服务端</h4><blockquote>
+<p>Prometheus服务端是以一个进程的方式启动，下载安装完成之后，只需要启动一个进程即可，程序默认监听9090端口。每次采集到的数据叫做metrics。这些采集到的数据会先存放到内存中，然后定期的写入磁盘，如果服务器重启会将硬盘数据写会内存，所以对内存有一定消耗，Pormetheus不需要重视历史数据，所以默认只会保留15天的数据。</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">[root@bogon prometheus]# nohup .&#x2F;prometheus &amp;
+[root@bogon prometheus]# ps -ef |grep prometheus
+root       2620   2618  0 15:33 ?        00:00:04 .&#x2F;prometheus
+root       6414   2631  0 16:01 pts&#x2F;1    00:00:00 grep prometheus
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="2、客户端"><a href="#2、客户端" class="headerlink" title="2、客户端"></a>2、客户端</h4><p>Prometheus 客户端分为pull和push 两种方式。</p>
+<ul>
+<li>pull模式</li>
+</ul>
+<blockquote>
+<p>如果pull形式的话是服务端主动向客户端拉取数据，这样需要客户端上安装exporter作为守护进程（官网提供了很多exporters可以下载使用），比如node_exporter，几乎把系统自身相关数据全部采集了，非常全面，node_exporter默认监听9100端口。</p>
+</blockquote>
+<ul>
+<li>push模式</li>
+</ul>
+<blockquote>
+<p>如果是push形式的话客户端需要安装pushgateway插件，然后需要运维人员用脚本吧监控数据以key&#x2F;value的形式提交给pushgateway，在由pushgateway提交给服务端。（这种模式适用于exporters无法满足监控需求时可以定义）</p>
+</blockquote>
+<h4 id="3、metrics主要数据类型"><a href="#3、metrics主要数据类型" class="headerlink" title="3、metrics主要数据类型"></a>3、metrics主要数据类型</h4><ul>
+<li>Gauges</li>
+</ul>
+<blockquote>
+<p>最简单、使用最多的指标，获取一个返回值，这个返回值没有变化规律，不能肯定他是按照一定增长或减少的状态，采集回来的是多少就是多少。比如硬盘容量、CPU内存使用率都适合使用Gauges类型</p>
+</blockquote>
+<ul>
+<li>Counters</li>
+</ul>
+<blockquote>
+<p>计数器。数据从0开始累积，理想状态下应该是永远增长或者是不变。适合统计机器开机时间、HTTP访问量。</p>
+</blockquote>
+<ul>
+<li>Histograms</li>
+</ul>
+<blockquote>
+<p>和summary一样属于高级指标，用于统计数据的分布情况。比如最小值、最大值、中间值。比如统计一天的日志，大部分用户响应时间都是正常的，只有少量用户异常，如果这使用取平均值的话，这少量用户的异常情况就会被掩盖，而Histograms可以分别统计出全部用户的响应时间，比如0-1秒的用户有多少、1-2秒的用户有多少。</p>
+</blockquote>
+<p>联邦集群监控架构图<br><img src="https://img-blog.csdnimg.cn/00bfa02b27c441e6a472f07bcb0f1182.png" alt="在这里插入图片描述"><br>每个数据中心部署单独的Prometheus Server，用于采集当前数据中心的监控数据。并由一个中心的Prometheus Server 负责聚合多个数据中心的监控数据。</p>
+<p>联邦集群是每个Prometheus Server都包含一个用于获取当前实例中监控样本的接口&#x2F;federate。不管是Prometheus实例还是exporter实例都可以获取。</p>
+<h1 id="三、Prometheus-服务端安装"><a href="#三、Prometheus-服务端安装" class="headerlink" title="三、Prometheus 服务端安装"></a>三、Prometheus 服务端安装</h1><h4 id="1、首先下载prometheus服务端"><a href="#1、首先下载prometheus服务端" class="headerlink" title="1、首先下载prometheus服务端"></a>1、首先下载prometheus服务端</h4><p><a href="https://github.com/prometheus/prometheus/releases">https://github.com/prometheus/prometheus/releases</a><br>或者官网下载<br><a href="https://prometheus.io/download/">https://prometheus.io/download/</a></p>
+<h4 id="2、解压安装包可以看到以下目录结构"><a href="#2、解压安装包可以看到以下目录结构" class="headerlink" title="2、解压安装包可以看到以下目录结构"></a>2、解压安装包可以看到以下目录结构</h4><pre class="line-numbers language-none"><code class="language-none">[root@bogon local]# cd prometheus&#x2F;
+[root@bogon prometheus]# ll
+总用量 95028
+-rw-r--r--  1 root root        0 12月  4 12:57 1000
+drwxr-xr-x. 2 3434 3434     4096 11月  6 2018 console_libraries
+drwxr-xr-x. 2 3434 3434     4096 11月  6 2018 consoles
+drwxr-xr-x. 3 root root     4096 12月  6 11:44 data
+-rw-r--r--  1 root root     1920 12月  2 17:34 go.go
+-rw-r--r--. 1 3434 3434    11357 11月  6 2018 LICENSE
+-rw-------  1 root root    62726 12月  6 16:00 nohup.out
+-rw-r--r--. 1 3434 3434     2769 11月  6 2018 NOTICE
+-rwxr-xr-x. 1 3434 3434 58074162 11月  6 2018 prometheus
+-rw-r--r--  1 root root      767 12月  3 15:24 prometheus.sh
+-rw-r--r--  1 3434 3434     1772 12月  6 09:31 prometheus.yml
+-rwxr-xr-x. 1 3434 3434 39113694 11月  6 2018 promtool
+drwxr-xr-x. 2 root root     4096 12月  6 10:43 rules<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="3、运行promtheus程序"><a href="#3、运行promtheus程序" class="headerlink" title="3、运行promtheus程序"></a>3、运行promtheus程序</h4><pre class="line-numbers language-none"><code class="language-none">[root@bogon prometheus]# nohup .&#x2F;prometheus &amp;
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>查看端口</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@bogon prometheus]# netstat -tunlp |grep prometheus
+tcp        0      0 :::9090                     :::*                        LISTEN      2620&#x2F;.&#x2F;prometheus <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>在浏览器中输入server端ip地址：ip:9090<br><img src="https://img-blog.csdnimg.cn/556afae68c844819878f980c1950b6f6.png" alt="在这里插入图片描述"><br>可以查看当前监控的节点，因为没有监控其他client端，所以目前只监控了server本身<br><img src="https://img-blog.csdnimg.cn/8fb0889a99934c6b8917cd8bb1baadd2.png" alt="在这里插入图片描述"><br>只监控了prometheus服务端本身<br><img src="https://img-blog.csdnimg.cn/9ed455242c184736baeecb359d9bc698.png" alt="在这里插入图片描述"></p>
+<h4 id="4、配置文件"><a href="#4、配置文件" class="headerlink" title="4、配置文件"></a>4、配置文件</h4><p>prometheus配置文件分四个配置</p>
+<ul>
+<li>global：全局配置</li>
+<li>alerting：告警配置</li>
+<li>rule_files：告警规则</li>
+<li>scrape_configs：配置数据源（target）<br>prometheus 配置文件：</li>
+</ul>
+<blockquote>
+<p>horbor_labels：配置为true可以确保当采集到的监控指标冲突时，能够自动忽略冲突的监控数据。如果为false时，prometheus会自动将冲突的标签替换为exported_ 的形式</p>
+</blockquote>
+<blockquote>
+<p>match[]：指定需要获取的时间序列。match[]参数必须是一个瞬时向量选择器，比如：up或者{job&#x3D;”api-server”}。配置多个match[]参数，用于获取多组时间序列的监控数据。</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">[root@bogon prometheus]# cat prometheus.yml
+# my global config
+global:
+  scrape_interval:     15s # # 拉取targets 的默认时间间隔 Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # # 执行rules的时间间隔 Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+      - targets:
+          - 172.16.5.25:9093
+
+# Load rules once and periodically evaluate them according to the global &#39;evaluation_interval&#39;.
+rule_files:  #告警规则
+   # - &quot;first_rules.yml&quot;
+   # - &quot;second_rules.yml&quot;
+  - &#x2F;usr&#x2F;local&#x2F;prometheus&#x2F;rules&#x2F;all.yml   #告警规则文件路径
+                 # A scrape configuration containing exactly one endpoint to scrape:
+                 # Here it&#39;s Prometheus itself.
+
+scrape_configs:
+  # The job name is added as a label &#96;job&#x3D;&lt;job_name&gt;&#96; to any timeseries scraped from this config.
+  - job_name: slaves
+    honor_labels: true
+    metrics_path: &#x2F;federate
+    params:
+      match[]:
+        - &#39;&#123;__name__&#x3D;~&quot;^slave:.*&quot;&#125;&#39;   # Request all slave-level time series
+        - &#39;&#123;__name__&#x3D;~&quot;job:.*&quot;&#125;&#39;
+        - &#39;&#123;__name__&#x3D;~&quot;node.*&quot;&#125;&#39;
+
+    static_configs:  #静态发现两个slave端（因为slave端就两台所以可以直接用静态发现）
+      - targets:
+        - 172.16.5.122:9090
+        - 172.16.5.25:9090
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="5、配置告警规则"><a href="#5、配置告警规则" class="headerlink" title="5、配置告警规则"></a>5、配置告警规则</h4><pre class="line-numbers language-none"><code class="language-none">[root@bogon prometheus]# cat rules&#x2F;all.yml 
+groups:
+    - name: 主机状态-监控告警
+      rules:
+      - alert: 主机状态
+        expr: up &#x3D;&#x3D; 0
+        for: 1m
+        labels:
+          status: 非常严重
+        annotations:
+          summary: &quot;&#123;&#123;$labels.instance&#125;&#125;:服务器宕机&quot;
+          description: &quot;&#123;&#123;$labels.instance&#125;&#125;:服务器延时超过5分钟&quot;
+      
+      - alert: CPU使用情况
+        expr: 100-(avg(irate(node_cpu_seconds_total&#123;mode&#x3D;&quot;idle&quot;&#125;[5m])) by(instance)* 100) &gt; 60
+        for: 1m
+        labels:
+          status: 一般告警
+        annotations:
+          summary: &quot;&#123;&#123;$labels.mountpoint&#125;&#125; CPU使用率过高！&quot;
+          description: &quot;&#123;&#123;$labels.mountpoint &#125;&#125; CPU使用大于60%(目前使用:&#123;&#123;$value&#125;&#125;%)&quot;
+  
+      - alert: 内存使用
+        expr: 100 -(node_memory_MemTotal_bytes -node_memory_MemFree_bytes+node_memory_Buffers_bytes+node_memory_Cached_bytes ) &#x2F; node_memory_MemTotal_bytes * 100&gt; 80
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: &quot;&#123;&#123;$labels.mountpoint&#125;&#125; 内存使用率过高！&quot;
+          description: &quot;&#123;&#123;$labels.mountpoint &#125;&#125; 内存使用大于80%(目前使用:&#123;&#123;$value&#125;&#125;%)&quot;
+      - alert: IO性能
+        expr: 100-(avg(irate(node_disk_io_time_seconds_total[1m])) by(instance)* 100) &lt; 60
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: &quot;&#123;&#123;$labels.mountpoint&#125;&#125; 流入磁盘IO使用率过高！&quot;
+          description: &quot;&#123;&#123;$labels.mountpoint &#125;&#125; 流入磁盘IO大于60%(目前使用:&#123;&#123;$value&#125;&#125;)&quot;
+ 
+      - alert: 网络
+        expr: ((sum(rate (node_network_receive_bytes_total&#123;device!~&#39;tap.*|veth.*|br.*|docker.*|virbr*|lo*&#39;&#125;[5m])) by (instance)) &#x2F; 100) &gt; 102400
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: &quot;&#123;&#123;$labels.mountpoint&#125;&#125; 流入网络带宽过高！&quot;
+          description: &quot;&#123;&#123;$labels.mountpoint &#125;&#125;流入网络带宽持续2分钟高于100M. RX带宽使用率&#123;&#123;$value&#125;&#125;&quot;
+ 
+      - alert: 网络
+        expr: ((sum(rate (node_network_transmit_bytes_total&#123;device!~&#39;tap.*|veth.*|br.*|docker.*|virbr*|lo*&#39;&#125;[5m])) by (instance)) &#x2F; 100) &gt; 102400
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: &quot;&#123;&#123;$labels.mountpoint&#125;&#125; 流出网络带宽过高！&quot;
+          description: &quot;&#123;&#123;$labels.mountpoint &#125;&#125;流出网络带宽持续2分钟高于100M. RX带宽使用率&#123;&#123;$value&#125;&#125;&quot;
+      
+      - alert: TCP会话
+        expr: node_netstat_Tcp_CurrEstab &gt; 1000
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: &quot;&#123;&#123;$labels.mountpoint&#125;&#125; TCP_ESTABLISHED过高！&quot;
+          description: &quot;&#123;&#123;$labels.mountpoint &#125;&#125; TCP_ESTABLISHED大于1000%(目前使用:&#123;&#123;$value&#125;&#125;%)&quot;
+ 
+      - alert: 磁盘容量
+        expr: 100-(node_filesystem_free_bytes&#123;fstype&#x3D;~&quot;ext4|xfs&quot;&#125;&#x2F;node_filesystem_size_bytes &#123;fstype&#x3D;~&quot;ext4|xfs&quot;&#125;*100) &gt; 70
+        for: 1m
+        labels:
+          status: 严重告警
+        annotations:
+          summary: &quot;&#123;&#123;$labels.mountpoint&#125;&#125; 磁盘分区使用率过高！&quot;
+          description: &quot;&#123;&#123;$labels.mountpoint &#125;&#125; 磁盘分区使用大于80%(目前使用:&#123;&#123;$value&#125;&#125;%)&quot;
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="四、安装alertmanager-告警插件"><a href="#四、安装alertmanager-告警插件" class="headerlink" title="四、安装alertmanager 告警插件"></a>四、安装alertmanager 告警插件</h1><h4 id="1、安装下载alertmanager"><a href="#1、安装下载alertmanager" class="headerlink" title="1、安装下载alertmanager"></a>1、安装下载alertmanager</h4><p>下载地址：<br><a href="https://github.com/prometheus/alertmanager">https://github.com/prometheus/alertmanager</a><br>解压之后文件结构：</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@client local]# cd alertmanager&#x2F;
+[root@client alertmanager]# ll
+总用量 49440
+-rwxr-xr-x. 1 3434 3434 27610164 9月   3 23:02 alertmanager
+-rw-r--r--. 1 root root      676 12月  6 10:52 alertmanager.yml
+-rw-r--r--. 1 3434 3434      380 9月   3 23:37 alertmanager.yml.bak
+-rw-r--r--. 1 root root     1359 12月  6 09:45 alertmanager.yml.youxiang
+-rwxr-xr-x. 1 3434 3434 22935908 9月   3 23:02 amtool
+drwxr-xr-x. 2 root root     4096 12月  6 17:36 data
+-rw-r--r--. 1 3434 3434    11357 9月   3 23:37 LICENSE
+-rw-------. 1 root root    37468 12月  6 17:20 nohup.out
+-rw-r--r--. 1 3434 3434      457 9月   3 23:37 NOTICE<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>启动alertmanager</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@client alertmanager]# nohup .&#x2F;alertmanager &amp;
+[1] 22490
+nohup: 忽略输入并把输出追加到&quot;nohup.out&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>查看进程</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@client alertmanager]# ps -ef |grep alertmanager
+root       3334      1  0 15:36 ?        00:00:08 .&#x2F;alertmanager
+root      22662  22093  0 17:45 pts&#x2F;1    00:00:00 grep alertmanager<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h4 id="2、alertmanager配置文件"><a href="#2、alertmanager配置文件" class="headerlink" title="2、alertmanager配置文件"></a>2、alertmanager配置文件</h4><ul>
+<li>邮箱报警配置文件</li>
+</ul>
+<pre class="line-numbers language-none"><code class="language-none">[root@client alertmanager]# cat alertmanager.yml
+global:
+  # resolve_timeout：解析超时时间
+  resolve_timeout: 5m
+  #     # smtp_smarthost: 使用email打开服务配置
+  smtp_smarthost: &#39;smtp.163.com:465&#39;
+  # smtp_from：指定通知报警的邮箱
+  smtp_from: &#39;xxx@163.com&#39;
+  # smtp_auth_username：邮箱用户名
+  smtp_auth_username: &#39;xxx@163.com&#39;
+  # smtp_auth_password：授权密码
+  smtp_auth_password: &#39;SHAbidaohaode123&#39;
+  # smtp_require_tls：是否启用tls
+  smtp_require_tls: false
+  # route标记：告警如何发送分配
+route:
+  # group_by：采用哪个标签作为分组的依据
+  group_by: [&#39;alertname&#39;]
+  # group_wait：分组等待的时间
+  group_wait: 10s
+  # group_interval：上下两组发送告警的间隔时间
+  group_interval: 10s
+  # repeat_interval：重复发送告警时间。默认1h
+  repeat_interval: 1m
+  # receiver 定义谁来通知报警
+  receiver: &#39;mail&#39;
+ 
+  # receiver标记：告警接受者 
+receivers:
+  # name：报警来源自定义名称
+- name: &#39;mail&#39;
+  # email_configs：通过邮箱发送报警
+  email_configs:
+  # to：指定接收端email
+    - to: &#39;xxx@163.com&#39;
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>企业微信报警</li>
+</ul>
+<pre class="line-numbers language-none"><code class="language-none">[root@client alertmanager]# cat alertmanager.yml.wechat 
+global:
+  resolve_timeout: 5m
+  wechat_api_corp_id: &#39;wwf21db505fce2dde4&#39;  
+  wechat_api_url: &#39;https:&#x2F;&#x2F;qyapi.weixin.qq.com&#x2F;cgi-bin&#x2F;&#39;
+  wechat_api_secret: &#39;VmgazzYOKCeUe7JkdeKE_Je-PSIsZN85dHXaFQvFJME&#39;
+ 
+route:
+  group_by: [&#39;alertname&#39;]  #报警分组依据
+  group_wait: 10s  #组等待时间
+  group_interval: 10s  #发送前等待时间
+  repeat_interval: 1h  #重复周期
+  receiver: &#39;wechat&#39;   #默认报警接受者
+receivers:
+- name: &#39;wechat&#39;
+  wechat_configs:
+  - send_resolved: true
+    to_party: &#39;1&#39;
+    agent_id: &#39;1000002&#39;
+    corp_id: &#39;xxxx&#39;
+    api_url: &#39;https:&#x2F;&#x2F;qyapi.weixin.qq.com&#x2F;cgi-bin&#x2F;&#39;
+    api_secret: &#39;xxxx-PSIsZN85dHXaFQvFJME&#39;
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>然后在server端配置文件中填写alerting</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@bogon prometheus]# vim prometheus.yml 
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets: [&quot;172.16.5.25:9093&quot;]<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="五、添加slave节点"><a href="#五、添加slave节点" class="headerlink" title="五、添加slave节点"></a>五、添加slave节点</h1><p>在两台slave节点安装prometheus server端，用来分布式监控</p>
+<h4 id="1、启动prometheus"><a href="#1、启动prometheus" class="headerlink" title="1、启动prometheus"></a>1、启动prometheus</h4><p>解压完成放到后台启动prometheus</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@client node_exporter]# nohup .&#x2F;prometheus &amp;
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>启动之后查看进程已经启动</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@bogon prometheus]# ps -ef |grep prometheus
+root      68158   2755  1 17:44 pts&#x2F;1    00:00:02 .&#x2F;prometheus
+root      68725   2755  0 17:48 pts&#x2F;1    00:00:00 grep prometheus<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h4 id="2、添加文件自动发现"><a href="#2、添加文件自动发现" class="headerlink" title="2、添加文件自动发现"></a>2、添加文件自动发现</h4><p>在prometheus目录下创建targets&#x2F;nodes目录并创建nodes.json文件用来自动发现被监控节点</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@bogon nodes]# pwd
+&#x2F;usr&#x2F;local&#x2F;prometheus&#x2F;targets&#x2F;nodes
+[root@bogon nodes]# ll
+总用量 4
+-rw-r--r-- 1 root root 152 12月  9 17:44 nodes.json
+#targetes 里面写的就是需要监控的机器，在prometheus配置文件直接调用这个文件就可以不用每次都手动改配置文件了
+[root@bogon nodes]# cat nodes.json 
+[&#123;
+  &quot;targets&quot;: [
+    &quot;172.16.5.25:9100&quot;,
+    &quot;172.16.5.122:9100&quot;,
+    &quot;172.16.1.32:9100&quot;
+  ],
+  &quot;labels&quot;: &#123;
+    &quot;server&quot;: &quot;server&#x3D;172.16.5.122&quot;
+  &#125;
+&#125;]
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="3、slave端配置文件"><a href="#3、slave端配置文件" class="headerlink" title="3、slave端配置文件"></a>3、slave端配置文件</h4><pre class="line-numbers language-none"><code class="language-none">[root@bogon prometheus]# cat prometheus.yml
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+  external_labels:
+    slave: 1  # This is the 1nd slave. This prevents clashes between slaves.
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+      - targets:
+          - 172.16.5.25:9093
+
+            # Load rules once and periodically evaluate them according to the global &#39;evaluation_interval&#39;.
+rule_files:
+  - &#x2F;usr&#x2F;local&#x2F;prometheus&#x2F;rules&#x2F;all.yml  #指定报警规则文件路径
+    # A scrape configuration containing exactly one endpoint to scrape:
+    # Here it&#39;s Prometheus itself.
+scrape_configs:
+      # The job name is added as a label &#96;job&#x3D;&lt;job_name&gt;&#96; to any timeseries scraped from this config.
+  - job_name: &#39;prometheus-172.16.5.122&#39;   #增加一个节点，取名为prometheus-172.16.5.122
+    # Add usual service discovery here, such as static_configs
+    metrics_path: &quot;&#x2F;metrics&quot;   #获取数据的路径 http:&#x2F;&#x2F;slaveip:9100&#x2F;metrics
+    file_sd_configs:  #这个配置表示通过文件发现
+    - files: 
+      - targets&#x2F;nodes&#x2F;nodes.json # 读取目录下nodes.json文件
+      refresh_interval: 1m  # 刷新频率，1 分钟
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>报警规则跟上面相同</p>
+<blockquote>
+<p>地址规范：<br>我这里server端地址：<br>172.16.5.30<br>两个slave地址分别为<br>172.16.5.122<br>172.16.5.25<br>因为只开了3台虚拟机，所以两台slave 监控的节点是各自本身和对方的ip<br>172.16.5.122额外监控了172.16.1.32运维平台的机器</p>
+</blockquote>
+<p>下面看图：<br>这是172.16.5.122 的某一个监控值<br><img src="https://img-blog.csdnimg.cn/a7106a17954c4800886c14b31973ca68.png" alt="在这里插入图片描述"><br>这是172.16.5.25的监控值<br><img src="https://img-blog.csdnimg.cn/8b90cd90509f4acf9c84cad879ed3628.png" alt="在这里插入图片描述"><br>这是server端监控的值，可以看到server端可以收集到两台slave的所有监控信息</p>
+<h1 id="六、安装grafana图形显示工具"><a href="#六、安装grafana图形显示工具" class="headerlink" title="六、安装grafana图形显示工具"></a>六、安装grafana图形显示工具</h1><h4 id="1、安装启动"><a href="#1、安装启动" class="headerlink" title="1、安装启动"></a>1、安装启动</h4><p>下载地址：</p>
+<pre class="line-numbers language-none"><code class="language-none">wget https:&#x2F;&#x2F;dl.grafana.com&#x2F;oss&#x2F;release&#x2F;grafana-6.5.1-1.x86_64.rpm
+yum localinstall grafana-6.5.1-1.x86_64.rpm<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>启动grafana-server</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@bogon prometheus]# service grafana-server start <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>查看进程</p>
+<pre class="line-numbers language-none"><code class="language-none">[root@bogon prometheus]# ps -ef |grep grafana
+grafana    5316      1  0 08:58 ?        00:00:05 &#x2F;usr&#x2F;sbin&#x2F;grafana-server --pidfile&#x3D;&#x2F;var&#x2F;run&#x2F;grafana-server.pid --config&#x3D;&#x2F;etc&#x2F;grafana&#x2F;grafana.ini --packaging&#x3D;rpm cfg:default.paths.provisioning&#x3D;&#x2F;etc&#x2F;grafana&#x2F;provisioning cfg:default.paths.data&#x3D;&#x2F;var&#x2F;lib&#x2F;grafana cfg:default.paths.logs&#x3D;&#x2F;var&#x2F;log&#x2F;grafana cfg:default.paths.plugins&#x3D;&#x2F;var&#x2F;lib&#x2F;grafana&#x2F;plugins
+root       7355   2750  0 09:16 pts&#x2F;1    00:00:00 grep grafana<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>浏览器中访问ip:3000<br><img src="https://img-blog.csdnimg.cn/5c871f7b4dda4eab996099b097c371b1.png" alt="在这里插入图片描述"></p>
+<h4 id="2、添加数据源"><a href="#2、添加数据源" class="headerlink" title="2、添加数据源"></a>2、添加数据源</h4><p><img src="https://img-blog.csdnimg.cn/33969fd6c549487188d29b4c7e0ed1ce.png" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/a8624be165a848d2a10dc549a334eef2.png" alt="在这里插入图片描述"><br>URL地址是prometheus-server<br><img src="https://img-blog.csdnimg.cn/506441696e8842a39c4201db72db5525.png" alt="在这里插入图片描述"><br>填写完成之后添加Save&amp;test，出现下图则添加成功<br><img src="https://img-blog.csdnimg.cn/0855ba0c8d8b43d0a426d252e23c5b8b.png" alt="在这里插入图片描述"></p>
+<h4 id="3、导入dashboard模板"><a href="#3、导入dashboard模板" class="headerlink" title="3、导入dashboard模板"></a>3、导入dashboard模板</h4><p><img src="https://img-blog.csdnimg.cn/13eebbdda90b410bb76cde44042045d4.png" alt="在这里插入图片描述"><br>常用的prometheus 模板有8919和1860，然后将Data Source 选择为刚才添加的Prometheus数据源<br><img src="https://img-blog.csdnimg.cn/2c2a9d918b3a4e808bf851d6c10f1830.png" alt="在这里插入图片描述"><br>整体的监控图形显示<br><img src="https://img-blog.csdnimg.cn/94cb1b103bcd49149c3e4727f08228df.png" alt="在这里插入图片描述"></p>
+]]></content>
+      <categories>
+        <category>prometheus</category>
+      </categories>
+      <tags>
+        <tag>prometheus</tag>
+        <tag>grafana</tag>
+      </tags>
+  </entry>
 </search>
