@@ -523,9 +523,9 @@
     <category term="svn" scheme="http://dycloudnavite.love/categories/svn/"/>
     
     
-    <category term="svn" scheme="http://dycloudnavite.love/tags/svn/"/>
-    
     <category term="centos" scheme="http://dycloudnavite.love/tags/centos/"/>
+    
+    <category term="svn" scheme="http://dycloudnavite.love/tags/svn/"/>
     
   </entry>
   
