@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://dycloudnavite.love/2021/03/06/%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%A1%AC%E4%BB%B6%E5%8E%8B%E5%8A%9B%E6%B5%8B%E8%AF%95/</loc>
+    
+    <lastmod>2022-09-20</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://dycloudnavite.love/2022/06/24/kubeasz%20-etcd%20v3%20API%E7%89%88%E6%9C%AC%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D/</loc>
     
     <lastmod>2022-09-09</lastmod>
@@ -337,7 +346,7 @@
 
   <url>
     <loc>http://dycloudnavite.love/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -345,91 +354,91 @@
   
   <url>
     <loc>http://dycloudnavite.love/tags/kubernetes/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/jenkins/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/mysql/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/linux/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/SonarQube/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/centos/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/iptables/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/svn/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/prometheus/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/grafana/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/%E9%98%BF%E9%87%8C%E4%BA%91/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/tags/docker/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -438,63 +447,63 @@
   
   <url>
     <loc>http://dycloudnavite.love/categories/kubernetes/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/categories/jenkins/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/categories/mysql/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/categories/linux/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/categories/SonarQube/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/categories/iptables/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/categories/svn/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/categories/prometheus/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloudnavite.love/categories/Docker/</loc>
-    <lastmod>2022-09-19</lastmod>
+    <lastmod>2022-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
