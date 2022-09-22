@@ -8349,7 +8349,6 @@ Node 0, zone   Normal 145048 131183  76864  38454  20405  11854   5149   1143   
 <ul>
 <li><font color="#dd0000"><strong>节点资源不够</strong></font><br></li>
 </ul>
-<hr>
 <p>节点资源不够有以下几种情况:<br> 1、CPU负载过高<br> 2、剩余可被分配的内存不足<br> 3、剩余可用GPU数量不足<br> 如果判断某个 Node 资源是否足够？ 通过下面的命令查看node资源情况，关注以下信息：</p>
 <blockquote>
 <p>kubectl describe node nodename</p>
@@ -8363,7 +8362,6 @@ Node 0, zone   Normal 145048 131183  76864  38454  20405  11854   5149   1143   
 <ul>
 <li><font color="#dd0000"><strong>不满足 nodeSelector 与 affinity</strong></font><br></li>
 </ul>
-<hr>
 <blockquote>
 <p>如果 Pod 包含 nodeSelector 指定了节点需要包含的 label，调度器将只会考虑将 Pod 调度到 包含这些 label 的Node 上，如果没有 Node 有这些 label 或者有这些 label 的 Node 其它 条件不满足也将会无法调度。参考官方文档</p>
 </blockquote>
@@ -8377,7 +8375,6 @@ Node 0, zone   Normal 145048 131183  76864  38454  20405  11854   5149   1143   
 <ul>
 <li><font color="#dd0000"><strong>Node 存在 Pod 没有容忍的污点</strong></font><br></li>
 </ul>
-<hr>
 <blockquote>
 <p>如果节点上存在污点 (Taints)，而 Pod 没有响应的容忍 (<code>Tolerations</code>)，Pod 也将不会调度上 去。通过 <code>describe node</code> 可以看下 Node 有哪些 Taints:</p>
 </blockquote>
@@ -8415,36 +8412,32 @@ NetworkUnavailable True node.kubernetes.io&#x2F;network-unavailable<span aria-hi
 <ul>
 <li><font color="#dd0000"><strong>低版本 kube-scheduler 的 bug</strong></font><br></li>
 </ul>
-<hr>
 <p>可能是低版本 kube-scheduler 的 bug, 可以升级下调度器版本。</p>
 <hr>
 <ul>
 <li><font color="#dd0000"><strong>kube-scheduler 没有正常运行</strong></font><br></li>
 </ul>
-<hr>
 <p>检查 maser 上的 kube-scheduler 是否运行正常，异常的话可以尝试重启临时恢复。</p>
 <hr>
 <ul>
 <li><font color="#dd0000"><strong>驱逐后其它可用节点与当前节点有状态应用不在同一个可用区</strong></font><br></li>
 </ul>
-<hr>
 <blockquote>
 <p>有时候服务部署成功运行过，但在某个时候节点突然挂了，此时就会触发驱逐，创建新的副本调度到其 它节点上，对于已经挂载了磁盘的 Pod，它通常需要被调度到跟当前节点和磁盘在同一个可用区，如果 集群中同一个可用区的节点不满足调度条件，即使其它可用区节点各种条件都满足，但不跟当前节点在 同一个可用区，也是不会调度的。为什么需要限制挂载了磁盘的 Pod 不能漂移到其它可用区的节点？ 试想一下，云上的磁盘虽然可以被动态挂载到不同机器，但也只是相对同一个数据中心，通常不允许跨数据中心挂载磁盘设备，因为网络时延会极大的降低 IO 速率。</p>
 </blockquote>
 <h2 id="2、Pod-一直处于-ContainerCreating-或-Waiting-状-态"><a href="#2、Pod-一直处于-ContainerCreating-或-Waiting-状-态" class="headerlink" title="2、Pod 一直处于 ContainerCreating 或 Waiting 状 态"></a>2、Pod 一直处于 ContainerCreating 或 Waiting 状 态</h2><hr>
 <ul>
-<li><font color="#dd0000"><strong>Pod 配置错误</strong></font><br></li>
-</ul>
-<hr>
-<ul>
-<li>检查是否打包了正确的镜像</li>
-<li>检查配置了正确的容器参数</li>
+<li><p><font color="#dd0000"><strong>Pod 配置错误</strong></font><br></p>
+</li>
+<li><p>检查是否打包了正确的镜像</p>
+</li>
+<li><p>检查配置了正确的容器参数</p>
+</li>
 </ul>
 <hr>
 <ul>
 <li><font color="#dd0000"><strong>挂载 Volume 失败</strong></font><br></li>
 </ul>
-<hr>
 <p>Volume 挂载失败也分许多种情况，先列下我这里目前已知的。</p>
 <p><strong>Pod 漂移没有正常解挂之前的磁盘</strong></p>
 <blockquote>
@@ -8454,7 +8447,6 @@ NetworkUnavailable True node.kubernetes.io&#x2F;network-unavailable<span aria-hi
 <ul>
 <li><font color="#dd0000"><strong>磁盘爆满</strong></font><br></li>
 </ul>
-<hr>
 <p>启动 Pod 会调 CRI 接口创建容器，容器运行时创建容器时通常会在数据目录下为新建的容器创建一 些目录和文件，如果数据目录所在的磁盘空间满了就会创建失败并报错:</p>
 <pre class="line-numbers language-none"><code class="language-none">Events：
     Type Reason Age From
@@ -8466,13 +8458,11 @@ Message
 <ul>
 <li><font color="#dd0000"><strong>节点内存碎片化</strong></font><br></li>
 </ul>
-<hr>
 <p>如果节点上内存碎片化严重，缺少大页内存，会导致即使总的剩余内存较多，但还是会申请内存失败，处理方法请看：<a href="https://blog.csdn.net/qq_31055683/article/details/126974873">https://blog.csdn.net/qq_31055683&#x2F;article&#x2F;details&#x2F;126974873</a></p>
 <hr>
 <ul>
 <li><font color="#dd0000"><strong>limit 设置太小或者单位不对</strong></font><br></li>
 </ul>
-<hr>
 <p>如果 limit 设置过小以至于不足以成功运行 Sandbox 也会造成这种状态，常见的是因为 memory limit 单位设置不对造成的 limit 过小，比如误将 memory 的 limit 单位像 request 一样设 置为小 <strong>m</strong> ，这个单位在 memory 不适用，会被 k8s 识别成 byte， 应该用 <strong>Mi</strong> 或<strong>M</strong></p>
 <p><em>举个例子: 如果 memory limit 设为 1024m 表示限制 1.024 Byte，这么小的内存， pause 容器一起来就会被 cgroup-oom kill 掉，导致 pod 状态一直处于 ContainerCreating。</em><br>这种情况通常会报下面的 event:</p>
 <pre class="line-numbers language-none"><code class="language-none">Pod sandbox changed, it will be killed and re-created。<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
@@ -8482,36 +8472,31 @@ Message
 <ul>
 <li><font color="#dd0000"><strong>拉取镜像失败</strong></font><br></li>
 </ul>
-<hr>
 <p>镜像拉取失败也分很多情况，这里列举下:</p>
 <ul>
-<li><p>配置了错误的镜像</p>
-</li>
-<li><p>Kubelet 无法访问镜像仓库（比如默认 pause 镜像在 gcr.io 上，国内环境访问需要特殊处 理）</p>
-</li>
-<li><p>拉取私有镜像的 <code>imagePullSecret</code> 没有配置或配置有误</p>
-</li>
-<li><p>镜像太大，拉取超时（可以适当调整 kubelet 的 <code>—image-pull-progress-deadline</code> 和 <code>—runtime-request-timeout</code> 选项）</p>
-</li>
-<li><p><font color="#dd0000"><strong>CNI 网络错误</strong></font><br></p>
-</li>
+<li>配置了错误的镜像</li>
+<li>Kubelet 无法访问镜像仓库（比如默认 pause 镜像在 gcr.io 上，国内环境访问需要特殊处 理）</li>
+<li>拉取私有镜像的 <code>imagePullSecret</code> 没有配置或配置有误</li>
+<li>镜像太大，拉取超时（可以适当调整 kubelet 的 <code>—image-pull-progress-deadline</code> 和 <code>—runtime-request-timeout</code> 选项）</li>
 </ul>
 <hr>
+<ul>
+<li><font color="#dd0000"><strong>CNI 网络错误</strong></font><br></li>
+</ul>
 <p>如果发生 CNI 网络错误通常需要检查下网络插件的配置和运行状态，如果没有正确配置或正常运行通 常表现为:</p>
 <ul>
-<li><p>无法配置 Pod 网络</p>
-</li>
-<li><p>无法分配 Pod IP</p>
-</li>
-<li><p><font color="#dd0000"><strong>controller-manager 异常</strong></font><br></p>
-</li>
+<li>无法配置 Pod 网络</li>
+<li>无法分配 Pod IP</li>
 </ul>
 <hr>
+<ul>
+<li><font color="#dd0000"><strong>controller-manager 异常</strong></font><br></li>
+</ul>
 <p>查看 master 上 <code>kube-controller-manager</code> 状态，异常的话尝试重启。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>安装 docker 没删干净旧版本</strong></font><br></li>
 </ul>
-<hr>
 <p>如果节点上本身有 docker 或者没删干净，然后又安装 docker，比如在 centos 上用 yum 安装:</p>
 <pre class="line-numbers language-none"><code class="language-none">1. yum install -y docker<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>这样可能会导致 dockerd 创建容器一直不成功，从而 Pod 状态一直 <code>ContainerCreating</code>，查看 event 报错:</p>
@@ -8527,60 +8512,59 @@ Message
 <ul>
 <li><font color="#dd0000"><strong>存在同名容器</strong></font><br></li>
 </ul>
-<hr>
 <p>如果节点上已有同名容器，创建 sandbox 就会失败，event:</p>
 <pre class="line-numbers language-none"><code class="language-none">Warning FailedCreatePodSandBox 2m kubelet, 10.205.8.91 Failed create pod sandbox: rpc error: code &#x3D; Unknown desc &#x3D; failed to create a sandbox for pod &quot;lomp-ext-d8c8b8c46-4v8tl&quot;: operation timeout: context deadline exceeded
 Warning FailedCreatePodSandBox 3s (x12 over 2m) kubelet, 10.205.8.91 Failed create pod sandbox: rpc error: code &#x3D; Unknown desc &#x3D; failed to create a sandbox for pod &quot;lomp-ext-d8c8b8c46-4v8tl&quot;: Error response from daemon: Conflict. The container name &quot;&#x2F;k8s_POD_lomp-ext-d8c8b8c46- 4v8tl_default_65046a06-f795-11e9-9bb6-b67fb7a70bad_0&quot; is already in use by container &quot;30aa3f5847e0ce89e9d411e76783ba14accba7eb7743e605a10a9a862a72c1e2&quot;. You have to remove (or rename) that container to be able to reuse that name.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>关于什么情况下会产生同名容器，这个有待研究。</p>
 <h2 id="3、Pod-处于-CrashLoopBackOff-状态"><a href="#3、Pod-处于-CrashLoopBackOff-状态" class="headerlink" title="3、Pod 处于 CrashLoopBackOff 状态"></a>3、Pod 处于 CrashLoopBackOff 状态</h2><p>Pod 如果处于 <code>CrashLoopBackOff</code> 状态说明之前是启动了，只是又异常退出了，只要 Pod 的 <code>restartPolicy</code>不是 Never 就可能被重启拉起，此时 Pod 的 <code>RestartCounts</code> 通常是大于 0 的，可以先看下容器进程的退出状态码来缩小问题范围</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>容器进程主动退出：</strong></font><br></li>
 </ul>
-<hr>
 <p>如果是容器进程主动退出，退出状态码一般在 0-128 之间，除了可能是业务程序 BUG，还有其它许 多可能原因</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>系统OOM</strong></font><br></li>
 </ul>
-<hr>
 <p>如果发生系统 OOM，可以看到 Pod 中容器退出状态码是 137，表示被 <code>SIGKILL</code> 信号杀死，同时 内核会报错: <code>Out of memory: Kill process</code> … 。大概率是节点上部署了其它非 K8S 管理的进 程消耗了比较多的内存，或者 kubelet 的 <code>--kube-reserved</code> 和 <code>--system-reserved</code> 配的 比较小，没有预留足够的空间给其它非容器进程，节点上所有 Pod 的实际内存占用总量不会超过 <code>/sys/fs/cgroup/memory/kubepods</code> 这里 cgroup 的限制，这个限制等于 <code>capacity - &quot;kube- reserved&quot; - &quot;system-reserved&quot;</code> ，如果预留空间设置合理，节点上其它非容器进程（kubelet, dockerd, kube-proxy, sshd 等) 内存占用没有超过 kubelet 配置的预留空间是不会发生系统 OOM 的，可以根据实际需求做合理的调整。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>系统OOM</strong></font><br></li>
 </ul>
-<hr>
 <p>如果是 cgrou OOM 杀掉的进程，从 Pod 事件的下 Reason 可以看到是 OOMKilled ，说明 容器实际占用的内存超过 limit 了，同时内核日志会报: &#96;&#96;。 可以根据需求调整下 limit。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>节点内存碎片化</strong></font><br></li>
 </ul>
-<hr>
 <p>如果节点上内存碎片化严重，缺少大页内存，会导致即使总的剩余内存较多，但还是会申请内存失败，</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>健康检查失败</strong></font><br></li>
 </ul>
-<hr>
-<h2 id="4、Pod-一直处于-Terminating-状态"><a href="#4、Pod-一直处于-Terminating-状态" class="headerlink" title="4、Pod 一直处于 Terminating 状态"></a>4、Pod 一直处于 Terminating 状态</h2><ul>
+<h2 id="4、Pod-一直处于-Terminating-状态"><a href="#4、Pod-一直处于-Terminating-状态" class="headerlink" title="4、Pod 一直处于 Terminating 状态"></a>4、Pod 一直处于 Terminating 状态</h2><hr>
+<ul>
 <li><font color="#dd0000"><strong>磁盘爆满</strong></font><br></li>
 </ul>
-<hr>
 <p>如果 docker 的数据目录所在磁盘被写满，docker 无法正常运行，无法进行删除和创建操作，所以 kubelet 调用 docker 删除容器没反应，看 event 类似这样：</p>
 <pre class="line-numbers language-none"><code class="language-none">Normal Killing 39s (x735 over 15h) kubelet, 10.179.80.31 Killing container with id docker:&#x2F;&#x2F;apigateway:Need to kill Pod<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
-
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>存在 “i” 文件属性</strong></font><br></li>
 </ul>
-<hr>
 <p>如果容器的镜像本身或者容器启动后写入的文件存在 “i” 文件属性，此文件就无法被修改删除，而删 除 Pod 时会清理容器目录，但里面包含有不可删除的文件，就一直删不了，Pod 状态也将一直保持 Terminating，kubelet 报错:</p>
 <pre class="line-numbers language-none"><code class="language-none">Sep 27 14:37:21 VM_0_7_centos kubelet[14109]: E0927 14:37:21.922965 14109 remote_runtime RemoveContainer &quot;19d837c77a3c294052a99ff9347c520bc8acb7b8b9a9dc9fab281fc09df38257&quot; failed: rpc error: code &#x3D; Unknown desc &#x3D; failed to remove container &quot;19d837c77a3c294052a99ff9347c520bc8acb7b8b9a9dc9fab281fc09df38257&quot;: Error response 19d837c77a3c294052a99ff9347c520bc8acb7b8b9a9dc9fab281fc09df38257: driver &quot;overlay2&quot; filesystem: remove &#x2F;data&#x2F;docker&#x2F;overlay2&#x2F;b1aea29c590aa9abda79f7cf3976422073fb3652757f0391db88534027546868 operation not permitted
-Sep 27 14:37:21 VM_0_7_centos kubelet[14109]: E0927 14:37:21.923027 14109 kuberuntime_gc to remove container &quot;19d837c77a3c294052a99ff9347c520bc8acb7b8b9a9dc9fab281fc09df38257&quot; Unknown desc &#x3D; failed to remove container &quot;19d837c77a3c294052a99ff9347c520bc8acb7b8b9a9dc9fab281fc09df38257&quot;: Error response 19d837c77a3c294052a99ff9347c520bc8acb7b8b9a9dc9fab281fc09df38257: driver &quot;overlay2&quot; filesystem: remove &#x2F;data&#x2F;docker&#x2F;overlay2&#x2F;b1aea29c590aa9abda79f7cf3976422073fb3652757f0391db88534027546868 operation not permitted<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+Sep 27 14:37:21 VM_0_7_centos kubelet[14109]: E0927 14:37:21.923027 14109 kuberuntime_gc to remove container &quot;19d837c77a3c294052a99ff9347c520bc8acb7b8b9a9dc9fab281fc09df38257&quot; Unknown desc &#x3D; failed to remove container &quot;19d837c77a3c294052a99ff9347c520bc8acb7b8b9a9dc9fab281fc09df38257&quot;: Error response 19d837c77a3c294052a99ff9347c520bc8acb7b8b9a9dc9fab281fc09df38257: driver &quot;overlay2&quot; filesystem: remove &#x2F;data&#x2F;docker&#x2F;overlay2&#x2F;b1aea29c590aa9abda79f7cf3976422073fb3652757f0391db88534027546868 operation not permitted
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>通过 <strong>man chattr</strong> 查看 “i” 文件属性描述:</p>
 <pre class="line-numbers language-none"><code class="language-none">A file with the &#39;i&#39; attribute cannot be modified: it cannot be deleted or renamed, no link can be created to this file and no data can be written to the file. Only the superuser or a process possessing the CAP_LINUX_IMMUTABLE capability can set or clear this attribute.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>彻底解决当然是不要在容器镜像中或启动后的容器设置 “i” 文件属性，临时恢复方法： 复制 kubelet 日志报错提示的文件路径，然后执行 chattr -i 文件名 :</p>
 <pre class="line-numbers language-none"><code class="language-none">chattr -i &#x2F;data&#x2F;docker&#x2F;overlay2&#x2F;b1aea29c590aa9abda79f7cf3976422073fb3652757f0391db88534027<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>执行完后等待 kubelet 自动重试，Pod 就可以被自动删除了。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>存在 Finalizers</strong></font><br></li>
 </ul>
-<hr>
 <p>k8s 资源的 metadata 里如果存在 <code>finalizers</code> ，那么该资源一般是由某程序创建的，并且在其 创建的资源的 metadata 里的 <code>finalizers</code> 加了一个它的标识，这意味着这个资源被删除时需要 由创建资源的程序来做删除前的清理，清理完了它需要将标识从该资源的 <code>finalizers</code> 中移除，然 后才会最终彻底删除资源。比如 Rancher 创建的一些资源就会写入 <code>finalizers</code> 标识。</p>
 <p> 处理建议： kubectl edit 手动编辑资源定义，删掉 <code>finalizers</code> ，这时再看下资源，就会发现 已经删掉了</p>
 <h2 id="5、Pod-一直处于-Unknown-状态"><a href="#5、Pod-一直处于-Unknown-状态" class="headerlink" title="5、Pod 一直处于 Unknown 状态"></a>5、Pod 一直处于 Unknown 状态</h2><p>通常是节点失联，没有上报状态给 apiserver，到达阀值后 controller-manager 认为节点失联 并将其状态置为 <code>Unknown</code><br>可能原因:</p>
@@ -8597,41 +8581,40 @@ Sep 27 14:37:21 VM_0_7_centos kubelet[14109]: E0927 14:37:21.923027 14109 kuberu
 <li>违反集群的安全策略，比如违反了 <code>PodSecurityPolicy</code> 等</li>
 <li>容器无权操作集群内的资源，比如开启 RBAC 后，需要为 <code>ServiceAccount</code> 配置角色绑定</li>
 </ul>
-<h2 id="7、Pod-一直处于-ImagePullBackOff-状态"><a href="#7、Pod-一直处于-ImagePullBackOff-状态" class="headerlink" title="7、Pod 一直处于 ImagePullBackOff 状态"></a>7、Pod 一直处于 ImagePullBackOff 状态</h2><ul>
+<h2 id="7、Pod-一直处于-ImagePullBackOff-状态"><a href="#7、Pod-一直处于-ImagePullBackOff-状态" class="headerlink" title="7、Pod 一直处于 ImagePullBackOff 状态"></a>7、Pod 一直处于 ImagePullBackOff 状态</h2><hr>
+<ul>
 <li><font color="#dd0000"><strong>http 类型 registry，地址未加入到 insecure- registry</strong></font><br></li>
 </ul>
-<hr>
 <p>dockerd 默认从 https 类型的 registry 拉取镜像，如果使用 https 类型的 registry，则 必须将它添加到 <code>insecure-registry</code> 参数中，然后重启或 reload dockerd 生效。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>https 自签发类型 resitry，没有给节点添加 ca 证书</strong></font><br></li>
 </ul>
-<hr>
 <p>如果 registry 是 https 类型，但证书是自签发的，dockerd 会校验 registry 的证书，校验 成功才能正常使用镜像仓库，要想校验成功就需要将 registry 的 ca 证书放置到<br><code>/etc/docker/certs.d/&lt;registry:port&gt;/ca.crt</code>  位置</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>私有镜像仓库认证失败</strong></font><br></li>
 </ul>
-<hr>
 <p>如果 registry 需要认证，但是 Pod 没有配置 <code>imagePullSecret</code>，配置的 Secret 不存在或者 有误都会认证失败。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>镜像文件损坏</strong></font><br></li>
 </ul>
-<hr>
 <p>如果 push 的镜像文件损坏了，下载下来也用不了，需要重新 push 镜像文件。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>镜像拉取超时</strong></font><br></li>
 </ul>
-<hr>
 <p>如果节点上新起的 Pod 太多就会有许多可能会造成容器镜像下载排队，如果前面有许多大镜像需要下 载很长时间，后面排队的 Pod 就会报拉取超时。<br>kubelet 默认串行下载镜像:</p>
 <pre class="line-numbers language-none"><code class="language-none">--serialize-image-pulls Pull images one at a time. We recommend *not* changing the default value on nodes that run docker daemon with version &lt; 1.9 or an Aufs storage backend. Issue #10959 has more details. (default true)<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>也可以开启并行下载并控制并发:</p>
 <pre class="line-numbers language-none"><code class="language-none">--registry-qps int32 If &gt; 0, limit registry pull QPS to this value. If 0, unlimited. (default 5)
 --registry-burst int32 Maximum size of a bursty pulls, temporarily allows pulls to burst to this number, while still not exceeding registry-qps. Only used if --registry-qps &gt; 0 (default 10)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 
-
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>镜像不存在</strong></font><br></li>
 </ul>
-<hr>
 <p>kubelet日志：</p>
 <pre class="line-numbers language-none"><code class="language-none">PullImage &quot;imroc&#x2F;test:v0.2&quot; from image service failed: rpc error: code &#x3D; Unknown desc &#x3D; Error response from daemon: manifest for imroc&#x2F;test:v0.2 not found<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h2 id="8、Pod-健康检查失败"><a href="#8、Pod-健康检查失败" class="headerlink" title="8、Pod 健康检查失败"></a>8、Pod 健康检查失败</h2><ul>
@@ -8640,16 +8623,17 @@ Sep 27 14:37:21 VM_0_7_centos kubelet[14109]: E0927 14:37:21.923027 14109 kuberu
 <li>pod 如果存活检查失败，kubelet 将会杀死容器并尝试重启</li>
 </ul>
 <p>健康检查失败的可能原因有多种，除了业务程序BUG导致不能响应健康检查导致 unhealthy，还能有 有其它原因，下面我们来逐个排查。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>健康检查配置不合理</strong></font><br></li>
 </ul>
-<hr>
 <p><code>initialDelaySeconds</code> 太短，容器启动慢，导致容器还没完全启动就开始探测，如果 <code>successThreshold</code> 是默认值 1，检查失败一次就会被 kill，然后 pod 一直这样被 kill 重 启。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>节点负载过高</strong></font><br></li>
 </ul>
-<hr>
 <p>cpu 占用高（比如跑满）会导致进程无法正常发包收包，通常会 timeout，导致 kubelet 认为 pod 不健康</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>容器进程被木马进程杀死</strong></font><br></li>
 </ul>
@@ -8657,23 +8641,22 @@ Sep 27 14:37:21 VM_0_7_centos kubelet[14109]: E0927 14:37:21.923027 14109 kuberu
 <ul>
 <li><font color="#dd0000"><strong>容器内进程端口监听挂掉</strong></font><br></li>
 </ul>
-<hr>
 <p>使用 <code>netstat -tunlp</code> 检查端口监听是否还在，如果不在了，抓包可以看到会直接 reset 掉健 康检查探测的连接:</p>
 <pre class="line-numbers language-none"><code class="language-none">20:15:17.890996 IP 172.16.2.1.38074 &gt; 172.16.2.23.8888: Flags [S], seq 96880261, win 14600, options [mss 1424,nop,nop,sackOK,nop,wscale 7], length 0
 20:15:17.891021 IP 172.16.2.23.8888 &gt; 172.16.2.1.38074: Flags [R.], seq 0, ack 96880262, win 0, length 0
 20:15:17.906744 IP 10.0.0.16.54132 &gt; 172.16.2.23.8888: Flags [S], seq 1207014342, win 14600, options [mss 1424,nop,nop,sackOK,nop,wscale 7], length 0
 20:15:17.906766 IP 172.16.2.23.8888 &gt; 10.0.0.16.54132: Flags [R.], seq 0, ack 1207014343, win 0, length 0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>连接异常，从而健康检查失败。发生这种情况的原因可能在一个节点上启动了多个使用 <code>hostNetwork</code> 监听相同宿主机端口的 Pod，只会有一个 Pod 监听成功，但监听失败的 Pod 的 业务逻辑允许了监听失败，并没有退出，Pod 又配了健康检查，kubelet 就会给 Pod 发送健康检查 探测报文，但 Pod 由于没有监听所以就会健康检查失败。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>SYN backlog 设置过小</strong></font><br></li>
 </ul>
-<hr>
 <p>SYN backlog 大小即 SYN 队列大小，如果短时间内新建连接比较多，而 SYN backlog 设置太 小，就会导致新建连接失败，通过 <code>netstat -s | grep TCPBacklogDrop</code>可以看到有多少是因为 backlog 满了导致丢弃的新连接。</p>
 <p>如果确认是 backlog 满了导致的丢包，建议调高 backlog 的值，内核参数为 <code>net.ipv4.tcp_max_syn_backlog</code> 。</p>
+<hr>
 <ul>
 <li><font color="#dd0000"><strong>容器进程主动退出</strong></font><br></li>
 </ul>
-<hr>
 <p>容器进程如果是自己主动退出(不是被外界中断杀死)，退出状态码一般在 0-128 之间，根据约定，正 常退出时状态码为 0，1-127 说明是程序发生异常，主动退出了，比如检测到启动的参数和条件不满 足要求，或者运行过程中发生 panic 但没有捕获处理导致程序退出。除了可能是业务程序 BUG，还 有其它许多可能原因，这里我们一一列举下。</p>
 <ul>
 <li><p><strong>DNS 无法解析</strong><br>可能程序依赖 集群 DNS 服务，比如启动时连接数据库，数据库使用 service 名称或外部域名都需 要 DNS 解析，如果解析失败程序将报错并主动退出。解析失败的可能原因:</p>
