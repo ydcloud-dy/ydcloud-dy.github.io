@@ -8118,8 +8118,8 @@ memtester：执行命令ps -ef |grep memtester|grep -v color|awk &#39;&#123;prin
       </tags>
   </entry>
   <entry>
-    <title>kubernetes磁盘爆满故障处理</title>
-    <url>/2022/08/24/kubernetes%E7%A3%81%E7%9B%98%E7%88%86%E6%BB%A1%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/</url>
+    <title>kubernetes 磁盘爆满故障处理</title>
+    <url>/2022/08/19/kubernetes%E7%A3%81%E7%9B%98%E7%88%86%E6%BB%A1%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/</url>
     <content><![CDATA[<h1 id="一、什么情况下磁盘可能会爆满-？"><a href="#一、什么情况下磁盘可能会爆满-？" class="headerlink" title="一、什么情况下磁盘可能会爆满 ？"></a>一、什么情况下磁盘可能会爆满 ？</h1><p>kubelet 有 gc 和驱逐机制，通过 <code>--image-gc-high-threshold</code>，<code>--image-gc-low- threshold</code>，<code>--eviction-hard</code>，<code>--eviction-soft</code>，<code>--eviction-minimum-reclaim</code> 等参数控制 kubelet 的 gc 和驱逐策略来释放磁盘空间，如果配置正确的情况下，磁盘一般不会爆满。</p>
 <blockquote>
 <p>通常导致爆满的原因可能是配置不正确或者节点上有其它非 K8S 管理的进程在不断写数据到磁盘占用 大量空间导致磁盘爆满。</p>
@@ -8212,8 +8212,8 @@ $ cat &#x2F;dev&#x2F;null &gt; dda02c9a7491fa797ab730c1568ba06cba74cecd4e4a82e9d
       </tags>
   </entry>
   <entry>
-    <title>linux防止内存碎片化</title>
-    <url>/2022/08/26/%E9%98%B2%E6%AD%A2%E5%86%85%E5%AD%98%E7%A2%8E%E7%89%87%E5%8C%96/</url>
+    <title>防止内存碎片化</title>
+    <url>/2022/08/13/%E9%98%B2%E6%AD%A2%E5%86%85%E5%AD%98%E7%A2%8E%E7%89%87%E5%8C%96/</url>
     <content><![CDATA[<p>在长时间运行的Linux操作系统中，系统日志有时会出现无法分配高阶内存的报错信息：</p>
 <pre class="line-numbers language-none"><code class="language-none">Aug  4 22:58:15 server1 kernel: : [69229257.683658] xenwatch: page allocation failure. order:4, mode:0xd0
 Aug  4 22:58:15 server1 kernel: : [69229257.683665] Pid: 168, comm: xenwatch Tainted: GF          ---------------    2.6.32-358.23.2.el5.x86_64 #1
@@ -8298,12 +8298,11 @@ Node 0, zone   Normal 145048 131183  76864  38454  20405  11854   5149   1143   
       <tags>
         <tag>kubernetes</tag>
         <tag>云原生</tag>
-        <tag>linux</tag>
       </tags>
   </entry>
   <entry>
-    <title>Pod异常状态排错</title>
-    <url>/2022/08/23/Pod%E5%BC%82%E5%B8%B8%E7%8A%B6%E6%80%81%E6%8E%92%E9%94%99/</url>
+    <title>Pod异常状态配错</title>
+    <url>/2022/08/15/Pod%E5%BC%82%E5%B8%B8%E7%8A%B6%E6%80%81%E6%8E%92%E9%94%99/</url>
     <content><![CDATA[<h1 id="一、常用命令"><a href="#一、常用命令" class="headerlink" title="一、常用命令"></a>一、常用命令</h1><p>首先列出Pod排查过程中我这边的常用命令：</p>
 <ul>
 <li>查看Pod状态：kubectl get pod  podname -o wide</li>
@@ -8694,7 +8693,7 @@ Sep 27 14:37:21 VM_0_7_centos kubelet[14109]: E0927 14:37:21.923027 14109 kuberu
   </entry>
   <entry>
     <title>分析ExitCode定位Pod异常退出原因</title>
-    <url>/2022/09/16/%E5%88%86%E6%9E%90%20ExitCode%20%E5%AE%9A%E4%BD%8D%20Pod%20%E5%BC%82%E5%B8%B8%E9%80%80%E5%87%BA%E5%8E%9F%E5%9B%A0%20/</url>
+    <url>/2022/08/23/%E5%88%86%E6%9E%90%20ExitCode%20%E5%AE%9A%E4%BD%8D%20Pod%20%E5%BC%82%E5%B8%B8%E9%80%80%E5%87%BA%E5%8E%9F%E5%9B%A0%20/</url>
     <content><![CDATA[<p>使用<code>kubectl describe pod &lt;pod name&gt;</code>查看异常  pod 的状态:</p>
 <pre class="line-numbers language-none"><code class="language-none">Containers :
   kubedns :  
