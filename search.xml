@@ -8301,7 +8301,7 @@ Node 0, zone   Normal 145048 131183  76864  38454  20405  11854   5149   1143   
       </tags>
   </entry>
   <entry>
-    <title>Pod异常状态配错</title>
+    <title>Pod异常状态排错</title>
     <url>/2022/08/15/Pod%E5%BC%82%E5%B8%B8%E7%8A%B6%E6%80%81%E6%8E%92%E9%94%99/</url>
     <content><![CDATA[<h1 id="一、常用命令"><a href="#一、常用命令" class="headerlink" title="一、常用命令"></a>一、常用命令</h1><p>首先列出Pod排查过程中我这边的常用命令：</p>
 <ul>
