@@ -8743,4 +8743,19 @@ docker :&#x2F;&#x2F;5fb8adf9ee62afc6d3f6f3d9590041818750b392dff015d7091eaaf99cf1
         <tag>云原生</tag>
       </tags>
   </entry>
+  <entry>
+    <title>记录服务器被挖矿的处理方法</title>
+    <url>/2022/05/23/%E8%AE%B0%E5%BD%95%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%A2%AB%E6%8C%96%E7%9F%BF%E7%9A%84%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95/</url>
+    <content><![CDATA[<p>背景：并不是我公司的服务器被挖矿，是合作伙伴的有一台服务器的cpu连续3天被吃满，所以让我帮忙看下，因为之前也没有处理过类似的挖矿事件，所以记录一下。<br>首先登录服务器查看相关资源使用情况：<br>好家伙，这资源已经被占的不要不要的了。<br><img src="https://img-blog.csdnimg.cn/9b1abb01976e45a69c0bae34899e5a0c.png" alt="在这里插入图片描述"></p>
+<p>通过观察可以看到top显示启动了很多不知道的服务，tssc用户启动的，还有esuser启动的，而他们的command都是bash，还是第一次看到这种情况。于是我单独查看某个pid号，就一个bash命令。<br><img src="https://img-blog.csdnimg.cn/54a8aeef7fc445888b7ceaf53cf48014.png" alt="在这里插入图片描述"><br>于是我查看了下定时任务，看看有没有定时执行的脚本，发现这些是什么玩意！赶紧删除了<br><img src="https://img-blog.csdnimg.cn/c3a4659fcedd4b84867ba47b276d897d.png" alt="在这里插入图片描述"><br>到这个时候，看了下阿里云的报警信息，如下图：<br><img src="https://img-blog.csdnimg.cn/134c36bbeff4461db803415b5a1eb7fe.png" alt="在这里插入图片描述"><br>看起来应该是被植入了挖矿程序，于是赶紧将此文件下的所有内容删除<br><img src="https://img-blog.csdnimg.cn/1d4db5f3cf23410e8d220ebbe2e9f6d4.png" alt="在这里插入图片描述"><br>但是删除之后top中的进程都还在呢，得全部kill掉，命令如下：</p>
+<pre class="line-numbers language-none"><code class="language-none">[esuser@iZ2ze5f6uou33ntud78dr5Z ~]$ ps -ef |grep esuser |grep bash  |grep -v pts&#x2F;2 |awk &#39;&#123;print $2&#125;&#39; |xargs kill<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>经过几分钟之后发现系统负载已经降下来了<br><img src="https://img-blog.csdnimg.cn/fbabf774f640469aa2578b2ee7434e07.png" alt="在这里插入图片描述"><br>虽然操作没有几步，也不难，但还是记录一下第一次遇到这种情况我执行的一些操作，以便下次再遇到的时候会知道怎么一步一步排查</p>
+]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>linux</tag>
+      </tags>
+  </entry>
 </search>
