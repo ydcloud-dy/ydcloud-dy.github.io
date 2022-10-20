@@ -46,8 +46,8 @@ http://dycloudnavite.love/tags/index.html
 http://dycloudnavite.love/
 http://dycloudnavite.love/tags/kubernetes/
 http://dycloudnavite.love/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/
-http://dycloudnavite.love/tags/mysql/
 http://dycloudnavite.love/tags/jenkins/
+http://dycloudnavite.love/tags/mysql/
 http://dycloudnavite.love/tags/SonarQube/
 http://dycloudnavite.love/tags/linux/
 http://dycloudnavite.love/tags/svn/
@@ -58,8 +58,8 @@ http://dycloudnavite.love/tags/grafana/
 http://dycloudnavite.love/tags/%E9%98%BF%E9%87%8C%E4%BA%91/
 http://dycloudnavite.love/tags/docker/
 http://dycloudnavite.love/categories/kubernetes/
-http://dycloudnavite.love/categories/mysql/
 http://dycloudnavite.love/categories/jenkins/
+http://dycloudnavite.love/categories/mysql/
 http://dycloudnavite.love/categories/SonarQube/
 http://dycloudnavite.love/categories/linux/
 http://dycloudnavite.love/categories/svn/
