@@ -451,13 +451,6 @@
   </url>
   
   <url>
-    <loc>http://dycloudnavite.love/tags/linux/</loc>
-    <lastmod>2022-10-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>http://dycloudnavite.love/tags/svn/</loc>
     <lastmod>2022-10-20</lastmod>
     <changefreq>weekly</changefreq>
@@ -466,6 +459,13 @@
   
   <url>
     <loc>http://dycloudnavite.love/tags/centos/</loc>
+    <lastmod>2022-10-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://dycloudnavite.love/tags/linux/</loc>
     <lastmod>2022-10-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -537,14 +537,14 @@
   </url>
   
   <url>
-    <loc>http://dycloudnavite.love/categories/linux/</loc>
+    <loc>http://dycloudnavite.love/categories/svn/</loc>
     <lastmod>2022-10-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>http://dycloudnavite.love/categories/svn/</loc>
+    <loc>http://dycloudnavite.love/categories/linux/</loc>
     <lastmod>2022-10-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
