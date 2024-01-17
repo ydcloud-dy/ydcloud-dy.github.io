@@ -19103,7 +19103,7 @@ web program<span aria-hidden="true" class="line-numbers-rows"><span></span><span
   </entry>
   <entry>
     <title>Vue状态管理</title>
-    <url>/2023/04/22/Vue%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/</url>
+    <url>/2023/07/13/Vue%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/</url>
     <content><![CDATA[<h1 id="Vue状态管理"><a href="#Vue状态管理" class="headerlink" title="Vue状态管理"></a>Vue状态管理</h1><p>前端每个页面访问后端数据的时候都需要token，那么所有组件都需要依赖token这个数据，所以就需要将token找个一个共享的存储，让其他组件都能访问到它，和服务端的session功能类似，如何实现？</p>
 <h3 id="一、共享内存"><a href="#一、共享内存" class="headerlink" title="一、共享内存"></a>一、共享内存</h3><p>第一种方式最直接：共享内存，直接开辟一个变量，全局都可以访问到了，类似于后端的全局变量</p>
 <h5 id="1、全局注入"><a href="#1、全局注入" class="headerlink" title="1、全局注入"></a>1、全局注入</h5><p>使用到 provide() 函数注入到根实例, 从而提供全局变量功能</p>
@@ -19317,7 +19317,7 @@ state<span class="token punctuation">.</span>value <span class="token operator">
   </entry>
   <entry>
     <title>基于IOC解决对象依赖问题</title>
-    <url>/2023/04/22/%E5%9F%BA%E4%BA%8EIOC%E8%A7%A3%E5%86%B3%E5%AF%B9%E8%B1%A1%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98/</url>
+    <url>/2023/06/27/%E5%9F%BA%E4%BA%8EIOC%E8%A7%A3%E5%86%B3%E5%AF%B9%E8%B1%A1%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<h1 id="基于IOC解决对象依赖问题"><a href="#基于IOC解决对象依赖问题" class="headerlink" title="基于IOC解决对象依赖问题"></a>基于IOC解决对象依赖问题</h1><p>ioc是一种软件设计原则，用来降低代码之间耦合度。如果没有ioc机制，多个模块调用会显得异常繁琐，而ioc是将控制权从程序代码中抽离，交给外部的容器或框架，从而实现依赖关系的动态置顶，增加程序的灵活性和可维护性，下面我的例子只是一个简单的以容器为基础实现的ioc注册。</p>
 <p>store.go：</p>
 <ul>
@@ -19528,7 +19528,7 @@ state<span class="token punctuation">.</span>value <span class="token operator">
   </entry>
   <entry>
     <title>vue3左侧菜单隐藏某选项</title>
-    <url>/2023/04/22/%E6%A0%B9%E6%8D%AErouter%E6%98%BE%E7%A4%BA%E5%B7%A6%E4%BE%A7%E8%8F%9C%E5%8D%95%E6%A0%8F%E9%9A%90%E8%97%8F%E6%9F%90%E4%B8%AA%E8%8F%9C%E5%8D%95%E9%80%89%E9%A1%B9/</url>
+    <url>/2023/07/29/%E6%A0%B9%E6%8D%AErouter%E6%98%BE%E7%A4%BA%E5%B7%A6%E4%BE%A7%E8%8F%9C%E5%8D%95%E6%A0%8F%E9%9A%90%E8%97%8F%E6%9F%90%E4%B8%AA%E8%8F%9C%E5%8D%95%E9%80%89%E9%A1%B9/</url>
     <content><![CDATA[<h1 id="根据router显示左侧菜单栏隐藏某个菜单选项"><a href="#根据router显示左侧菜单栏隐藏某个菜单选项" class="headerlink" title="根据router显示左侧菜单栏隐藏某个菜单选项"></a>根据router显示左侧菜单栏隐藏某个菜单选项</h1><p>在写k8s管理平台的时候遇到一个问题，我的左侧菜单栏是通过route路径获取的</p>
 <pre class="line-numbers language-markup" data-language="markup"><code class="language-markup"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>el-menu</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>aside-menu<span class="token punctuation">"</span></span>
          <span class="token attr-name">router</span>
