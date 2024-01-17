@@ -1,0 +1,681 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Sync包实现并发 | J.のblog</title><meta name="keywords" content="云原生,golang"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="Sync包实现并发一、静态Go语言以构建高并发容易、性能优异而文明，但是随着并发的使用，可能发生数据争用的静态问题。由于不知道什么时候发生，所以讲产生难以发现和调试的错误。 例子： func getNumber() int &amp;#123;     var i int     go func() &amp;#123;         i &#x3D; 6     &amp;#125;()     return i &amp;#125;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Sync包实现并发">
+<meta property="og:url" content="http://dycloudnavite.love/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="Sync包实现并发一、静态Go语言以构建高并发容易、性能优异而文明，但是随着并发的使用，可能发生数据争用的静态问题。由于不知道什么时候发生，所以讲产生难以发现和调试的错误。 例子： func getNumber() int &amp;#123;     var i int     go func() &amp;#123;         i &#x3D; 6     &amp;#125;()     return i &amp;#125;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloudnavite.love/img/golang.png">
+<meta property="article:published_time" content="2023-06-01T06:32:00.000Z">
+<meta property="article:modified_time" content="2023-08-30T03:08:45.263Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="云原生">
+<meta property="article:tag" content="golang">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloudnavite.love/img/golang.png"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloudnavite.love/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Sync包实现并发',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-08-30 11:08:45'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">73</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Sync包实现并发</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-06-01T06:32:00.000Z" title="发表于 2023-06-01 14:32:00">2023-06-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-08-30T03:08:45.263Z" title="更新于 2023-08-30 11:08:45">2023-08-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/golang/">golang</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Sync包实现并发"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Sync包实现并发"><a href="#Sync包实现并发" class="headerlink" title="Sync包实现并发"></a>Sync包实现并发</h1><h3 id="一、静态"><a href="#一、静态" class="headerlink" title="一、静态"></a>一、静态</h3><p>Go语言以构建高并发容易、性能优异而文明，但是随着并发的使用，可能发生数据争用的静态问题。由于不知道什么时候发生，所以讲产生难以发现和调试的错误。</p>
+<p>例子：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">getNumber</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">int</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">var</span> i <span class="token builtin">int</span>
+    <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        i <span class="token operator">=</span> <span class="token number">6</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> i
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token function">getNumber</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上例，<code>getNumber()</code> 函数先声明一个变量i，之后在goroutine中单独对i进行设置。而这时程序也正在从函数中返回i，由于不知道goroutine是否已经完成对i值的修改，所以将有两种操作发生：</p>
+<ol>
+<li>如果goroutine已完成对i值的修改，则最后返回的i值为6；</li>
+<li>如果goroutine未完成对i值的修改，则变量i的值从函数返回，为默认值0</li>
+</ol>
+<p>现在根据这两个操作中的哪一个先完成，输出的记过将是0（默认整数值）或6。这就是为什么将其称为数据竟态：从<code>getNumber()</code> 函数返回的值会根据1、或2哪个操作先完成而得名。</p>
+<p>解决方法：通道阻塞、互斥锁等。</p>
+<h3 id="二、互斥锁"><a href="#二、互斥锁" class="headerlink" title="二、互斥锁"></a>二、互斥锁</h3><h5 id="1、什么是互斥锁"><a href="#1、什么是互斥锁" class="headerlink" title="1、什么是互斥锁"></a>1、什么是互斥锁</h5><p><strong>（1）sync.Mutex的定义</strong></p>
+<p><code>sync.Mutex</code> 是一个结构体对象，用于实现互斥锁，适用于读写不确定的场景（即读写次数没有明显区别，并且只允许有一个写或读的场景）。所以该锁也称为“全局锁”。</p>
+<p><code>sync.Mutex</code> 结构体由两个字段state和sema组成，其中state表示当前互斥锁的状态，而sema用于控制锁状态的信号量。</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> Mutex <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+	state <span class="token builtin">int32</span>
+	sema  <span class="token builtin">uint32</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p><strong>（2）sync.Mutex的方法</strong></p>
+<p><code>sync.Mutex</code> 结构体对象有<code>Lock()</code> 、<code>Unlock()</code> 两个方法。<code>Lock()</code> 方法用于加锁，<code>Unlock()</code> 方法用于解锁。</p>
+<p>在使用<code>Lock()</code> 加锁后，就不能再次对其进行加速（如果再次加锁，会造成死锁）。直到利用<code>Unlock()</code> 对其解锁才能再次加锁。</p>
+<p>在用<code>Unlock()</code> 解锁Mutex时，如果未加锁，会导致运行时错误</p>
+<blockquote>
+<p>Lock()和Unlock() 使用注意：</p>
+</blockquote>
+<blockquote>
+</blockquote>
+<blockquote>
+<ul>
+<li>在一个goroutine获得Mutex后，其他goroutine只能等到这个goroutine释放该Mutex</li>
+<li>在使用Lock()方法加锁后，不能再继续对其加锁，直到利用Unlock()解锁才能再次加锁</li>
+<li>在Lock()方法之前使用Unlock() 会导致panic异常</li>
+<li>已经锁定的Mutex并不与特定的goroutine关联，可以利用一个goroutine对其加锁，再利用其他goroutine对其解锁。</li>
+<li>在同一个goroutine中的Mutex被解锁前再次进行加锁，会导致死锁。</li>
+<li>该方法适用于读写不确定，并且只有一个读或写的场景。</li>
+</ul>
+</blockquote>
+<blockquote>
+</blockquote>
+<h5 id="2、互斥锁的使用"><a href="#2、互斥锁的使用" class="headerlink" title="2、互斥锁的使用"></a>2、互斥锁的使用</h5><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">var</span> mutex sync<span class="token punctuation">.</span>Mutex
+    wait <span class="token operator">:=</span> sync<span class="token punctuation">.</span>WaitGroup<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"锁定主协程"</span><span class="token punctuation">)</span>
+    mutex<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">5</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        wait<span class="token punctuation">.</span><span class="token function">Add</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+        <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span>i <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"%d 协程还未锁定:\n"</span><span class="token punctuation">,</span> i<span class="token punctuation">)</span>
+            mutex<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"%d 协程已锁定\n"</span><span class="token punctuation">,</span> i<span class="token punctuation">)</span>
+            time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+            fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"%d 协程已解锁:\n"</span><span class="token punctuation">,</span> i<span class="token punctuation">)</span>
+            mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token keyword">defer</span> wait<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"解锁主协程"</span><span class="token punctuation">)</span>
+    mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    wait<span class="token punctuation">.</span><span class="token function">Wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>输出结果为：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">锁定主协程
+<span class="token number">0</span> 协程还未锁定<span class="token punctuation">:</span>
+<span class="token number">3</span> 协程还未锁定<span class="token punctuation">:</span>
+<span class="token number">2</span> 协程还未锁定<span class="token punctuation">:</span>
+<span class="token number">4</span> 协程还未锁定<span class="token punctuation">:</span>
+<span class="token number">1</span> 协程还未锁定<span class="token punctuation">:</span>
+解锁主协程
+<span class="token number">0</span> 协程已锁定
+<span class="token number">0</span> 协程已解锁<span class="token punctuation">:</span>
+<span class="token number">3</span> 协程已锁定
+<span class="token number">3</span> 协程已解锁<span class="token punctuation">:</span>
+<span class="token number">2</span> 协程已锁定
+<span class="token number">2</span> 协程已解锁<span class="token punctuation">:</span>
+<span class="token number">4</span> 协程已锁定
+<span class="token number">4</span> 协程已解锁<span class="token punctuation">:</span>
+<span class="token number">1</span> 协程已锁定
+<span class="token number">1</span> 协程已解锁<span class="token punctuation">:</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="三、读写互斥锁"><a href="#三、读写互斥锁" class="headerlink" title="三、读写互斥锁"></a>三、读写互斥锁</h3><h5 id="1、什么是读写互斥锁"><a href="#1、什么是读写互斥锁" class="headerlink" title="1、什么是读写互斥锁"></a>1、什么是读写互斥锁</h5><p><strong>（1）读写互斥锁的定义</strong></p>
+<p>读写互斥锁（sync.RWMutex）是一个控制goroutine访问的读写锁。该锁可以加多个读锁或写锁，<strong>其经常用于读次数远远多于写次数的场景。</strong></p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> RWMutex <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+	w           Mutex  <span class="token comment">// held if there are pending writers</span>
+	writerSem   <span class="token builtin">uint32</span> <span class="token comment">// semaphore for writers to wait for completing readers</span>
+	readerSem   <span class="token builtin">uint32</span> <span class="token comment">// semaphore for readers to wait for completing writers</span>
+	readerCount <span class="token builtin">int32</span>  <span class="token comment">// number of pending readers</span>
+	readerWait  <span class="token builtin">int32</span>  <span class="token comment">// number of departing readers</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><strong>（2）读写互斥锁的方法</strong></p>
+<p>有4个方法进行读写操作</p>
+<ul>
+<li>写操作的Lock()和Unlock()方法</li>
+</ul>
+<p><code>func (*RWMutex) Lock()</code> </p>
+<p><code>func (*RWMutex) Unlock()</code></p>
+<p>对于写锁，如果在添加写锁之前已经有其他的读锁和写锁，则Lock()方法会阻塞，直到该写锁可写。写锁权限高于读锁，有写锁时有限进行写锁定。</p>
+<ul>
+<li>读操作的RLock()和RUnlock()方法</li>
+</ul>
+<p><code>func (*RWMutex) RLock()</code> </p>
+<p><code>func (*RWMutex) RUnlock()</code></p>
+<p>如果已有写锁，则无法加载读锁。在只有读锁或者没有锁时，才可以加载读锁。读锁可以加载多个，所以适用于“读多写少”的场景。</p>
+<p>读写互斥锁在读锁占用的情况下，会阻止写，但不阻止读。即多个goroutine可以同时获取读锁（读锁调用RLock()方法，而写锁调用Lock()方法），会阻止任何其他goroutine（无论读和写）进来，整个锁相当于该goroutine独占。</p>
+<p><code>sync.RWMutex</code> 用于读锁和写锁分开的情况</p>
+<h5 id="2、读写互斥锁使用"><a href="#2、读写互斥锁使用" class="headerlink" title="2、读写互斥锁使用"></a>2、读写互斥锁使用</h5><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">var</span> count <span class="token builtin">int</span>
+<span class="token keyword">var</span> rw sync<span class="token punctuation">.</span>RWMutex
+
+<span class="token keyword">func</span> <span class="token function">ReadCount</span><span class="token punctuation">(</span>n <span class="token builtin">int</span><span class="token punctuation">,</span> ch <span class="token keyword">chan</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    rw<span class="token punctuation">.</span><span class="token function">RLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"goroutine %d 进入读操作...\n"</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span>
+    v <span class="token operator">:=</span> count
+    fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"goroutine %d 读取结束，值为%d\n"</span><span class="token punctuation">,</span> n<span class="token punctuation">,</span> v<span class="token punctuation">)</span>
+    rw<span class="token punctuation">.</span><span class="token function">RUnlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    ch <span class="token operator">&lt;-</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">func</span> <span class="token function">WriteCount</span><span class="token punctuation">(</span>n <span class="token builtin">int</span><span class="token punctuation">,</span> ch <span class="token keyword">chan</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    rw<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"goroutine %d 进入写操作\n"</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span>
+    v <span class="token operator">:=</span> rand<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>rand<span class="token punctuation">.</span><span class="token function">NewSource</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">UnixNano</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    count <span class="token operator">=</span> v<span class="token punctuation">.</span><span class="token function">Intn</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"goroutine %d 写入结束，新值为%d\n"</span><span class="token punctuation">,</span> n<span class="token punctuation">,</span> count<span class="token punctuation">)</span>
+    rw<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    ch <span class="token operator">&lt;-</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    ch <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">3</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">go</span> <span class="token function">ReadCount</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> ch<span class="token punctuation">)</span>
+
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">4</span><span class="token punctuation">;</span> i <span class="token operator">&lt;=</span> <span class="token number">6</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">go</span> <span class="token function">WriteCount</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> ch<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">6</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        <span class="token operator">&lt;-</span>ch
+    <span class="token punctuation">&#125;</span>
+
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>多个读操作可以同时读一个数据，虽然加了锁，但读都是不受影响的，即“读和写都是互斥的，读和读不互斥”。多个读操作同时操作一个数据的实例如下：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">var</span> m sync<span class="token punctuation">.</span>RWMutex
+
+<span class="token keyword">func</span> <span class="token function">Reading</span><span class="token punctuation">(</span>i <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token string">"reading start"</span><span class="token punctuation">)</span>
+    m<span class="token punctuation">.</span><span class="token function">RLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token string">"reading"</span><span class="token punctuation">)</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+    m<span class="token punctuation">.</span><span class="token function">RUnlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token string">"reading over"</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">//m = new(sync.RWMutex)</span>
+    <span class="token keyword">go</span> <span class="token function">Reading</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+    <span class="token keyword">go</span> <span class="token function">Reading</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>Second <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看到协程1和协程2 同时开始读，不互斥</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// 下面4行同时输出</span>
+<span class="token number">2</span> reading start
+<span class="token number">1</span> reading start
+<span class="token number">1</span> reading
+<span class="token number">2</span> reading
+
+<span class="token number">2</span> reading over
+<span class="token number">1</span> reading over<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>由于读写互斥，所以在写开始后，读必须等写进行完才能继续。读写互斥锁示例如下：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">var</span> m sync<span class="token punctuation">.</span>RWMutex
+
+<span class="token keyword">func</span> <span class="token function">Reading</span><span class="token punctuation">(</span>i <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    m<span class="token punctuation">.</span><span class="token function">RLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token string">"reading start"</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token string">"reading"</span><span class="token punctuation">)</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token string">"reading over"</span><span class="token punctuation">)</span>
+    m<span class="token punctuation">.</span><span class="token function">RUnlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">func</span> <span class="token function">Writeing</span><span class="token punctuation">(</span>i <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    m<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token string">"writing start"</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token string">"writing"</span><span class="token punctuation">)</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token string">"writing over"</span><span class="token punctuation">)</span>
+    m<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">//m = new(sync.RWMutex)</span>
+    <span class="token keyword">go</span> <span class="token function">Writeing</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span>
+    <span class="token keyword">go</span> <span class="token function">Reading</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+    <span class="token keyword">go</span> <span class="token function">Writeing</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>Second <span class="token operator">*</span> <span class="token number">5</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>输出，可以看到在写完成后读才开始操作</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token number">0</span> writing start
+<span class="token number">0</span> writing
+<span class="token number">0</span> writing over
+<span class="token number">1</span> reading start
+<span class="token number">1</span> reading
+<span class="token number">1</span> reading over
+<span class="token number">2</span> writing start
+<span class="token number">2</span> writing
+<span class="token number">2</span> writing over<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h3 id="四、sync-Once结构体"><a href="#四、sync-Once结构体" class="headerlink" title="四、sync.Once结构体"></a>四、sync.Once结构体</h3><h5 id="1、sync-Once结构体定义"><a href="#1、sync-Once结构体定义" class="headerlink" title="1、sync.Once结构体定义"></a>1、sync.Once结构体定义</h5><p><code>sync.Once</code> 用于解决一次性初始化问题。它的作用与<code>init()</code>函数类似，使方法只执行一次</p>
+<p><code>sync.Once</code> 和<code>init()</code> 也有所不同：<code>init()</code> 是在文件包首次被加载时才执行，且只执行一次；而<code>sync.Once</code> 结构体是在代码运行中有需要才执行，且只执行一次。</p>
+<p>在很多高并发的场景中需要确保某些操作只执行一次’例如只加载一次配置文件、只关闭一次通道等。</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> Once <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+	<span class="token comment">// done indicates whether the action has been performed.</span>
+	<span class="token comment">// It is first in the struct because it is used in the hot path.</span>
+	<span class="token comment">// The hot path is inlined at every call site.</span>
+	<span class="token comment">// Placing done first allows more compact instructions on some architectures (amd64/386),</span>
+	<span class="token comment">// and fewer instructions (to calculate offset) on other architectures.</span>
+	done <span class="token builtin">uint32</span>
+	m    Mutex
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><code>sync.Once</code> 结构体包括一个互斥锁和一个布尔值。互斥锁保证布尔值和数据的安全，布尔值用来记录初始化是否完成。这样就能保证初始化操作时是并发安全的，并且初始化操作也不会被执行多次。</p>
+<h5 id="2、sync-Once的使用"><a href="#2、sync-Once的使用" class="headerlink" title="2、sync.Once的使用"></a>2、sync.Once的使用</h5><p>sync.Once结构体只有一个<code>Do()</code>方法</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">//m = new(sync.RWMutex)</span>
+    <span class="token keyword">var</span> once sync<span class="token punctuation">.</span>Once
+    <span class="token keyword">var</span> flag <span class="token operator">=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+    onceBody <span class="token operator">:=</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"这里只打印一次"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">6</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            once<span class="token punctuation">.</span><span class="token function">Do</span><span class="token punctuation">(</span>onceBody<span class="token punctuation">)</span>
+            flag <span class="token operator">&lt;-</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>Second <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>下面通过一个关闭通道例子可以看到。调用<code>close()</code>方法来关闭通道，但如果关闭一个已经关闭的通道，则会使程序宕掉，可以借助<code>sync.Once.Do()</code> 方法来保证通道在运行的过程中只被关闭一次。</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">var</span> wg sync<span class="token punctuation">.</span>WaitGroup
+<span class="token keyword">var</span> once sync<span class="token punctuation">.</span>Once
+
+<span class="token comment">// 只写通道</span>
+<span class="token keyword">func</span> <span class="token function">func1</span><span class="token punctuation">(</span>ch1 <span class="token keyword">chan</span><span class="token operator">&lt;-</span> <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">defer</span> wg<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">10</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        ch1 <span class="token operator">&lt;-</span> i
+    <span class="token punctuation">&#125;</span>
+    <span class="token function">close</span><span class="token punctuation">(</span>ch1<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">func</span> <span class="token function">func2</span><span class="token punctuation">(</span>ch1 <span class="token operator">&lt;-</span><span class="token keyword">chan</span> <span class="token builtin">int</span><span class="token punctuation">,</span> ch2 <span class="token keyword">chan</span><span class="token operator">&lt;-</span> <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">defer</span> wg<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> <span class="token punctuation">&#123;</span>
+        x<span class="token punctuation">,</span> ok <span class="token operator">:=</span> <span class="token operator">&lt;-</span>ch1
+        <span class="token keyword">if</span> <span class="token operator">!</span>ok <span class="token punctuation">&#123;</span>
+            <span class="token keyword">break</span>
+        <span class="token punctuation">&#125;</span>
+        ch2 <span class="token operator">&lt;-</span> <span class="token number">2</span> <span class="token operator">*</span> x
+    <span class="token punctuation">&#125;</span>
+    once<span class="token punctuation">.</span><span class="token function">Do</span><span class="token punctuation">(</span><span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token function">close</span><span class="token punctuation">(</span>ch2<span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    ch1 <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> <span class="token builtin">int</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">)</span>
+    ch2 <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> <span class="token builtin">int</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">)</span>
+    wg<span class="token punctuation">.</span><span class="token function">Add</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>
+    <span class="token keyword">go</span> <span class="token function">func1</span><span class="token punctuation">(</span>ch1<span class="token punctuation">)</span>
+    <span class="token keyword">go</span> <span class="token function">func2</span><span class="token punctuation">(</span>ch1<span class="token punctuation">,</span> ch2<span class="token punctuation">)</span>
+    <span class="token keyword">go</span> <span class="token function">func2</span><span class="token punctuation">(</span>ch1<span class="token punctuation">,</span> ch2<span class="token punctuation">)</span>
+    wg<span class="token punctuation">.</span><span class="token function">Wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> ret <span class="token operator">:=</span> <span class="token keyword">range</span> ch2 <span class="token punctuation">&#123;</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>ret<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token comment">// 输出结果</span>
+<span class="token number">2</span>
+<span class="token number">10</span>
+<span class="token number">12</span>
+<span class="token number">14</span>
+<span class="token number">16</span>
+<span class="token number">18</span>
+<span class="token number">0</span>
+<span class="token number">4</span>
+<span class="token number">6</span>
+<span class="token number">8</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>代码解析：</p>
+<ol>
+<li>声明一个 <code>sync.WaitGroup</code> 变量 <code>wg</code>，用于等待所有协程完成。</li>
+<li>声明一个 <code>sync.Once</code> 变量 <code>once</code>，用于确保在关闭 <code>ch2</code> 通道时只执行一次操作。</li>
+<li>定义 <code>func1</code> 函数，该函数接受一个只写通道 <code>ch1</code>。在该函数内部，一个循环将整数从 0 到 9 写入通道 <code>ch1</code>，然后关闭 <code>ch1</code> 通道，表示写入操作已完成。<code>defer wg.Done()</code> 在函数结束时标记协程已完成。</li>
+<li>定义 <code>func2</code> 函数，该函数接受一个只读通道 <code>ch1</code> 和一个只写通道 <code>ch2</code>。在该函数内部，一个无限循环从 <code>ch1</code> 读取数据并将其乘以 2 后写入 <code>ch2</code>。当 <code>ch1</code> 关闭后，循环会退出，然后 <code>once.Do</code> 保证关闭 <code>ch2</code> 通道只执行一次。<code>defer wg.Done()</code> 在函数结束时标记协程已完成。</li>
+<li>在 <code>main</code> 函数中，创建两个通道 <code>ch1</code> 和 <code>ch2</code>，分别用于协程之间的通信。</li>
+<li>通过 <code>wg.Add(3)</code> 增加等待组的计数器，因为后续会启动 3 个协程。</li>
+<li>启动一个协程运行 <code>func1(ch1)</code>，这个协程会将 0 到 9 的整数写入 <code>ch1</code>，然后关闭通道。</li>
+<li>启动两个协程运行 <code>func2(ch1, ch2)</code>，这两个协程会并发地从 <code>ch1</code> 中读取数据，将数据乘以 2 后写入 <code>ch2</code>。</li>
+<li><code>wg.Wait()</code> 阻塞主协程，等待所有的协程（包括 <code>func1</code> 和两个 <code>func2</code>）都完成后继续执行。</li>
+<li>在主协程中，使用 <code>range ch2</code> 循环从 <code>ch2</code> 通道中读取数据，直到 <code>ch2</code> 通道被关闭。这时，从 <code>ch2</code> 中读取的数据是 <code>func2</code> 处理后的结果，然后通过 <code>fmt.Println(ret)</code> 打印输出。</li>
+</ol>
+<p>总的来说，这段代码通过并发地使用多个协程，实现了将 0 到 9 的整数通过通道传递给 <code>func2</code> 处理，并将处理后的结果输出到控制台。两个 <code>func2</code> 协程可以并发地从 <code>ch1</code> 中读取数据，但由于通道的关闭，每个协程在读取完数据后会退出。主协程等待所有协程完成后，循环从 <code>ch2</code> 中读取并打印处理结果。同时，<code>once.Do</code> 确保通道 <code>ch2</code> 仅被关闭一次。</p>
+<p>上面代码中，开启了两个goroutine 去执行func2 函数，当func2函数执行完后，会掉用close方法关闭参数所指的ch2通道。为了防止多个goroutine同时关闭同一个通道而产生错误，可以调用<code>sync.Once.Do()</code>方法来关闭通道，这样就不会产生多次关闭通道而使得程序崩溃的错误。</p>
+<h3 id="五、同步等待组sync-WaitGroup"><a href="#五、同步等待组sync-WaitGroup" class="headerlink" title="五、同步等待组sync.WaitGroup"></a>五、同步等待组sync.WaitGroup</h3><h5 id="1、同步等待组sync-WaitGroup简介"><a href="#1、同步等待组sync-WaitGroup简介" class="headerlink" title="1、同步等待组sync.WaitGroup简介"></a>1、同步等待组sync.WaitGroup简介</h5><p><code>sync.WaitGroup</code> 是一个结构体对象，用于等待一组线程的结束</p>
+<p><code>sync.WaitGroup</code> 结构体对象只有3个方法：<code>Add()</code> 、<code>Done()</code> 、<code>Wait()</code> </p>
+<ul>
+<li>Add()：向内部计数器加上delta，delta可以是负数。如果内部计数器为0，则Wait()方法会将处于阻塞等待的所有goroutine释放。如果计数器小于0，则调用panic函数。Add()方法加上正数的调用应在<code>Wait()</code>方法之前，否则<code>Wait()</code>方法可能只会等待很少的goroutine。</li>
+<li>Done()方法：会减少WaitGroup计数器的值，一般在goroutine的最后执行。</li>
+<li>Wait()方法：会阻塞，直到WaitGroup计数器减为0</li>
+</ul>
+<p>在以上3个方法中<code>Done()</code>是<code>Add(-1)</code>方法的别名。简单来说’使用<code>Add()</code>方法添加计数; 使用<code>Done()</code>方法减掉一个计数’如果计数不为0则会阻塞<code>Wait()</code>方法的运行。一个goroutine调用方法<code>Add()</code> 来设定应等待的goroutine的数量。每个被等待的goroutine在结束时应该调用<code>Done()</code>方法。同时，在主goroutine里可以调用<code>Wait()</code>方法阻塞至所有goroutine结束</p>
+<h5 id="2、同步等待组sync-WaitGroup使用示例"><a href="#2、同步等待组sync-WaitGroup使用示例" class="headerlink" title="2、同步等待组sync.WaitGroup使用示例"></a>2、同步等待组sync.WaitGroup使用示例</h5><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">var</span> wg sync<span class="token punctuation">.</span>WaitGroup
+    wg<span class="token punctuation">.</span><span class="token function">Add</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+    <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">defer</span> wg<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"1 goroutine sleep"</span><span class="token punctuation">)</span>
+        time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>Second <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">)</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"1 goroutine exit"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    wg<span class="token punctuation">.</span><span class="token function">Add</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+    <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">defer</span> wg<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"2 goroutine sleep"</span><span class="token punctuation">)</span>
+        time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>Second <span class="token operator">*</span> <span class="token number">4</span><span class="token punctuation">)</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"2 goroutine exit"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"waiting for all goroutine"</span><span class="token punctuation">)</span>
+    wg<span class="token punctuation">.</span><span class="token function">Wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"All goroutine finished"</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+<span class="token comment">// 输出</span>
+waiting <span class="token keyword">for</span> all goroutine
+<span class="token number">2</span> goroutine sleep
+<span class="token number">1</span> goroutine sleep
+<span class="token number">1</span> goroutine exit
+<span class="token number">2</span> goroutine exit
+All goroutine finished<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><code>Add()</code>和<code>Done()</code>方法的使用一定要配对，否则可能发生死锁。所报的错误信息如下</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">waiting <span class="token keyword">for</span> all goroutine
+<span class="token number">2</span> goroutine sleep
+<span class="token number">1</span> goroutine sleep
+<span class="token number">1</span> goroutine exit
+<span class="token number">2</span> goroutine exit
+fatal <span class="token builtin">error</span><span class="token punctuation">:</span> all goroutines are asleep <span class="token operator">-</span> deadlock<span class="token operator">!</span>
+
+goroutine <span class="token number">1</span> <span class="token punctuation">[</span>semacquire<span class="token punctuation">]</span><span class="token punctuation">:</span>
+sync<span class="token punctuation">.</span><span class="token function">runtime_Semacquire</span><span class="token punctuation">(</span><span class="token number">0x0</span>?<span class="token punctuation">)</span>
+	<span class="token operator">/</span>usr<span class="token operator">/</span>local<span class="token operator">/</span><span class="token keyword">go</span><span class="token operator">/</span>src<span class="token operator">/</span>runtime<span class="token operator">/</span>sema<span class="token punctuation">.</span><span class="token keyword">go</span><span class="token punctuation">:</span><span class="token number">62</span> <span class="token operator">+</span><span class="token number">0x28</span>
+sync<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token operator">*</span>WaitGroup<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Wait</span><span class="token punctuation">(</span><span class="token number">0x140000a4010</span><span class="token punctuation">)</span>
+	<span class="token operator">/</span>usr<span class="token operator">/</span>local<span class="token operator">/</span><span class="token keyword">go</span><span class="token operator">/</span>src<span class="token operator">/</span>sync<span class="token operator">/</span>waitgroup<span class="token punctuation">.</span><span class="token keyword">go</span><span class="token punctuation">:</span><span class="token number">139</span> <span class="token operator">+</span><span class="token number">0x80</span>
+main<span class="token punctuation">.</span><span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token operator">/</span>Users<span class="token operator">/</span>dujie<span class="token operator">/</span>GolangProjects<span class="token operator">/</span>mysql<span class="token operator">-</span>csv<span class="token operator">/</span>main<span class="token punctuation">.</span><span class="token keyword">go</span><span class="token punctuation">:</span><span class="token number">172</span> <span class="token operator">+</span><span class="token number">0x110</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloudnavite.love">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloudnavite.love/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/">http://dycloudnavite.love/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloudnavite.love" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/">云原生</a><a class="post-meta__tags" href="/tags/golang/">golang</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/06/04/ServeMux%E3%80%81httprouter/"><img class="prev-cover" src="/img/golang.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">ServeMux、httprouter</div></div></a></div><div class="next-post pull-right"><a href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/"><img class="next-cover" src="/img/golang.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Go文件处理</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道"><img class="cover" src="/img/golang.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-20</div><div class="title">Channel通道</div></div></a></div><div><a href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架"><img class="cover" src="/img/golang.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-23</div><div class="title">Gin框架</div></div></a></div><div><a href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理"><img class="cover" src="/img/golang.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-26</div><div class="title">Go文件处理</div></div></a></div><div><a href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter"><img class="cover" src="/img/golang.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-04</div><div class="title">ServeMux、httprouter</div></div></a></div><div><a href="/2023/05/03/Golang%E6%95%B0%E6%8D%AE%E5%BA%93%E6%A0%87%E5%87%86%E5%BC%80%E5%8F%91/" title="Golang 数据库标准开发"><img class="cover" src="/img/golang.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-03</div><div class="title">Golang 数据库标准开发</div></div></a></div><div><a href="/2023/04/22/Golang%E6%97%B6%E9%97%B4/" title="Golang时间操作"><img class="cover" src="/img/golang.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-04-22</div><div class="title">Golang时间操作</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">73</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91"><span class="toc-number">1.</span> <span class="toc-text">Sync包实现并发</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%9D%99%E6%80%81"><span class="toc-number">1.0.1.</span> <span class="toc-text">一、静态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BA%92%E6%96%A5%E9%94%81"><span class="toc-number">1.0.2.</span> <span class="toc-text">二、互斥锁</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF%E4%BA%92%E6%96%A5%E9%94%81"><span class="toc-number">1.0.2.0.1.</span> <span class="toc-text">1、什么是互斥锁</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2%E3%80%81%E4%BA%92%E6%96%A5%E9%94%81%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">1.0.2.0.2.</span> <span class="toc-text">2、互斥锁的使用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%AF%BB%E5%86%99%E4%BA%92%E6%96%A5%E9%94%81"><span class="toc-number">1.0.3.</span> <span class="toc-text">三、读写互斥锁</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF%E8%AF%BB%E5%86%99%E4%BA%92%E6%96%A5%E9%94%81"><span class="toc-number">1.0.3.0.1.</span> <span class="toc-text">1、什么是读写互斥锁</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2%E3%80%81%E8%AF%BB%E5%86%99%E4%BA%92%E6%96%A5%E9%94%81%E4%BD%BF%E7%94%A8"><span class="toc-number">1.0.3.0.2.</span> <span class="toc-text">2、读写互斥锁使用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%E3%80%81sync-Once%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">1.0.4.</span> <span class="toc-text">四、sync.Once结构体</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1%E3%80%81sync-Once%E7%BB%93%E6%9E%84%E4%BD%93%E5%AE%9A%E4%B9%89"><span class="toc-number">1.0.4.0.1.</span> <span class="toc-text">1、sync.Once结构体定义</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2%E3%80%81sync-Once%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">1.0.4.0.2.</span> <span class="toc-text">2、sync.Once的使用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%90%8C%E6%AD%A5%E7%AD%89%E5%BE%85%E7%BB%84sync-WaitGroup"><span class="toc-number">1.0.5.</span> <span class="toc-text">五、同步等待组sync.WaitGroup</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1%E3%80%81%E5%90%8C%E6%AD%A5%E7%AD%89%E5%BE%85%E7%BB%84sync-WaitGroup%E7%AE%80%E4%BB%8B"><span class="toc-number">1.0.5.0.1.</span> <span class="toc-text">1、同步等待组sync.WaitGroup简介</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2%E3%80%81%E5%90%8C%E6%AD%A5%E7%AD%89%E5%BE%85%E7%BB%84sync-WaitGroup%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.0.5.0.2.</span> <span class="toc-text">2、同步等待组sync.WaitGroup使用示例</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Gin框架"/></a><div class="content"><a class="title" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架">Gin框架</a><time datetime="2023-06-23T06:32:00.000Z" title="发表于 2023-06-23 14:32:00">2023-06-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ServeMux、httprouter"/></a><div class="content"><a class="title" href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter">ServeMux、httprouter</a><time datetime="2023-06-04T03:32:00.000Z" title="发表于 2023-06-04 11:32:00">2023-06-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/" title="Sync包实现并发"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Sync包实现并发"/></a><div class="content"><a class="title" href="/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/" title="Sync包实现并发">Sync包实现并发</a><time datetime="2023-06-01T06:32:00.000Z" title="发表于 2023-06-01 14:32:00">2023-06-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Go文件处理"/></a><div class="content"><a class="title" href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理">Go文件处理</a><time datetime="2023-05-26T06:32:00.000Z" title="发表于 2023-05-26 14:32:00">2023-05-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Channel通道"/></a><div class="content"><a class="title" href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道">Channel通道</a><time datetime="2023-05-20T12:32:00.000Z" title="发表于 2023-05-20 20:32:00">2023-05-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>MySQL 数据损坏，通过ibd和frm文件批量恢复数据库数据 | J.のblog</title><meta name="keywords" content="mysql"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="问题描述客户那边的测试服务器下午3:00左右因不明原因，所有服务访问不了，ssh也无法连接，客户手动进行强制重启服务器，重启后将所有应用、中间件重启，重启nacos时发现无法连接数据库，通过账号密码登录到数据库发现可以正常登录，但是奇怪的问题来了。。。show tables 时可以正常看到表，但是查询表中数据时发现提示表不存在。。如下图： 查看mysql日志： 作为一名mysql菜的不能再菜的小白">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL 数据损坏，通过ibd和frm文件批量恢复数据库数据">
+<meta property="og:url" content="http://dycloudnavite.love/2023/01/13/%E3%80%90mysql%E6%95%B0%E6%8D%AE%E6%8D%9F%E5%9D%8F%EF%BC%8C%E9%80%9A%E8%BF%87ibd%E5%92%8Cfrm%E6%96%87%E4%BB%B6%E6%89%B9%E9%87%8F%E6%81%A2%E5%A4%8D%E6%95%B0%E6%8D%AE%E5%BA%93%E6%95%B0%E6%8D%AE%E3%80%91%20(1)/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="问题描述客户那边的测试服务器下午3:00左右因不明原因，所有服务访问不了，ssh也无法连接，客户手动进行强制重启服务器，重启后将所有应用、中间件重启，重启nacos时发现无法连接数据库，通过账号密码登录到数据库发现可以正常登录，但是奇怪的问题来了。。。show tables 时可以正常看到表，但是查询表中数据时发现提示表不存在。。如下图： 查看mysql日志： 作为一名mysql菜的不能再菜的小白">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloudnavite.love/img/mysql.jpg">
+<meta property="article:published_time" content="2023-01-13T05:32:00.000Z">
+<meta property="article:modified_time" content="2023-08-30T02:24:41.286Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloudnavite.love/img/mysql.jpg"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloudnavite.love/2023/01/13/%E3%80%90mysql%E6%95%B0%E6%8D%AE%E6%8D%9F%E5%9D%8F%EF%BC%8C%E9%80%9A%E8%BF%87ibd%E5%92%8Cfrm%E6%96%87%E4%BB%B6%E6%89%B9%E9%87%8F%E6%81%A2%E5%A4%8D%E6%95%B0%E6%8D%AE%E5%BA%93%E6%95%B0%E6%8D%AE%E3%80%91%20(1)/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL 数据损坏，通过ibd和frm文件批量恢复数据库数据',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-08-30 10:24:41'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">73</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL 数据损坏，通过ibd和frm文件批量恢复数据库数据</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-01-13T05:32:00.000Z" title="发表于 2023-01-13 13:32:00">2023-01-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-08-30T02:24:41.286Z" title="更新于 2023-08-30 10:24:41">2023-08-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/mysql/">mysql</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MySQL 数据损坏，通过ibd和frm文件批量恢复数据库数据"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>客户那边的测试服务器下午3:00左右因不明原因，所有服务访问不了，ssh也无法连接，客户手动进行强制重启服务器，重启后将所有应用、中间件重启，重启nacos时发现无法连接数据库，通过账号密码登录到数据库发现可以正常登录，但是奇怪的问题来了。。。<code>show tables</code> 时可以正常看到表，但是查询表中数据时发现提示表不存在。。如下图：<br><img src="/images/f4d20adcf89a424ab5536107427677bf.png" alt="image"></p>
+<p>查看mysql日志：<br><img src="/images/25f622a0227b4a7095c879ae52aac671.png" alt="image"></p>
+<p>作为一名mysql菜的不能再菜的小白。。这属实难到我了，看起来像是数据损坏。。没办法，通过多方查询资料，解决办法如下：</p>
+<h2 id="解决办法："><a href="#解决办法：" class="headerlink" title="解决办法："></a>解决办法：</h2><p>首先了解InnoDB引擎创建数据库会产生的文件：</p>
+<ul>
+<li><strong>.ibd</strong>：包含每个表的数据和索引</li>
+<li><strong>.frm</strong>：描述表的结构</li>
+<li><strong>ibdata1</strong>：包含所有表的字典和历史操作</li>
+</ul>
+<p><img src="/images/bfba52d98a1e4b1f9d3a9acd4457017d.png" alt="image"></p>
+<p>在test目录下，包含每个表的.ibd和.frm文件<br><img src="/images/e564e16a61ba434b900ae6112c836b44.png" alt="image"></p>
+<p><strong>恢复前提：ibd文件的数据都是正常的</strong><br>之后也是需要通过这些文件进行恢复，我这边新启了一个mysql实例，过程略，<br><strong>大体的恢复步骤如下：</strong></p>
+<ol>
+<li>在新的mysql实例中创建数据库，需要跟原数据库的库名和字符集保持一致</li>
+<li>创建数据表，表名要求一致，对应原库data目录下的表名（我这里用工具对原库表的表结构导出创建的）</li>
+<li>通过.ibd文件批量恢复表数据信息<br>3.1 让表结构和表空间脱离<br>3.2 将需要恢复的.ibd替换到新实例的&#x2F;data的对应库下</li>
+</ol>
+<h3 id="1、安装mysqlfrm-工具"><a href="#1、安装mysqlfrm-工具" class="headerlink" title="1、安装mysqlfrm 工具"></a>1、安装mysqlfrm 工具</h3><p>下载链接：</p>
+<pre class="line-numbers language-none"><code class="language-none">wget https:&#x2F;&#x2F;cdn.mysql.com&#x2F;archives&#x2F;mysql-utilities&#x2F;mysql-utilities-1.6.5.tar.gz
+tar -xvf mysql-utilities-1.6.5.tar.gz
+cd mysql-utilities-1.6.5&#x2F;
+安装(需要Python环境，python2.6及以上)
+python .&#x2F;setup.py build
+python .&#x2F;setup.py install
+检查是否安装成功
+mysqlfrm --version<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="2、使用mysqlfrm查看表结构创建语句"><a href="#2、使用mysqlfrm查看表结构创建语句" class="headerlink" title="2、使用mysqlfrm查看表结构创建语句"></a>2、使用mysqlfrm查看表结构创建语句</h3><blockquote>
+<p>mysqlfrm 有–basedir模式以及–server 模式，推荐–server，能够还原最为准确的信息</p>
+</blockquote>
+<p>使用方式（需要启动原mysql）：</p>
+<blockquote>
+<p>格式：mysqlfrm –server&#x3D;用户名:密码@数据库地址:端口 需恢复的frm文件目录 –diagnostic &gt; 保存SQL文件名.sql</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">mysqlfrm --server&#x3D;root:password@x.x.x.x:13306 &#x2F;home&#x2F;mysql&#x2F;data&#x2F;test&#x2F;*.frm --diagnostic &gt; test_frm.sql<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><img src="/images/5a605348057d4eb2a68f37adcdd5c0ef.png" alt="image"><br>执行所生成的SQL文件<br>注：mysqlfrm仅仅显示整个数据库的表结构创建语句，可以显示在控制台也可以输出到文件，不过需要手动执行这些表的创建SQL语句。<br>先创建数据库</p>
+<pre class="line-numbers language-none"><code class="language-none">CREATE database  test;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>可以查看生成的sql文件手动删除相关无用信息等，可命令行执行或者客户端执行等<br>命令行导入：</p>
+<pre class="line-numbers language-none"><code class="language-none">mysql -uroot -ppassword test &lt; test_frm.sql<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>此时执行完就可以通过desc命令查看到表结构了（报错1：这步我遇到报错，下面有解决方法）</p>
+<h3 id="3、通过-ibd文件批量恢复表数据信息"><a href="#3、通过-ibd文件批量恢复表数据信息" class="headerlink" title="3、通过.ibd文件批量恢复表数据信息"></a>3、通过.ibd文件批量恢复表数据信息</h3><p><strong>1）让表结构和表空间脱离</strong><br>生成表结构和表空间脱离的sql：</p>
+<pre class="line-numbers language-none"><code class="language-none">mysql -uroot -ppassword -h x.x.x.x  -P 13306 -e &quot; SELECT concat(&#39;alter table &#39;, table_name, &#39; discard tablespace;&#39;) FROM information_schema.tables WHERE table_schema &#x3D; &#39;test&#39;;&quot; &gt; &#x2F;root&#x2F;test.sql<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>将sql文件中没有用的内容删除</p>
+<pre class="line-numbers language-none"><code class="language-none">sed &#39;&#x2F;^c&#x2F;d&#39; &#x2F;root&#x2F;test.sql&gt; &#x2F;root&#x2F;test_discard_new.sql<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>将sql文件导入到新库</p>
+<pre class="line-numbers language-none"><code class="language-none">mysql -uroot -ppassword -h x.x.x.x -P 13307 test_AII &lt; test_discard_new.sql<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><strong>2）将需要恢复的.ibd文件替换到新库所在的&#x2F;data&#x2F;库名  目录下</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">cp &#x2F;home&#x2F;mysql&#x2F;data&#x2F;test&#x2F;*.ibd  &#x2F;home&#x2F;mysql-test&#x2F;data&#x2F;test&#x2F;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><strong>3）权限设置</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">chown -R mysql.  &#x2F;home&#x2F;mysql-test&#x2F;data&#x2F;test<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><strong>4）导入表空间</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">mysql -uroot -ppassword -h x.x.x.x -P 13306 -e &quot; SELECT concat(&#39;alter table &#39;, table_name, &#39; import tablespace;&#39;) FROM information_schema.tables WHERE table_schema &#x3D; &#39;test&#39;;&quot; &gt; &#x2F;root&#x2F;tem_import.sql
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>清除没用的数据</p>
+<pre class="line-numbers language-none"><code class="language-none">sed &#39;&#x2F;^c&#x2F;d&#39; &#x2F;root&#x2F;tem_import.sql &gt; &#x2F;root&#x2F;config_import.sql
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>将sql文件导入（报错2：有报错，下面有解决方法）</p>
+<pre class="line-numbers language-none"><code class="language-none">mysql -uroot -ppassword -h x.x.x.x -P 13307 test_aii &lt; &#x2F;root&#x2F;config_import.sql<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>此时如果操作没问题，查看数据库表已经有了原始数据了（报错3：有报错，查看下面解决方法）</p>
+<h3 id="恢复过程中遇到的问题："><a href="#恢复过程中遇到的问题：" class="headerlink" title="恢复过程中遇到的问题："></a>恢复过程中遇到的问题：</h3><p><strong>报错1、在导入创建表结构语句的时候报错了，显示语法错误我的创建表语句如下：</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">1064 - You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &#39;5, COMMENT &#39;config_info&#39;&#39; at line 21, Time: 0.011000s<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>建表语句：</p>
+<pre class="line-numbers language-none"><code class="language-none">CREATE TABLE &#96;test_config&#96;.&#96;config_info&#96; (
+  &#96;id&#96; bigint(20) NOT NULL AUTO_INCREMENT comment &#39;id&#39;, 
+  &#96;data_id&#96; varchar(255) COLLATE &#96;utf8_bin&#96; NOT NULL comment &#39;data_id&#39;, 
+  &#96;group_id&#96; varchar(255) COLLATE &#96;utf8_bin&#96; DEFAULT NULL, 
+  &#96;content&#96; longtext COLLATE &#96;utf8_bin&#96; comment &#39;content&#39;, 
+  &#96;md5&#96; varchar(32) COLLATE &#96;utf8_bin&#96; DEFAULT NULL comment &#39;md5&#39;, 
+  &#96;gmt_create&#96; datetime NOT NULL comment &#39;创建时间&#39;, 
+  &#96;gmt_modified&#96; datetime NOT NULL comment &#39;修改时间&#39;, 
+  &#96;src_user&#96; text COLLATE &#96;utf8_bin&#96; DEFAULT NULL comment &#39;source user&#39;, 
+  &#96;src_ip&#96; varchar(50) COLLATE &#96;utf8_bin&#96; DEFAULT NULL comment &#39;source ip&#39;, 
+  &#96;app_name&#96; varchar(128) COLLATE &#96;utf8_bin&#96; DEFAULT NULL, 
+  &#96;tenant_id&#96; varchar(128) COLLATE &#96;utf8_bin&#96; DEFAULT NULL comment &#39;租户字段&#39;, 
+  &#96;c_desc&#96; varchar(256) COLLATE &#96;utf8_bin&#96; DEFAULT NULL, 
+  &#96;c_use&#96; varchar(64) COLLATE &#96;utf8_bin&#96; DEFAULT NULL, 
+  &#96;effect&#96; varchar(64) COLLATE &#96;utf8_bin&#96; DEFAULT NULL, 
+  &#96;type&#96; varchar(64) COLLATE &#96;utf8_bin&#96; DEFAULT NULL, 
+  &#96;c_schema&#96; text COLLATE &#96;utf8_bin&#96; DEFAULT NULL, 
+  &#96;encrypted_data_key&#96; text COLLATE &#96;utf8_bin&#96; comment &#39;秘钥&#39;, 
+PRIMARY KEY &#96;PRIMARY&#96; (&#96;id&#96;) USING BTREE,
+UNIQUE KEY &#96;uk_configinfo_datagrouptenant&#96; (&#96;data_id&#96;(255),&#96;group_id&#96;(255),&#96;tenant_id&#96;(128)) USING BTREE
+) ENGINE&#x3D;InnoDB DEFAULT CHARSET&#x3D;utf8, ROW_FORMAT &#x3D; 5, COMMENT &#39;config_info&#39;;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><strong>解决方法：</strong><br>将ROW_FORMAT 改为COMPACT或DYNAMIC就可以解决</p>
+<p><strong>报错2：导入表空间时，报错</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">ERROR 1812 (HY000): Tablespace is missing for table ops.tt7.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><strong>解决方法：</strong><br>查看从原库&#x2F;data&#x2F;目录copy的.ibd文件的属主和属组是否是mysql的启动用户，不是则修改即可</p>
+<p><strong>报错3：所有步骤执行完成后，重启mysql时启动失败，查看mysql日志如下报错：</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">[InnoDB] [FATAL] Tablespace id is xx in the data dictionary but in file .\test\config.ibd it is xx!<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这个错误意思就是库名表名一致，但是表空间id已经不同了，说明上面的执行步骤有错误，导致表空间id记录在两个地方，一个在系统表空间中的字典表，一个记录在表对应的ibd文件里。这个时候，不管出于何种原因，ibd文件使用了旧文件，就会报这个错误。并且导致mysqld进程崩溃退出。</p>
+<p><strong>解决方法：</strong><br>将对应的库中的某个表删除，并重新生成表结构并创建表，然后重新将原表结构和表空间脱离并重新导入表空间，操作上面都有，重新执行即可</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloudnavite.love">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloudnavite.love/2023/01/13/%E3%80%90mysql%E6%95%B0%E6%8D%AE%E6%8D%9F%E5%9D%8F%EF%BC%8C%E9%80%9A%E8%BF%87ibd%E5%92%8Cfrm%E6%96%87%E4%BB%B6%E6%89%B9%E9%87%8F%E6%81%A2%E5%A4%8D%E6%95%B0%E6%8D%AE%E5%BA%93%E6%95%B0%E6%8D%AE%E3%80%91%20(1)/">http://dycloudnavite.love/2023/01/13/%E3%80%90mysql%E6%95%B0%E6%8D%AE%E6%8D%9F%E5%9D%8F%EF%BC%8C%E9%80%9A%E8%BF%87ibd%E5%92%8Cfrm%E6%96%87%E4%BB%B6%E6%89%B9%E9%87%8F%E6%81%A2%E5%A4%8D%E6%95%B0%E6%8D%AE%E5%BA%93%E6%95%B0%E6%8D%AE%E3%80%91%20(1)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloudnavite.love" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/mysql/">mysql</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/02/12/Golang%E5%88%86%E6%94%AF%E3%80%81%E5%BE%AA%E7%8E%AF%E3%80%81%E9%9A%8F%E6%9C%BA%E6%95%B0/"><img class="prev-cover" src="/img/golang.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Golang分支循环随机数</div></div></a></div><div class="next-post pull-right"><a href="/2022/08/23/%E5%88%86%E6%9E%90%20ExitCode%20%E5%AE%9A%E4%BD%8D%20Pod%20%E5%BC%82%E5%B8%B8%E9%80%80%E5%87%BA%E5%8E%9F%E5%9B%A0%20/"><img class="next-cover" src="/img/kubernetes.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">分析ExitCode定位Pod异常退出原因</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2019/03/24/MySQL%20MHA%20%E9%AB%98%E5%8F%AF%E7%94%A8/" title="MySQL MHA 高可用"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-24</div><div class="title">MySQL MHA 高可用</div></div></a></div><div><a href="/2019/03/24/MySQL%20%E4%BC%98%E5%8C%96/" title="MySQL 优化"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-24</div><div class="title">MySQL 优化</div></div></a></div><div><a href="/2019/03/19/MySQL%20%E5%A4%87%E4%BB%BD%E6%81%A2%E5%A4%8D%EF%BC%88mysqldump%EF%BC%89/" title="MySQL 备份恢复(mysqldump)"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-19</div><div class="title">MySQL 备份恢复(mysqldump)</div></div></a></div><div><a href="/2019/03/26/MySQL%20%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/" title="MySQL 日志管理"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-26</div><div class="title">MySQL 日志管理</div></div></a></div><div><a href="/2019/03/23/MySQL%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%EF%BC%88Replication%EF%BC%89/" title="MySQL主从复制（Replication）"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-23</div><div class="title">MySQL主从复制（Replication）</div></div></a></div><div><a href="/2019/03/08/MySQL%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84-MyCAT/" title="MySQL分布式架构-MyCAT"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-08</div><div class="title">MySQL分布式架构-MyCAT</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">73</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">问题描述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95%EF%BC%9A"><span class="toc-number">2.</span> <span class="toc-text">解决办法：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E5%AE%89%E8%A3%85mysqlfrm-%E5%B7%A5%E5%85%B7"><span class="toc-number">2.1.</span> <span class="toc-text">1、安装mysqlfrm 工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E4%BD%BF%E7%94%A8mysqlfrm%E6%9F%A5%E7%9C%8B%E8%A1%A8%E7%BB%93%E6%9E%84%E5%88%9B%E5%BB%BA%E8%AF%AD%E5%8F%A5"><span class="toc-number">2.2.</span> <span class="toc-text">2、使用mysqlfrm查看表结构创建语句</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81%E9%80%9A%E8%BF%87-ibd%E6%96%87%E4%BB%B6%E6%89%B9%E9%87%8F%E6%81%A2%E5%A4%8D%E8%A1%A8%E6%95%B0%E6%8D%AE%E4%BF%A1%E6%81%AF"><span class="toc-number">2.3.</span> <span class="toc-text">3、通过.ibd文件批量恢复表数据信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%81%A2%E5%A4%8D%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="toc-number">2.4.</span> <span class="toc-text">恢复过程中遇到的问题：</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Gin框架"/></a><div class="content"><a class="title" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架">Gin框架</a><time datetime="2023-06-23T06:32:00.000Z" title="发表于 2023-06-23 14:32:00">2023-06-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ServeMux、httprouter"/></a><div class="content"><a class="title" href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter">ServeMux、httprouter</a><time datetime="2023-06-04T03:32:00.000Z" title="发表于 2023-06-04 11:32:00">2023-06-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/" title="Sync包实现并发"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Sync包实现并发"/></a><div class="content"><a class="title" href="/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/" title="Sync包实现并发">Sync包实现并发</a><time datetime="2023-06-01T06:32:00.000Z" title="发表于 2023-06-01 14:32:00">2023-06-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Go文件处理"/></a><div class="content"><a class="title" href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理">Go文件处理</a><time datetime="2023-05-26T06:32:00.000Z" title="发表于 2023-05-26 14:32:00">2023-05-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Channel通道"/></a><div class="content"><a class="title" href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道">Channel通道</a><time datetime="2023-05-20T12:32:00.000Z" title="发表于 2023-05-20 20:32:00">2023-05-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>

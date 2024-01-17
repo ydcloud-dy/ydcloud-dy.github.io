@@ -1,0 +1,626 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>kubernetes-ETCD说明及常用命令 | J.のblog</title><meta name="keywords" content="kubernetes,云原生"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="etcd 是CoreOS团队于2013年6月发起的开源项目，它的目标是构建一个高可用的分布式键值数据库。etcd内部采用raft协议作为一致性算法，etcd基于Go语言实现官方网址：https:&#x2F;&#x2F;etcd.iogithub地址：https:&#x2F;&#x2F;github.com&#x2F;etcd-io&#x2F;etcd官方硬件推荐：https:&#x2F;&#x2F;etcd.io&#x2F;docs&#x2F;v3.5&#x2F;op-guide&#x2F;hardware 一、硬">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kubernetes-ETCD说明及常用命令">
+<meta property="og:url" content="http://dycloudnavite.love/2022/06/23/kubernetes-ETCD/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="etcd 是CoreOS团队于2013年6月发起的开源项目，它的目标是构建一个高可用的分布式键值数据库。etcd内部采用raft协议作为一致性算法，etcd基于Go语言实现官方网址：https:&#x2F;&#x2F;etcd.iogithub地址：https:&#x2F;&#x2F;github.com&#x2F;etcd-io&#x2F;etcd官方硬件推荐：https:&#x2F;&#x2F;etcd.io&#x2F;docs&#x2F;v3.5&#x2F;op-guide&#x2F;hardware 一、硬">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloudnavite.love/img/kubernetes.png">
+<meta property="article:published_time" content="2022-06-23T06:32:00.000Z">
+<meta property="article:modified_time" content="2022-08-15T02:41:33.544Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="kubernetes">
+<meta property="article:tag" content="云原生">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloudnavite.love/img/kubernetes.png"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloudnavite.love/2022/06/23/kubernetes-ETCD/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'kubernetes-ETCD说明及常用命令',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-08-15 10:41:33'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">73</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">kubernetes-ETCD说明及常用命令</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-06-23T06:32:00.000Z" title="发表于 2022-06-23 14:32:00">2022-06-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-08-15T02:41:33.544Z" title="更新于 2022-08-15 10:41:33">2022-08-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/kubernetes/">kubernetes</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="kubernetes-ETCD说明及常用命令"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p><strong>etcd 是CoreOS团队于2013年6月发起的开源项目，它的目标是构建一个高可用的分布式键值数据库。etcd内部采用raft协议作为一致性算法，etcd基于Go语言实现</strong><br><strong>官方网址：</strong><br><a target="_blank" rel="noopener" href="https://etcd.io/">https://etcd.io</a><br><strong>github地址：</strong><br><a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd">https://github.com/etcd-io/etcd</a><br><strong>官方硬件推荐：</strong><br><a target="_blank" rel="noopener" href="https://etcd.io/docs/v3.5/op-guide/hardware">https://etcd.io/docs/v3.5/op-guide/hardware</a></p>
+<h1 id="一、硬件配置说明："><a href="#一、硬件配置说明：" class="headerlink" title="一、硬件配置说明："></a>一、硬件配置说明：</h1><ol>
+<li>CPU</li>
+</ol>
+<blockquote>
+<p>很少有 etcd 部署需要大量 CPU 容量。典型的集群需要两到四个核心才能顺利运行。重负载的 etcd 部署，每秒服务数千个客户端或数万个请求，往往受 CPU 限制，因为 etcd 可以服务来自内存的请求。如此繁重的部署通常需要八到十六个专用核心。</p>
+</blockquote>
+<ol start="2">
+<li>内存</li>
+</ol>
+<blockquote>
+<p>etcd 的内存占用相对较小，但其性能仍然取决于是否有足够的内存。etcd 服务器将积极缓存键值数据，并花费大部分其余的内存跟踪观察者。通常 8GB 就足够了。对于具有数千个观察者和数百万个键的大量部署，相应地分配 16GB 到 64GB 内存。</p>
+</blockquote>
+<ol start="3">
+<li>磁盘</li>
+</ol>
+<blockquote>
+<p>快速磁盘是 etcd 部署性能和稳定性的最关键因素。</p>
+<p><strong>慢速磁盘会增加 etcd 请求延迟并可能损害集群稳定性。由于 etcd 的共识协议依赖于将元数据持久存储到日志中，因此大多数 etcd 集群成员必须将每个请求写入磁盘。此外，etcd 还将逐步检查其状态到磁盘，以便截断此日志。如果这些写入时间过长，心跳可能会超时并触发选举，从而破坏集群的稳定性。一般来说，要判断一个磁盘对于 etcd 是否足够快，可以使用诸如fio之类的基准测试工具。在此处阅读示例。</strong></p>
+<p><strong>etcd 对磁盘写入延迟非常敏感。通常需要 50 个顺序 IOPS（例如，7200 RPM 磁盘）。对于负载较重的集群，建议使用 500 顺序 IOPS（例如，典型的本地 SSD 或高性能虚拟化块设备）。请注意，大多数云提供商发布并发 IOPS 而不是顺序 IOPS；发布的并发 IOPS 可以是顺序 IOPS 的 10 倍。要测量实际的顺序 IOPS，我们建议使用磁盘基准测试工具，例如diskbench或fio。</strong></p>
+<p><strong>etcd 只需要适度的磁盘带宽，但当失败的成员必须赶上集群时，更多的磁盘带宽会购买更快的恢复时间。通常 10MB&#x2F;s 将在 15 秒内恢复 100MB 数据。对于大型集群，建议 100MB&#x2F;s 或更高，以在 15 秒内恢复 1GB 数据。</strong></p>
+<p><strong>如果可能，请使用 SSD 支持 etcd 的存储。SSD 通常比旋转磁盘提供更低的写入延迟和更少的变化，从而提高 etcd 的稳定性和可靠性。如果使用旋转磁盘，请尽可能获得最快的磁盘 (15,000 RPM)。对于旋转磁盘和 SSD，使用 RAID 0 也是提高磁盘速度的有效方法。对于至少三个集群成员，RAID 的镜像和&#x2F;或奇偶校验变体是不必要的；etcd 的一致性复制已经获得了高可用性。</strong></p>
+</blockquote>
+<ol start="4">
+<li>网络</li>
+</ol>
+<blockquote>
+<p>多成员 etcd 部署受益于快速可靠的网络。为了让 etcd 保持一致和分区容错，一个不可靠的网络分区中断将导致可用性差。低延迟确保 etcd 成员可以快速通信。高带宽可以减少恢复失败的 etcd 成员的时间。1GbE 足以满足常见的 etcd 部署。对于大型 etcd 集群，10GbE 网络将减少平均恢复时间。<br>尽可能在单个数据中心内部署 etcd 成员，以避免延迟开销并减少分区事件的可能性。如果需要另一个数据中心的故障域，请选择离现有数据中心更近的数据中心。另请阅读调优文档以获取有关跨数据中心部署的更多信息</p>
+</blockquote>
+<p>基于硬件配置，可以支持的pod数量：</p>
+<ul>
+<li>8核16G SSD，基本够用，数千pod</li>
+<li>8核 8G SSD 数百个pod</li>
+<li>16核32G SSD 上万Pod</li>
+</ul>
+<p>官方文档：<br><a target="_blank" rel="noopener" href="https://etcd.io/docs/v3.5/op-guide/maintenance/">https://etcd.io/docs/v3.5/op-guide/maintenance/</a></p>
+<p><strong>etcd具有下面的属性：</strong></p>
+<ul>
+<li>完全复制：集群中的每个节点都可以使用完整的文档</li>
+<li>高可用性：etcd可用于避免硬件的单点故障或网络问题</li>
+<li>一致性：每次读取都会返回跨多主机的最新写入</li>
+<li>简单：包括一个定义良好、面向用户的API（gRPC）</li>
+<li>安全：实现了带有可选的客户端证书身份验证的自动化TLS</li>
+<li>快速：每秒10000此写入的基准速度</li>
+<li>可靠：使用Raft算法实现了存储的合理分布Etcd的工作原理</li>
+</ul>
+<p><em><strong>注意：etcd没有配置文件，直接通过etcd.service传递：</strong></em></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@etcd01 ~<span class="token punctuation">]</span><span class="token comment"># cat /etc/systemd/system/etcd.service </span>
+<span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
+<span class="token assign-left variable">Description</span><span class="token operator">=</span>Etcd Server
+<span class="token assign-left variable">After</span><span class="token operator">=</span>network.target
+<span class="token assign-left variable">After</span><span class="token operator">=</span>network-online.target
+<span class="token assign-left variable">Wants</span><span class="token operator">=</span>network-online.target
+<span class="token assign-left variable">Documentation</span><span class="token operator">=</span>https://github.com/coreos
+
+<span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
+<span class="token assign-left variable">Type</span><span class="token operator">=</span>notify
+<span class="token assign-left variable">WorkingDirectory</span><span class="token operator">=</span>/var/lib/etcd  <span class="token comment">#数据保存目录</span>
+<span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/usr/local/bin/etcd <span class="token punctuation">\</span>  <span class="token comment">#二进制文件路径</span>
+  --name<span class="token operator">=</span>etcd-192.168.17.140 <span class="token punctuation">\</span>    <span class="token comment">#当前node名称</span>
+  --cert-file<span class="token operator">=</span>/etc/kubernetes/ssl/etcd.pem <span class="token punctuation">\</span>   <span class="token comment">#公钥</span>
+  --key-file<span class="token operator">=</span>/etc/kubernetes/ssl/etcd-key.pem <span class="token punctuation">\</span>  <span class="token comment">#私钥</span>
+  --peer-cert-file<span class="token operator">=</span>/etc/kubernetes/ssl/etcd.pem <span class="token punctuation">\</span> <span class="token comment">#连接对端的公钥</span>
+  --peer-key-file<span class="token operator">=</span>/etc/kubernetes/ssl/etcd-key.pem <span class="token punctuation">\</span> <span class="token comment">#连接对端的私钥</span>
+  --trusted-ca-file<span class="token operator">=</span>/etc/kubernetes/ssl/ca.pem <span class="token punctuation">\</span> <span class="token comment">#ca</span>
+  --peer-trusted-ca-file<span class="token operator">=</span>/etc/kubernetes/ssl/ca.pem <span class="token punctuation">\</span>
+  --initial-advertise-peer-urls<span class="token operator">=</span>https://192.168.17.140:2380 <span class="token punctuation">\</span>  <span class="token comment">#集群端口，通告自己的集群端口</span>
+  --listen-peer-urls<span class="token operator">=</span>https://192.168.17.140:2380 <span class="token punctuation">\</span> <span class="token comment">#集群之间通讯端口</span>
+  --listen-client-urls<span class="token operator">=</span>https://192.168.17.140:2379,http://127.0.0.1:2379 <span class="token punctuation">\</span>  <span class="token comment">#客户端端口，</span>
+  --advertise-client-urls<span class="token operator">=</span>https://192.168.17.140:2379 <span class="token punctuation">\</span>  <span class="token comment">#通告自己的客户端端口，跟api-server交互的端口</span>
+  --initial-cluster-token<span class="token operator">=</span>etcd-cluster-0 <span class="token punctuation">\</span>  <span class="token comment">#创建集群使用的token，一个集群内的节点保持一致</span>
+  --initial-cluster<span class="token operator">=</span>etcd-192.168.17.140<span class="token operator">=</span>https://192.168.17.140:2380,etcd-192.168.17.141<span class="token operator">=</span>https://192.168.17.141:2380,etcd-192.168.17.142<span class="token operator">=</span>https://192.168.17.142:2380 <span class="token punctuation">\</span>  <span class="token comment">#集群所有节点信息</span>
+  --initial-cluster-state<span class="token operator">=</span>new <span class="token punctuation">\</span> <span class="token comment">#新建集群时为new，如果已经存在的集群为existing</span>
+  --data-dir<span class="token operator">=</span>/var/lib/etcd <span class="token punctuation">\</span>  <span class="token comment">#数据目录路径</span>
+  --wal-dir<span class="token operator">=</span> <span class="token punctuation">\</span>   <span class="token comment">#预写式日志路径，默认跟数据目录下</span>
+  --snapshot-count<span class="token operator">=</span><span class="token number">50000</span> <span class="token punctuation">\</span>   <span class="token comment">#快照</span>
+  <span class="token comment">#etcd参数优化：</span>
+  --auto-compaction-retention<span class="token operator">=</span><span class="token number">10</span> <span class="token punctuation">\</span>  <span class="token comment">#数据压缩相关参数， 第一次压缩等待10小时，以后每次10小时*10%=1小时压缩一次，会导致cpu负载变高，可能会导致网络堵塞，</span>
+  --auto-compaction-mode<span class="token operator">=</span>periodic <span class="token punctuation">\</span>   <span class="token comment">#周期性压缩</span>
+  --max-request-bytes<span class="token operator">=</span><span class="token number">10485760</span> <span class="token punctuation">\</span> <span class="token comment"># request size limit(请求的最大字节数，默认一个key最大1.5Mib官方推荐最大10Mib)，10485760/1024/1024单个数据往etcd写入最大是多大</span>
+  --quota-backend-bytes<span class="token operator">=</span><span class="token number">8589934592</span> <span class="token comment">#storage size limit(磁盘存储空间大小限制，默认为2G,此值超过8G启动会有告警信息)，</span>
+
+
+<span class="token assign-left variable">Restart</span><span class="token operator">=</span>always
+<span class="token assign-left variable">RestartSec</span><span class="token operator">=</span><span class="token number">15</span>
+<span class="token assign-left variable">LimitNOFILE</span><span class="token operator">=</span><span class="token number">65536</span>
+<span class="token assign-left variable">OOMScoreAdjust</span><span class="token operator">=</span>-999
+
+<span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
+<span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="二、ETCD参数优化："><a href="#二、ETCD参数优化：" class="headerlink" title="二、ETCD参数优化："></a>二、ETCD参数优化：</h1><ul>
+<li>–auto-compaction-retention&#x3D;10 \  #数据压缩相关参数， 第一次压缩等待10小时，以后每次10小时*10%&#x3D;1小时压缩一次</li>
+<li>–auto-compaction-mode&#x3D;periodic \   #周期性压缩</li>
+<li>–max-request-bytes&#x3D;10485760 \ # request size limit(请求的最大字节数，默认一个key最大1.5Mib官方推荐最大10Mib)</li>
+<li>–quota-backend-bytes&#x3D;8589934592 #storage size limit(磁盘存储空间大小限制，默认为2G,此值超过8G启动会有告警信息)</li>
+</ul>
+<p><strong>集群碎片整理（有些时候etcd工作时间比较长了，数据不是连续的需要整理，按照顺序的io）：</strong></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token assign-left variable">ETCDCTL_API</span><span class="token operator">=</span><span class="token number">3</span> /usr/local/bin/etcdctl defrag --cluster --endpoints<span class="token operator">=</span>https://192.168.17.140:2379 --cacert<span class="token operator">=</span>/etc/kubernetes/ssl/ca.pem --cert<span class="token operator">=</span>/etc/kubernetes/ssl/etcd.pem --key<span class="token operator">=</span>/etc/kubernetes/ssl/etcd-key.pem
+<span class="token punctuation">[</span>root@etcd01 ~<span class="token punctuation">]</span><span class="token comment"># ETCDCTL_API=3 /usr/local/bin/etcdctl defrag --cluster --endpoints=https://192.168.17.140:2379 --cacert=/etc/kubernetes/ssl/ca.pem --cert=/etc/kubernetes/ssl/etcd.pem --key=/etc/kubernetes/ssl/etcd-key.pem</span>
+Finished defragmenting etcd member<span class="token punctuation">[</span>https://192.168.17.141:2379<span class="token punctuation">]</span>
+Finished defragmenting etcd member<span class="token punctuation">[</span>https://192.168.17.142:2379<span class="token punctuation">]</span>
+Finished defragmenting etcd member<span class="token punctuation">[</span>https://192.168.17.140:2379<span class="token punctuation">]</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>etcd数据存储的都是元数据，数据量也就几个G</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@etcd01 ~<span class="token punctuation">]</span><span class="token comment"># ll /var/lib/etcd/</span>
+总用量 <span class="token number">0</span>
+drwx------ <span class="token number">4</span> root root <span class="token number">29</span> <span class="token number">5</span>月   <span class="token number">4</span> <span class="token number">10</span>:28 member
+<span class="token punctuation">[</span>root@etcd01 ~<span class="token punctuation">]</span><span class="token comment"># ll /var/lib/etcd/member/</span>
+总用量 <span class="token number">0</span>
+drwx------ <span class="token number">2</span> root root <span class="token number">200</span> <span class="token number">5</span>月   <span class="token number">4</span> <span class="token number">11</span>:06 snap
+drwx------ <span class="token number">2</span> root root <span class="token number">109</span> <span class="token number">5</span>月   <span class="token number">4</span> <span class="token number">10</span>:28 wal
+<span class="token punctuation">[</span>root@etcd01 ~<span class="token punctuation">]</span><span class="token comment"># ll /var/lib/etcd/member/snap/</span>
+总用量 <span class="token number">4236</span>
+-rw-r--r-- <span class="token number">1</span> root root    <span class="token number">7601</span> <span class="token number">4</span>月  <span class="token number">19</span> 01:00 0000000000000001-0000000000000003.snap
+-rw-r--r-- <span class="token number">1</span> root root   <span class="token number">10318</span> <span class="token number">4</span>月  <span class="token number">22</span> <span class="token number">17</span>:34 0000000000000010-000000000000c354.snap
+-rw-r--r-- <span class="token number">1</span> root root   <span class="token number">10318</span> <span class="token number">4</span>月  <span class="token number">22</span> <span class="token number">23</span>:06 0000000000000011-00000000000186a5.snap
+-rw-r--r-- <span class="token number">1</span> root root   <span class="token number">11489</span> <span class="token number">5</span>月   <span class="token number">4</span> <span class="token number">11</span>:06 0000000000000017-00000000000249f6.snap
+-rw------- <span class="token number">1</span> root root <span class="token number">4292608</span> <span class="token number">5</span>月   <span class="token number">4</span> <span class="token number">15</span>:18 db
+<span class="token punctuation">[</span>root@etcd01 ~<span class="token punctuation">]</span><span class="token comment"># ll /var/lib/etcd/member/wal</span>
+总用量 <span class="token number">187504</span>
+-rw------- <span class="token number">1</span> root root <span class="token number">64000616</span> <span class="token number">4</span>月  <span class="token number">22</span> <span class="token number">23</span>:42 0000000000000000-0000000000000000.wal
+-rw------- <span class="token number">1</span> root root <span class="token number">64000000</span> <span class="token number">5</span>月   <span class="token number">4</span> <span class="token number">15</span>:18 0000000000000001-0000000000019b5d.wal
+-rw------- <span class="token number">1</span> root root <span class="token number">64000000</span> <span class="token number">5</span>月   <span class="token number">4</span> <span class="token number">10</span>:28 <span class="token number">0</span>.tmp<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>snap：</strong> 数据目录<br><strong>wal：</strong> 预写式日志，在插入数据的时候，先写完成日志，再保存数据，如果日志没有写入成功就相当于数据未写入完成,可以通过日志恢复数</p>
+<h1 id="三、etcd命令（默认是v3版本）："><a href="#三、etcd命令（默认是v3版本）：" class="headerlink" title="三、etcd命令（默认是v3版本）："></a>三、etcd命令（默认是v3版本）：</h1><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@etcd01 ~<span class="token punctuation">]</span><span class="token comment"># etcdctl --help</span>
+NAME:
+	etcdctl - A simple <span class="token builtin class-name">command</span> line client <span class="token keyword">for</span> etcd3.
+
+USAGE:
+	etcdctl <span class="token punctuation">[</span>flags<span class="token punctuation">]</span>
+
+VERSION:
+	<span class="token number">3.5</span>.1
+
+API VERSION:
+	<span class="token number">3.5</span>
+
+
+COMMANDS:
+	alarm disarm		Disarms all alarms
+	alarm list		Lists all alarms
+	auth disable		Disables authentication
+	auth <span class="token builtin class-name">enable</span>		Enables authentication
+	auth status		Returns authentication status
+	check datascale		Check the memory usage of holding data <span class="token keyword">for</span> different workloads on a given server endpoint.
+	check perf		Check the performance of the etcd cluster
+	compaction		Compacts the event <span class="token function">history</span> <span class="token keyword">in</span> etcd
+	defrag			Defragments the storage of the etcd members with given endpoints
+	del			Removes the specified key or range of keys <span class="token punctuation">[</span>key, range_end<span class="token punctuation">)</span>
+	elect			Observes and participates <span class="token keyword">in</span> leader election
+	endpoint hashkv		Prints the KV <span class="token function">history</span> <span class="token builtin class-name">hash</span> <span class="token keyword">for</span> each endpoint <span class="token keyword">in</span> --endpoints
+	endpoint health		Checks the healthiness of endpoints specified <span class="token keyword">in</span> <span class="token variable"><span class="token variable">`</span>--endpoints<span class="token variable">`</span></span> flag
+	endpoint status		Prints out the status of endpoints specified <span class="token keyword">in</span> <span class="token variable"><span class="token variable">`</span>--endpoints<span class="token variable">`</span></span> flag
+	get			Gets the key or a range of keys
+	<span class="token builtin class-name">help</span>			Help about any <span class="token builtin class-name">command</span>
+	lease grant		Creates leases
+	lease keep-alive	Keeps leases alive <span class="token punctuation">(</span>renew<span class="token punctuation">)</span>
+	lease list		List all active leases
+	lease revoke		Revokes leases
+	lease timetolive	Get lease information
+	lock			Acquires a named lock
+	make-mirror		Makes a mirror at the destination etcd cluster
+	member <span class="token function">add</span>		Adds a member into the cluster
+	member list		Lists all members <span class="token keyword">in</span> the cluster
+	member promote		Promotes a non-voting member <span class="token keyword">in</span> the cluster
+	member remove		Removes a member from the cluster
+	member update		Updates a member <span class="token keyword">in</span> the cluster
+	move-leader		Transfers leadership to another etcd cluster member.
+	put			Puts the given key into the store
+	role <span class="token function">add</span>		Adds a new role
+	role delete		Deletes a role
+	role get		Gets detailed information of a role
+	role grant-permission	Grants a key to a role
+	role list		Lists all roles
+	role revoke-permission	Revokes a key from a role
+	snapshot restore	Restores an etcd member snapshot to an etcd directory
+	snapshot save		Stores an etcd <span class="token function">node</span> backend snapshot to a given <span class="token function">file</span>
+	snapshot status		<span class="token punctuation">[</span>deprecated<span class="token punctuation">]</span> Gets backend snapshot status of a given <span class="token function">file</span>
+	txn			Txn processes all the requests <span class="token keyword">in</span> one transaction
+	user <span class="token function">add</span>		Adds a new user
+	user delete		Deletes a user
+	user get		Gets detailed information of a user
+	user grant-role		Grants a role to a user
+	user list		Lists all <span class="token function">users</span>
+	user <span class="token function">passwd</span>		Changes password of user
+	user revoke-role	Revokes a role from a user
+	version			Prints the version of etcdctl
+	<span class="token function">watch</span>			Watches events stream on keys or prefixes
+
+OPTIONS:
+      --cacert<span class="token operator">=</span><span class="token string">""</span>				verify certificates of TLS-enabled secure servers using this CA bundle
+      --cert<span class="token operator">=</span><span class="token string">""</span>					identify secure client using this TLS certificate <span class="token function">file</span>
+      --command-timeout<span class="token operator">=</span>5s			<span class="token function">timeout</span> <span class="token keyword">for</span> short running <span class="token builtin class-name">command</span> <span class="token punctuation">(</span>excluding dial <span class="token function">timeout</span><span class="token punctuation">)</span>
+      --debug<span class="token punctuation">[</span><span class="token operator">=</span>false<span class="token punctuation">]</span>				<span class="token builtin class-name">enable</span> client-side debug logging
+      --dial-timeout<span class="token operator">=</span>2s				dial <span class="token function">timeout</span> <span class="token keyword">for</span> client connections
+  -d, --discovery-srv<span class="token operator">=</span><span class="token string">""</span>			domain name to query <span class="token keyword">for</span> SRV records describing cluster endpoints
+      --discovery-srv-name<span class="token operator">=</span><span class="token string">""</span>			<span class="token function">service</span> name to query when using DNS discovery
+      --endpoints<span class="token operator">=</span><span class="token punctuation">[</span><span class="token number">127.0</span>.0.1:2379<span class="token punctuation">]</span>		gRPC endpoints
+  -h, --help<span class="token punctuation">[</span><span class="token operator">=</span>false<span class="token punctuation">]</span>				<span class="token builtin class-name">help</span> <span class="token keyword">for</span> etcdctl
+      --hex<span class="token punctuation">[</span><span class="token operator">=</span>false<span class="token punctuation">]</span>				print byte strings as hex encoded strings
+      --insecure-discovery<span class="token punctuation">[</span><span class="token operator">=</span>true<span class="token punctuation">]</span>		accept insecure SRV records describing cluster endpoints
+      --insecure-skip-tls-verify<span class="token punctuation">[</span><span class="token operator">=</span>false<span class="token punctuation">]</span>	skip server certificate verification <span class="token punctuation">(</span>CAUTION: this option should be enabled only <span class="token keyword">for</span> testing purposes<span class="token punctuation">)</span>
+      --insecure-transport<span class="token punctuation">[</span><span class="token operator">=</span>true<span class="token punctuation">]</span>		disable transport security <span class="token keyword">for</span> client connections
+      --keepalive-time<span class="token operator">=</span>2s			keepalive <span class="token function">time</span> <span class="token keyword">for</span> client connections
+      --keepalive-timeout<span class="token operator">=</span>6s			keepalive <span class="token function">timeout</span> <span class="token keyword">for</span> client connections
+      --key<span class="token operator">=</span><span class="token string">""</span>					identify secure client using this TLS key <span class="token function">file</span>
+      --password<span class="token operator">=</span><span class="token string">""</span>				password <span class="token keyword">for</span> authentication <span class="token punctuation">(</span>if this option is used, --user option shouldn't include password<span class="token punctuation">)</span>
+      --user<span class="token operator">=</span><span class="token string">""</span>					username<span class="token punctuation">[</span>:password<span class="token punctuation">]</span> <span class="token keyword">for</span> authentication <span class="token punctuation">(</span>prompt <span class="token keyword">if</span> password is not supplied<span class="token punctuation">)</span>
+  -w, --write-out<span class="token operator">=</span><span class="token string">"simple"</span>			<span class="token builtin class-name">set</span> the output <span class="token function">format</span> <span class="token punctuation">(</span>fields, json, protobuf, simple, table<span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>查看etcd集群状态（可以进行监控，查看是否是successfully）</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">NODE_IPS</span><span class="token operator">=</span><span class="token string">"192.168.17.140 192.168.17.141 192.168.17.142"</span>
+<span class="token keyword">for</span> <span class="token for-or-select variable">ip</span> <span class="token keyword">in</span> <span class="token variable">$&#123;NODE_IPS&#125;</span><span class="token punctuation">;</span><span class="token keyword">do</span> <span class="token assign-left variable">ETCDCTL_API</span><span class="token operator">=</span><span class="token number">3</span> /usr/local/bin/etcdctl --endpoints<span class="token operator">=</span>https://<span class="token variable">$&#123;ip&#125;</span>:2379 --cacert<span class="token operator">=</span>/etc/kubernetes/ssl/ca.pem --cert<span class="token operator">=</span>/etc/kubernetes/ssl/etcd.pem --key<span class="token operator">=</span>/etc/kubernetes/ssl/etcd-key.pem endpoint health<span class="token punctuation">;</span><span class="token keyword">done</span>
+
+<span class="token punctuation">[</span>root@etcd01 ~<span class="token punctuation">]</span><span class="token comment"># export NODE_IPS="192.168.17.140 192.168.17.141 192.168.17.142"</span>
+<span class="token punctuation">[</span>root@etcd01 ~<span class="token punctuation">]</span><span class="token comment"># for ip in $&#123;NODE_IPS&#125;;do ETCDCTL_API=3 /usr/local/bin/etcdctl --endpoints=https://$&#123;ip&#125;:2379 --cacert=/etc/kubernetes/ssl/ca.pem --cert=/etc/kubernetes/ssl/etcd.pem --key=/etc/kubernetes/ssl/etcd-key.pem endpoint health;done</span>
+https://192.168.17.140:2379 is healthy: successfully committed proposal: took <span class="token operator">=</span> <span class="token number">6</span>.786219ms
+https://192.168.17.141:2379 is healthy: successfully committed proposal: took <span class="token operator">=</span> <span class="token number">10</span>.078909ms
+https://192.168.17.142:2379 is healthy: successfully committed proposal: took <span class="token operator">=</span> <span class="token number">8</span>.635907ms<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>以表格方式显示节点详细信息：</p>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell">export NODE_IPS=<span class="token string">"192.168.17.140 192.168.17.141 192.168.17.142"</span>
+<span class="token keyword">for</span> ip in $<span class="token punctuation">&#123;</span>NODE_IPS<span class="token punctuation">&#125;</span><span class="token punctuation">;</span><span class="token keyword">do</span> ETCDCTL_API=3 <span class="token operator">/</span>usr/local/bin/etcdctl <span class="token operator">--</span>endpoints=https:<span class="token operator">/</span><span class="token operator">/</span>$<span class="token punctuation">&#123;</span>ip<span class="token punctuation">&#125;</span>:2379 <span class="token operator">--</span>cacert=<span class="token operator">/</span>etc/kubernetes/ssl/ca<span class="token punctuation">.</span>pem <span class="token operator">--</span>cert=<span class="token operator">/</span>etc/kubernetes/ssl/etcd<span class="token punctuation">.</span>pem <span class="token operator">--</span>key=<span class="token operator">/</span>etc/kubernetes/ssl/etcd-key<span class="token punctuation">.</span>pem endpoint health<span class="token punctuation">;</span>done
+<span class="token comment">#添加--write-out参数以表格方式显示详细信息</span>
+<span class="token namespace">[root@etcd01 ~]</span><span class="token comment"># export NODE_IPS="192.168.17.140 192.168.17.141 192.168.17.142"</span>
+<span class="token namespace">[root@etcd01 ~]</span><span class="token comment"># for ip in $&#123;NODE_IPS&#125;;do ETCDCTL_API=3 /usr/local/bin/etcdctl --write-out=table endpoint status  --endpoints=https://$&#123;ip&#125;:2379 --cacert=/etc/kubernetes/ssl/ca.pem --cert=/etc/kubernetes/ssl/etcd.pem --key=/etc/kubernetes/ssl/etcd-key.pem endpoint health;done</span>
+<span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span>
+<span class="token punctuation">|</span>          ENDPOINT           <span class="token punctuation">|</span>        ID        <span class="token punctuation">|</span> VERSION <span class="token punctuation">|</span> DB SIZE <span class="token punctuation">|</span> IS LEADER <span class="token punctuation">|</span> IS LEARNER <span class="token punctuation">|</span> RAFT TERM <span class="token punctuation">|</span> RAFT INDEX <span class="token punctuation">|</span> RAFT APPLIED INDEX <span class="token punctuation">|</span> ERRORS <span class="token punctuation">|</span>
+<span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span>
+<span class="token punctuation">|</span> https:<span class="token operator">/</span><span class="token operator">/</span>192<span class="token punctuation">.</span>168<span class="token punctuation">.</span>17<span class="token punctuation">.</span>140:2379 <span class="token punctuation">|</span> f0b00c5fba82edde <span class="token punctuation">|</span>   3<span class="token punctuation">.</span>5<span class="token punctuation">.</span>1 <span class="token punctuation">|</span>  2<span class="token punctuation">.</span>0 MB <span class="token punctuation">|</span>     false <span class="token punctuation">|</span>      false <span class="token punctuation">|</span>        24 <span class="token punctuation">|</span>     196500 <span class="token punctuation">|</span>             196500 <span class="token punctuation">|</span>        <span class="token punctuation">|</span>
+<span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span>
+<span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span>
+<span class="token punctuation">|</span>          ENDPOINT           <span class="token punctuation">|</span>        ID        <span class="token punctuation">|</span> VERSION <span class="token punctuation">|</span> DB SIZE <span class="token punctuation">|</span> IS LEADER <span class="token punctuation">|</span> IS LEARNER <span class="token punctuation">|</span> RAFT TERM <span class="token punctuation">|</span> RAFT INDEX <span class="token punctuation">|</span> RAFT APPLIED INDEX <span class="token punctuation">|</span> ERRORS <span class="token punctuation">|</span>
+<span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span>
+<span class="token punctuation">|</span> https:<span class="token operator">/</span><span class="token operator">/</span>192<span class="token punctuation">.</span>168<span class="token punctuation">.</span>17<span class="token punctuation">.</span>141:2379 <span class="token punctuation">|</span> 31b79580a6603995 <span class="token punctuation">|</span>   3<span class="token punctuation">.</span>5<span class="token punctuation">.</span>1 <span class="token punctuation">|</span>  1<span class="token punctuation">.</span>9 MB <span class="token punctuation">|</span>      true <span class="token punctuation">|</span>      false <span class="token punctuation">|</span>        24 <span class="token punctuation">|</span>     196500 <span class="token punctuation">|</span>             196500 <span class="token punctuation">|</span>        <span class="token punctuation">|</span>
+<span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span>
+<span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span>
+<span class="token punctuation">|</span>          ENDPOINT           <span class="token punctuation">|</span>        ID        <span class="token punctuation">|</span> VERSION <span class="token punctuation">|</span> DB SIZE <span class="token punctuation">|</span> IS LEADER <span class="token punctuation">|</span> IS LEARNER <span class="token punctuation">|</span> RAFT TERM <span class="token punctuation">|</span> RAFT INDEX <span class="token punctuation">|</span> RAFT APPLIED INDEX <span class="token punctuation">|</span> ERRORS <span class="token punctuation">|</span>
+<span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span>
+<span class="token punctuation">|</span> https:<span class="token operator">/</span><span class="token operator">/</span>192<span class="token punctuation">.</span>168<span class="token punctuation">.</span>17<span class="token punctuation">.</span>142:2379 <span class="token punctuation">|</span> bd6bb6e56a019be8 <span class="token punctuation">|</span>   3<span class="token punctuation">.</span>5<span class="token punctuation">.</span>1 <span class="token punctuation">|</span>  2<span class="token punctuation">.</span>0 MB <span class="token punctuation">|</span>     false <span class="token punctuation">|</span>      false <span class="token punctuation">|</span>        24 <span class="token punctuation">|</span>     196500 <span class="token punctuation">|</span>             196500 <span class="token punctuation">|</span>        <span class="token punctuation">|</span>
+<span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span><span class="token operator">+</span>
+
+<span class="token comment"># IS LEADER 是否是主节点，一般是主节点写，然后同步到其他节点</span>
+<span class="token comment">#IS LEARNER 是否再同步</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>查看etcd集群的所有key</li>
+</ul>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@etcd01 ~]</span><span class="token comment"># etcdctl  get / --prefix --keys-only</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>根据key查看value</li>
+</ul>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@etcd01 ~]</span><span class="token comment"># etcdctl  get / --prefix --keys-only |grep nginx</span>
+<span class="token operator">/</span>calico/resources/v3/projectcalico<span class="token punctuation">.</span>org/workloadendpoints/default/node02-k8s-nginx-eth0
+<span class="token operator">/</span>registry/deployments/test/nginx-deployment
+<span class="token operator">/</span>registry/pods/default/nginx
+<span class="token operator">/</span>registry/services/specs/test/nginx-service
+<span class="token namespace">[root@etcd01 ~]</span><span class="token comment"># </span>
+<span class="token namespace">[root@etcd01 ~]</span><span class="token comment"># etcdctl get /registry/pods/default/nginx</span>
+<span class="token operator">/</span>registry/pods/default/nginx
+k8s
+	
+v1Pod 
+nginxdefault<span class="token string">"*<span class="token variable">$63501c8d</span>-8349-4b93-b8ae-61384447b83f2ޕ퐆Z
+
+runnginxz² 
+
+kubectl-runUpdatevޕ퐆FieldsV1: 
+񡤺metadata"</span>:<span class="token punctuation">&#123;</span><span class="token string">"f:labels"</span>:<span class="token punctuation">&#123;</span><span class="token string">"."</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:run"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:spec"</span>:<span class="token punctuation">&#123;</span><span class="token string">"f:containers"</span>:<span class="token punctuation">&#123;</span><span class="token string">"k:&#123;\"</span>name\<span class="token string">":\"</span>nginx\<span class="token string">"&#125;"</span>:<span class="token punctuation">&#123;</span><span class="token string">"."</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:image"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:imagePullPolicy"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:name"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:resources"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:terminationMessagePath"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:terminationMessagePolicy"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:dnsPolicy"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:enableServiceLinks"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:restartPolicy"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:schedulerName"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:securityContext"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:terminationGracePeriodSeconds"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>BĄ
+Go-http-clientUpdatev¥¶¯FieldsV1: 
+<span class="token punctuation">&#123;</span><span class="token string">"f:status"</span>:<span class="token punctuation">&#123;</span><span class="token string">"f:conditions"</span>:<span class="token punctuation">&#123;</span><span class="token string">"k:&#123;\"</span><span class="token function">type</span>\<span class="token string">":\"</span>ContainersReady\<span class="token string">"&#125;"</span>:<span class="token punctuation">&#123;</span><span class="token string">"."</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:lastProbeTime"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:lastTransitionTime"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:status"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:type"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"k:&#123;\"</span><span class="token function">type</span>\<span class="token string">":\"</span>Initialized\<span class="token string">"&#125;"</span>:<span class="token punctuation">&#123;</span><span class="token string">"."</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:lastProbeTime"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:lastTransitionTime"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:status"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:type"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"k:&#123;\"</span><span class="token function">type</span>\<span class="token string">":\"</span>Ready\<span class="token string">"&#125;"</span>:<span class="token punctuation">&#123;</span><span class="token string">"."</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:lastProbeTime"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:lastTransitionTime"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:status"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:type"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:containerStatuses"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:hostIP"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:phase"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:podIP"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:podIPs"</span>:<span class="token punctuation">&#123;</span><span class="token string">"."</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"k:&#123;\"</span>ip\<span class="token string">":\"</span>10<span class="token punctuation">.</span>200<span class="token punctuation">.</span>140<span class="token punctuation">.</span>73\<span class="token string">"&#125;"</span>:<span class="token punctuation">&#123;</span><span class="token string">"."</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:ip"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span><span class="token string">"f:startTime"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>Bstatus 
+ 
+kube-api-access-rk8zmkЁh
+<span class="token string">"
+
+token
+(&amp;
+ 
+kube-root-ca.crt 
+ca.crtca.crt
+)'
+%
+	namespace 
+v1metadata.namespace¤ 
+nginxnginx*BJL
+kube-api-access-rk8zm-/var/run/secrets/kubernetes.io/serviceaccount"</span>2j/dev/termination-logrAlways¢FileAlways 2
+                                                                                                              ClusterFirstBdefaultJdefaultR192<span class="token punctuation">.</span>168<span class="token punctuation">.</span>17<span class="token punctuation">.</span>151X`hrdefault-scheduler²6
+node<span class="token punctuation">.</span>kubernetes<span class="token punctuation">.</span>io/not-readyExists<span class="token string">"	NoExecute(¬²8
+node.kubernetes.io/unreachableExists"</span>	NoExecute<span class="token punctuation">(</span>¬Ɓ񿂺PreemptLowerPriority± 
+Running<span class="token comment">#</span>
+
+InitializedTruޕ퐆<span class="token operator">*</span>2 
+ReadyTru󇑆<span class="token operator">*</span>2'
+ContainersReadyTru󇑆<span class="token operator">*</span>2$
+
+10<span class="token punctuation">.</span>200<span class="token punctuation">.</span>140<span class="token punctuation">.</span>7ޕ퐆BĂ<span class="token punctuation">.</span><span class="token operator">*</span>2<span class="token string">"*192.168.17.1512
+nginx 
+      
+                                                                                                                                                                                                                                   󇑆oÿError󊇓:Idocker://3a2f801bd7810b187320749d3d0d365d5020ef626dc127ea8660bb73d88d97a8 (2
+                                                                                     nginx:latest:_docker-pullable://nginx@sha256:0d17b565c37bcbd895e9d92315a05c1c3c9a29f762b011a10c54a66cd53c9b31BIdocker://3eb9468b2bc7dfd62f0ba9588dce1e8a996a5884de7a0173c7cbe44fcbab7e54HJ
+BestEffortZb
+10.200.140.73"</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>删除数据</li>
+</ul>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token namespace">[root@etcd01 ~]</span><span class="token comment"># etcdctl del /registry/pods/default/nginx</span>
+1
+<span class="token namespace">[root@master01 ssl]</span><span class="token comment"># kubectl get pods </span>
+NAME          READY   STATUS    RESTARTS        AGE
+dujie-test1   1/1     Running   1 <span class="token punctuation">(</span>20h ago<span class="token punctuation">)</span>     11d
+nginx         1/1     Running   2 <span class="token punctuation">(</span>5h45m ago<span class="token punctuation">)</span>   17d
+<span class="token namespace">[root@master01 ssl]</span><span class="token comment"># </span>
+<span class="token namespace">[root@master01 ssl]</span><span class="token comment"># kubectl get pods </span>
+NAME          READY   STATUS    RESTARTS            AGE
+dujie-test1   1/1     Running   1 <span class="token punctuation">(</span>&lt;invalid> ago<span class="token punctuation">)</span>   7d7h
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>etcd数据watch机制：<br>基于不断监看数据，发生变化就主动出发通知客户端，etcd v3的watch机制支持watch某个固定的key，也支持watch一个范围</li>
+</ul>
+<pre class="line-numbers language-powershell" data-language="powershell"><code class="language-powershell"><span class="token comment">#在etcd集群的node1上watch一个key，没有此key也可以执行watch，后期可以再创建</span>
+<span class="token namespace">[root@etcd01 ~]</span><span class="token comment"># ETCDCTL_API=3 etcdctl watch /data</span>
+<span class="token comment">#在etcd node2上修改数据，验证etcd node1是否能够发现数据变化</span>
+<span class="token namespace">[root@etcd02 ~]</span><span class="token comment">#  ETCDCTL_API=3 etcdctl put /data "data v1"</span>
+OK
+<span class="token namespace">[root@etcd02 ~]</span><span class="token comment">#  ETCDCTL_API=3 etcdctl put /data "data v2"</span>
+OK
+<span class="token namespace">[root@etcd01 ~]</span><span class="token comment"># ETCDCTL_API=3 etcdctl watch /data</span>
+
+PUT
+<span class="token operator">/</span><span class="token keyword">data</span>
+<span class="token keyword">data</span> v1
+PUT
+<span class="token operator">/</span><span class="token keyword">data</span>
+<span class="token keyword">data</span> v2<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloudnavite.love">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloudnavite.love/2022/06/23/kubernetes-ETCD/">http://dycloudnavite.love/2022/06/23/kubernetes-ETCD/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloudnavite.love" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/kubernetes/">kubernetes</a><a class="post-meta__tags" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/">云原生</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/06/24/kubeasz%20-etcd%20v3%20API%E7%89%88%E6%9C%AC%E6%95%B0%E6%8D%AE%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D/"><img class="prev-cover" src="/img/kubernetes.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">kubeasz -etcd v3 API版本数据备份与恢复</div></div></a></div><div class="next-post pull-right"><a href="/2022/06/21/kubernetes%E5%AE%89%E8%A3%85coreDNS%E7%BB%84%E4%BB%B6/"><img class="next-cover" src="/img/kubernetes.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Kubernetes 安装coreDNS组件</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/07/02/Configmap/" title="kubernetes常用资源——configMap"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-02</div><div class="title">kubernetes常用资源——configMap</div></div></a></div><div><a href="/2022/07/01/Deployment%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——deployment"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-01</div><div class="title">kubernetes常用资源——deployment</div></div></a></div><div><a href="/2022/07/02/PV%20PVC/" title="kubernetes常用资源——PV&#x2F;PVC"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-02</div><div class="title">kubernetes常用资源——PV&#x2F;PVC</div></div></a></div><div><a href="/2022/08/15/Pod%E5%BC%82%E5%B8%B8%E7%8A%B6%E6%80%81%E6%8E%92%E9%94%99/" title="Pod异常状态排错"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-15</div><div class="title">Pod异常状态排错</div></div></a></div><div><a href="/2022/07/01/RC%20RS%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——RC&#x2F;RS"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-01</div><div class="title">kubernetes常用资源——RC&#x2F;RS</div></div></a></div><div><a href="/2022/07/03/Service%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——Service"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-03</div><div class="title">kubernetes常用资源——Service</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">73</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%A1%AC%E4%BB%B6%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E%EF%BC%9A"><span class="toc-number">1.</span> <span class="toc-text">一、硬件配置说明：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81ETCD%E5%8F%82%E6%95%B0%E4%BC%98%E5%8C%96%EF%BC%9A"><span class="toc-number">2.</span> <span class="toc-text">二、ETCD参数优化：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81etcd%E5%91%BD%E4%BB%A4%EF%BC%88%E9%BB%98%E8%AE%A4%E6%98%AFv3%E7%89%88%E6%9C%AC%EF%BC%89%EF%BC%9A"><span class="toc-number">3.</span> <span class="toc-text">三、etcd命令（默认是v3版本）：</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Gin框架"/></a><div class="content"><a class="title" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架">Gin框架</a><time datetime="2023-06-23T06:32:00.000Z" title="发表于 2023-06-23 14:32:00">2023-06-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ServeMux、httprouter"/></a><div class="content"><a class="title" href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter">ServeMux、httprouter</a><time datetime="2023-06-04T03:32:00.000Z" title="发表于 2023-06-04 11:32:00">2023-06-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/" title="Sync包实现并发"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Sync包实现并发"/></a><div class="content"><a class="title" href="/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/" title="Sync包实现并发">Sync包实现并发</a><time datetime="2023-06-01T06:32:00.000Z" title="发表于 2023-06-01 14:32:00">2023-06-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Go文件处理"/></a><div class="content"><a class="title" href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理">Go文件处理</a><time datetime="2023-05-26T06:32:00.000Z" title="发表于 2023-05-26 14:32:00">2023-05-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Channel通道"/></a><div class="content"><a class="title" href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道">Channel通道</a><time datetime="2023-05-20T12:32:00.000Z" title="发表于 2023-05-20 20:32:00">2023-05-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>

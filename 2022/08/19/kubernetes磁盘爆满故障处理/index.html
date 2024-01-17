@@ -1,0 +1,342 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>kubernetes 磁盘爆满故障处理 | J.のblog</title><meta name="keywords" content="kubernetes,云原生"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="一、什么情况下磁盘可能会爆满 ？kubelet 有 gc 和驱逐机制，通过 --image-gc-high-threshold，--image-gc-low- threshold，--eviction-hard，--eviction-soft，--eviction-minimum-reclaim 等参数控制 kubelet 的 gc 和驱逐策略来释放磁盘空间，如果配置正确的情况下，磁盘一般不会爆满">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kubernetes 磁盘爆满故障处理">
+<meta property="og:url" content="http://dycloudnavite.love/2022/08/19/kubernetes%E7%A3%81%E7%9B%98%E7%88%86%E6%BB%A1%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="一、什么情况下磁盘可能会爆满 ？kubelet 有 gc 和驱逐机制，通过 --image-gc-high-threshold，--image-gc-low- threshold，--eviction-hard，--eviction-soft，--eviction-minimum-reclaim 等参数控制 kubelet 的 gc 和驱逐策略来释放磁盘空间，如果配置正确的情况下，磁盘一般不会爆满">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloudnavite.love/img/kubernetes.png">
+<meta property="article:published_time" content="2022-08-19T06:32:00.000Z">
+<meta property="article:modified_time" content="2022-09-22T06:02:36.995Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="kubernetes">
+<meta property="article:tag" content="云原生">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloudnavite.love/img/kubernetes.png"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloudnavite.love/2022/08/19/kubernetes%E7%A3%81%E7%9B%98%E7%88%86%E6%BB%A1%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'kubernetes 磁盘爆满故障处理',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-09-22 14:02:36'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">73</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">kubernetes 磁盘爆满故障处理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-08-19T06:32:00.000Z" title="发表于 2022-08-19 14:32:00">2022-08-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-09-22T06:02:36.995Z" title="更新于 2022-09-22 14:02:36">2022-09-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/kubernetes/">kubernetes</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="kubernetes 磁盘爆满故障处理"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="一、什么情况下磁盘可能会爆满-？"><a href="#一、什么情况下磁盘可能会爆满-？" class="headerlink" title="一、什么情况下磁盘可能会爆满 ？"></a>一、什么情况下磁盘可能会爆满 ？</h1><p>kubelet 有 gc 和驱逐机制，通过 <code>--image-gc-high-threshold</code>，<code>--image-gc-low- threshold</code>，<code>--eviction-hard</code>，<code>--eviction-soft</code>，<code>--eviction-minimum-reclaim</code> 等参数控制 kubelet 的 gc 和驱逐策略来释放磁盘空间，如果配置正确的情况下，磁盘一般不会爆满。</p>
+<blockquote>
+<p>通常导致爆满的原因可能是配置不正确或者节点上有其它非 K8S 管理的进程在不断写数据到磁盘占用 大量空间导致磁盘爆满。</p>
+</blockquote>
+<h1 id="二、磁盘爆满会有什么影响-？"><a href="#二、磁盘爆满会有什么影响-？" class="headerlink" title="二、磁盘爆满会有什么影响 ？"></a>二、磁盘爆满会有什么影响 ？</h1><p>影响 K8S 运行我们主要关注 kubelet 和容器运行时这两个最关键的组件，它们所使用的目录通常不 一样，kubelet 一般不会单独挂盘，直接使用系统磁盘，因为通常占用空间不会很大，容器运行时单 独挂盘的场景比较多，当磁盘爆满的时候我们也要看 kubelet 和 容器运行时使用的目录是否在这个 磁盘，通过 df 命令可以查看磁盘挂载点。</p>
+<hr>
+<ul>
+<li><font color="#dd0000"><strong>容器运行时使用的目录所在磁盘爆满</strong></font><br></li>
+</ul>
+<hr>
+<blockquote>
+<p>如果容器运行时使用的目录所在磁盘空间爆满，可能会造成容器运行时无响应，比如 docker，执行 docker 相关的命令一直 hang 住，kubelet 日志也可以看到 PLEG unhealthy，因为 CRI 调 用 timeout，当然也就无法创建或销毁容器，通常表现是 Pod 一直 ContainerCreating 或 一 直 Terminating。</p>
+</blockquote>
+<p>docker 默认使用的目录主要有:</p>
+<ul>
+<li><code>/var/run/docker</code>：用于存储容器运行状态，通过 dockerd 的**–exec-root** 参数指定</li>
+<li><code>/var/lib/docker</code>：用于持久化容器相关的数据，比如容器镜像、容器可写层数据、容器标准 日志输出、通过 docker 创建的 volume 等</li>
+</ul>
+<p>Pod 启动可能报类似下面的事件:</p>
+<pre class="line-numbers language-none"><code class="language-none">Warning FailedCreatePodSandBox 53m kubelet, 172.22.0.44 Failed create pod sandbox: rpc error: code &#x3D; DeadlineExceeded desc &#x3D; context deadline exceeded
+Warning FailedCreatePodSandBox 2m (x4307 over 16h) kubelet, 10.179.80.31 (combined similar events): Failed create pod sandbox: rpc error: code &#x3D; Unknown desc &#x3D; failed to create a sandbox for pod &quot;apigateway-6dc48bf8b6-l8xrw&quot;: Error response from daemon: mkdir &#x2F;var&#x2F;lib&#x2F;docker&#x2F;aufs&#x2F;mnt&#x2F;1f09d6c1c9f24e8daaea5bf33a4230de7dbc758e3b22785e8ee21e3e3d921214 no space left on device
+Warning Failed 5m1s (x3397 over 17h) kubelet, ip-10-0-151-35.us-west-2.compute similar events): Error: container create failed: container_linux.go:336: starting container process caused &quot;process_linux.go:399: container init caused \&quot;rootfs_linux.go:58: mounting \\\&quot;&#x2F;sys\\\&quot; to rootfs \\\&quot;&#x2F;var&#x2F;lib&#x2F;dockerd&#x2F;storage&#x2F;overlay&#x2F;051e985771cc69f3f699895a1dada9ef6483e912b46a99e004af7bb4852183eb&#x2F;merged\\\&quot; at \\\&quot;&#x2F;var&#x2F;lib&#x2F;dockerd&#x2F;storage&#x2F;overlay&#x2F;051e985771cc69f3f699895a1dada9ef6483e912b46a99e004af7bb4852183eb&#x2F;merged&#x2F;sys\\\&quot; caused \\\&quot;no space left on device\\\&quot;\&quot;&quot;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>Pod 删除可能报类似下面的事件:</p>
+<pre class="line-numbers language-none"><code class="language-none">Normal Killing 39s (x735 over 15h) kubelet, 10.179.80.31 Killing container with id docker:&#x2F;&#x2F;apigateway:Need to kill Pod<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<hr>
+<ul>
+<li><font color="#dd0000"><strong>kubelet 使用的目录所在磁盘爆满</strong></font><br></li>
+</ul>
+<hr>
+<p>如果 kubelet 使用的目录所在磁盘空间爆满(通常是系统盘)，新建 Pod 时连 Sandbox 都无法创 建成功，因为 mkdir 将会失败，通常会有类似这样的 Pod 事件:</p>
+<pre class="line-numbers language-none"><code class="language-none">Warning UnexpectedAdmissionError 44m kubelet, 172.22.0.44 Update plugin resources failed due to failed to write checkpoint file &quot;kubelet_internal_checkpoint&quot;: write &#x2F;var&#x2F;lib&#x2F;kubelet&#x2F;device- plugins&#x2F;.728425055: no space left on device, which is unexpected.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>kubelet 默认使用的目录是  <code>/var/lib/kubelet</code>，用于存储插件信息、Pod 相关的状态以及挂 载的 volume (比如 <code>emptyDir</code> ，<code>ConfigMap</code>，<code>Secret</code>），通过 kubelet 的**–root- dir** 参数指定。</p>
+<hr>
+<ul>
+<li><font color="#dd0000"><strong>如何恢复</strong></font><br></li>
+</ul>
+<hr>
+<p>如果容器运行时使用的 Docker，无法直接重启 dockerd 来释放一些空间，因为磁盘爆满后dockerd 无法正常响应，停止的时候也会卡住。需要先手动清理一点文件腾出空间好让 dockerd 能够停止并重启</p>
+<p>可以手动删除一些 docker 的 log 文件或可写层文件，通常删除 log:</p>
+<pre class="line-numbers language-none"><code class="language-none">$ cd &#x2F;var&#x2F;lib&#x2F;docker&#x2F;containers
+$ du -sh * # 找到比较大的目录
+$ cd dda02c9a7491fa797ab730c1568ba06cba74cecd4e4a82e9d90d00fa11de743c-json.log.9
+$ cat &#x2F;dev&#x2F;null &gt; dda02c9a7491fa797ab730c1568ba06cba74cecd4e4a82e9d90d00fa11de743c-json.log.9 # 删除log文件<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li><strong>注意：注意: 使用 <code>cat /dev/null &gt;</code> 方式删除而不用 rm ，因为用 rm 删除的文件，docker 进 程可能不会释放文件，空间也就不会释放；log 的后缀数字越大表示越久远，先删除旧日志。</strong></li>
+<li>然后将该 node 标记不可调度，并将其已有的 pod 驱逐到其它节点，这样重启 dockerd 就会让该 节点的 pod 对应的容器删掉，容器相关的日志(标准输出)与容器内产生的数据文件(没有挂载 volume, 可写层)也会被清理：</li>
+</ul>
+<pre class="line-numbers language-none"><code class="language-none">kubectl drain &lt;node-name&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>重启 dockerd:</p>
+<pre class="line-numbers language-none"><code class="language-none">systemctl restart docker<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>等重启恢复，pod 调度到其它节点，排查磁盘爆满原因并清理和规避，然后取消节点不可调度标记:</p>
+<pre class="line-numbers language-none"><code class="language-none">kubectl uncordon &lt;node-name&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<hr>
+<ul>
+<li><font color="#dd0000"><strong>如何规避 ？</strong></font><br></li>
+</ul>
+<hr>
+<p>正确配置 kubelet gc 和 驱逐相关的参数，即便到达爆满地步，此时节点上的 pod 也都早就自动 驱逐到其它节点了，不会存在 Pod 一直 ContainerCreating 或 Terminating 的问题。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloudnavite.love">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloudnavite.love/2022/08/19/kubernetes%E7%A3%81%E7%9B%98%E7%88%86%E6%BB%A1%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/">http://dycloudnavite.love/2022/08/19/kubernetes%E7%A3%81%E7%9B%98%E7%88%86%E6%BB%A1%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloudnavite.love" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/kubernetes/">kubernetes</a><a class="post-meta__tags" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/">云原生</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/08/23/%E5%AE%B9%E5%99%A8%E8%BF%9B%E7%A8%8B%E4%B8%BB%E5%8A%A8%E9%80%80%E5%87%BA%E5%8E%9F%E5%9B%A0/"><img class="prev-cover" src="/img/kubernetes.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">容器进程退出原因</div></div></a></div><div class="next-post pull-right"><a href="/2022/08/16/Jenkins%E7%94%A8%E6%88%B7%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6%E6%8F%92%E4%BB%B6%E2%80%94%E2%80%94Role-based%20Authorization%20Strategy/"><img class="next-cover" src="/img/jenkins.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Jenkins用户权限控制插件——Role-based Authorization Strategy</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/07/02/Configmap/" title="kubernetes常用资源——configMap"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-02</div><div class="title">kubernetes常用资源——configMap</div></div></a></div><div><a href="/2022/07/01/Deployment%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——deployment"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-01</div><div class="title">kubernetes常用资源——deployment</div></div></a></div><div><a href="/2022/07/02/PV%20PVC/" title="kubernetes常用资源——PV&#x2F;PVC"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-02</div><div class="title">kubernetes常用资源——PV&#x2F;PVC</div></div></a></div><div><a href="/2022/08/15/Pod%E5%BC%82%E5%B8%B8%E7%8A%B6%E6%80%81%E6%8E%92%E9%94%99/" title="Pod异常状态排错"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-15</div><div class="title">Pod异常状态排错</div></div></a></div><div><a href="/2022/07/01/RC%20RS%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——RC&#x2F;RS"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-01</div><div class="title">kubernetes常用资源——RC&#x2F;RS</div></div></a></div><div><a href="/2022/07/03/Service%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——Service"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-03</div><div class="title">kubernetes常用资源——Service</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">73</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E7%A3%81%E7%9B%98%E5%8F%AF%E8%83%BD%E4%BC%9A%E7%88%86%E6%BB%A1-%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">一、什么情况下磁盘可能会爆满 ？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%A3%81%E7%9B%98%E7%88%86%E6%BB%A1%E4%BC%9A%E6%9C%89%E4%BB%80%E4%B9%88%E5%BD%B1%E5%93%8D-%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">二、磁盘爆满会有什么影响 ？</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Gin框架"/></a><div class="content"><a class="title" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架">Gin框架</a><time datetime="2023-06-23T06:32:00.000Z" title="发表于 2023-06-23 14:32:00">2023-06-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ServeMux、httprouter"/></a><div class="content"><a class="title" href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter">ServeMux、httprouter</a><time datetime="2023-06-04T03:32:00.000Z" title="发表于 2023-06-04 11:32:00">2023-06-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/" title="Sync包实现并发"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Sync包实现并发"/></a><div class="content"><a class="title" href="/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/" title="Sync包实现并发">Sync包实现并发</a><time datetime="2023-06-01T06:32:00.000Z" title="发表于 2023-06-01 14:32:00">2023-06-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Go文件处理"/></a><div class="content"><a class="title" href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理">Go文件处理</a><time datetime="2023-05-26T06:32:00.000Z" title="发表于 2023-05-26 14:32:00">2023-05-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Channel通道"/></a><div class="content"><a class="title" href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道">Channel通道</a><time datetime="2023-05-20T12:32:00.000Z" title="发表于 2023-05-20 20:32:00">2023-05-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>

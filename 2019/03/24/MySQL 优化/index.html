@@ -1,0 +1,759 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>MySQL 优化 | J.のblog</title><meta name="keywords" content="mysql"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="一、优化工具1.1 OS CPU : top , htop, PS ,w ,glanceMEM : top , htop ,vmstat ,sar ,freeIO  : iotop ,iostat ,iftopFS  : xfs_info ,df -Th , fdisk -l   1.2 数据库 show statusshow variablesshow indexshow processlist">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL 优化">
+<meta property="og:url" content="http://dycloudnavite.love/2019/03/24/MySQL%20%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="一、优化工具1.1 OS CPU : top , htop, PS ,w ,glanceMEM : top , htop ,vmstat ,sar ,freeIO  : iotop ,iostat ,iftopFS  : xfs_info ,df -Th , fdisk -l   1.2 数据库 show statusshow variablesshow indexshow processlist">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloudnavite.love/img/mysql.jpg">
+<meta property="article:published_time" content="2019-03-24T08:42:00.000Z">
+<meta property="article:modified_time" content="2022-09-02T10:01:23.710Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloudnavite.love/img/mysql.jpg"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloudnavite.love/2019/03/24/MySQL%20%E4%BC%98%E5%8C%96/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL 优化',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-09-02 18:01:23'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">73</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL 优化</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-03-24T08:42:00.000Z" title="发表于 2019-03-24 16:42:00">2019-03-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-09-02T10:01:23.710Z" title="更新于 2022-09-02 18:01:23">2022-09-02</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/mysql/">mysql</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MySQL 优化"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="一、优化工具"><a href="#一、优化工具" class="headerlink" title="一、优化工具"></a>一、优化工具</h1><h5 id="1-1-OS"><a href="#1-1-OS" class="headerlink" title="1.1 OS"></a>1.1 OS</h5><blockquote>
+<p>CPU : top , htop, PS ,w ,glance<br>MEM : top , htop ,vmstat ,sar ,free<br>IO  : iotop ,iostat ,iftop<br>FS  : xfs_info ,df -Th , fdisk -l </p>
+</blockquote>
+<h5 id="1-2-数据库"><a href="#1-2-数据库" class="headerlink" title="1.2 数据库"></a>1.2 数据库</h5><blockquote>
+<p>show status<br>show variables<br>show index<br>show processlist<br>show slave status<br>show engine innodb status\G<br>desc &#x2F;explain<br>slowlog<br>mysqladmin<br>扩展类深度优化:<br>pt系列<br>mysqlslap<br>sysbench<br>tpc-c<br>information_schema<br>performance_schema<br>sys</p>
+</blockquote>
+<h5 id="1-3-工具使用方法介绍"><a href="#1-3-工具使用方法介绍" class="headerlink" title="1.3 工具使用方法介绍"></a>1.3 工具使用方法介绍</h5><p>1）top</p>
+<pre class="line-numbers language-none"><code class="language-none">H
+zsc 
+[root@db01 ~]# cat &#x2F;data&#x2F;mysql&#x2F;data&#x2F;db01.pid 
+1856
+[root@db01 ~]# top -p 1856
+
+%Cpu(s): 
+0.0 us  : 用户态程序运行占用的cpu时间百分比
+0.0 sy  : 内核态和资源调度时应用到的时间百分比
+死锁 , 锁等待严重 ,并发连接多, 高并发 
+99.9 id : 空闲的时间.
+0.0 wa  : IO , 锁 , 内存空间释放<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>2）iotop，iostat，iftop<br>3）数据库层面</p>
+<h1 id="二、优化思路分解"><a href="#二、优化思路分解" class="headerlink" title="二、优化思路分解"></a>二、优化思路分解</h1><h5 id="2-1-硬件优化"><a href="#2-1-硬件优化" class="headerlink" title="2.1 硬件优化"></a>2.1 硬件优化</h5><p>cpu：</p>
+<pre class="line-numbers language-none"><code class="language-none">CPU 根据数据库类型
+OLTP  IO密集型
+OLAP  计算密集型
+
+IO密集型：线上系统，OLTP主要是IO密集型的业务，高并发
+CPU密集型：数据分析数据处理，OLAP，cpu密集型的，需要CPU高计算能力（i系列，IBM power系列）
+
+CPU密集型： I 系列的，主频很高，核心少 
+IO密集型：  E系列（至强），主频相对低，核心数量多<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>内存：</p>
+<pre class="line-numbers language-none"><code class="language-none">建议2-3倍cpu核心数量 （ECC）<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>磁盘：</p>
+<pre class="line-numbers language-none"><code class="language-none">SATA-III   SAS    Fc    SSD（sata） pci-e  ssd  Flash
+主机 RAID卡的BBU(Battery Backup Unit)关闭<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>存储：</p>
+<pre class="line-numbers language-none"><code class="language-none">根据存储数据种类的不同，选择不同的存储设备
+配置合理的RAID级别(raid1,raid5、raid10、热备盘) 
+r0 :条带化 ,性能高
+r1 :镜像，安全
+r5 :校验+条带化，安全较高+性能较高（读），写性能较低 （适合于读多写少）
+r10：安全+性能都很高，最少四块盘，浪费一半的空间（高IO要求）
+
+项目:    10T +  MySQL  +  raid10 , LVM 
+
+IOPS <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>网络：</p>
+<pre class="line-numbers language-none"><code class="language-none">1、硬件买好的（单卡单口）
+2、网卡绑定（bonding）， 选择主备模式, 交换机堆叠
+以上问题，提前规避掉。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h5 id="2-2-操作系统优化"><a href="#2-2-操作系统优化" class="headerlink" title="2.2 操作系统优化"></a>2.2 操作系统优化</h5><p>swap调整</p>
+<pre class="line-numbers language-none"><code class="language-none">echo 0 &gt;&#x2F;proc&#x2F;sys&#x2F;vm&#x2F;swappiness的内容改成0（临时）
+
+vim &#x2F;etc&#x2F;sysctl.conf
+
+vm.swappiness&#x3D;0（永久）
+sysctl -p
+这个参数决定了Linux是倾向于使用swap，还是倾向于释放文件系统cache。在内存紧张的情况下，数值越低越倾向于释放文件系统cache。
+当然，这个参数只能减少使用swap的概率，并不能避免Linux使用swap。
+修改MySQL的配置参数innodb_flush_method，开启O_DIRECT模式
+
+这种情况下，InnoDB的buffer pool会直接绕过文件系统cache来访问磁盘，但是redo log依旧会使用文件系统cache。
+值得注意的是，Redo log是覆写模式的，即使使用了文件系统的cache，也不会占用太多
+IO调度策略<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-none"><code class="language-none">centos 7 默认是deadline
+cat   &#x2F;sys&#x2F;block&#x2F;sda&#x2F;queue&#x2F;scheduler
+
+#临时修改为deadline(centos6)
+echo deadline &gt;&#x2F;sys&#x2F;block&#x2F;sda&#x2F;queue&#x2F;scheduler 
+vi &#x2F;boot&#x2F;grub&#x2F;grub.conf
+更改到如下内容:
+kernel &#x2F;boot&#x2F;vmlinuz-2.6.18-8.el5 ro root&#x3D;LABEL&#x3D;&#x2F; elevator&#x3D;deadline rhgb quiet
+
+
+IO ：
+    raid
+    no lvm
+    ext4或xfs
+    ssd
+    IO调度策略
+
+提前规划好以上所有问题，减轻MySQL优化的难度。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="2-3-应用端"><a href="#2-3-应用端" class="headerlink" title="2.3 应用端"></a>2.3 应用端</h5><pre class="line-numbers language-none"><code class="language-none">1. 开发过程规范,标准
+2. 减少烂SQL:不走索引,复杂逻辑,切割大事务.
+3. 避免业务逻辑错误,避免锁争用.
+这个阶段,需要我们DBA深入业务,或者要和开发人员\业务人员配合实现<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="三、MySQL-参数优化测试"><a href="#三、MySQL-参数优化测试" class="headerlink" title="三、MySQL 参数优化测试"></a>三、MySQL 参数优化测试</h1><pre class="line-numbers language-none"><code class="language-none">虚拟机vm12.5，OS centos 6.9（系统已优化），cpu*4（I5 4440 3.1GHZ）,MEM*4GB ,HardDisk:SSD<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>模拟数据库数据</p>
+<pre class="line-numbers language-none"><code class="language-none">drop database if exists oldboy;
+create database oldboy charset utf8mb4 collate utf8mb4_bin;
+use oldboy;
+create table t_100w (id int,num int,k1 char(2),k2 char(4),dt timestamp);
+delimiter &#x2F;&#x2F;
+create  procedure rand_data(in num int)
+begin
+declare str char(62) default &#39;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&#39;;
+declare str2 char(2);
+declare str4 char(4);
+declare i int default 0;
+while i&lt;num do
+set str2&#x3D;concat(substring(str,1+floor(rand()*61),1),substring(str,1+floor(rand()*61),1));
+set str4&#x3D;concat(substring(str,1+floor(rand()*61),2),substring(str,1+floor(rand()*61),2));
+set i&#x3D;i+1;
+insert into t_100w values (i,floor(rand()*num),str2,str4,now());
+end while;
+end;
+&#x2F;&#x2F;
+delimiter ;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>插入100w条数据</p>
+<pre class="line-numbers language-none"><code class="language-none">call rand_data(1000000);
+commit;
+
+mysqlslap --defaults-file&#x3D;&#x2F;etc&#x2F;my.cnf \
+--concurrency&#x3D;100 --iterations&#x3D;1 --create-schema&#x3D;&#39;test&#39; \
+--query&#x3D;&quot;select * from test.t100w where k2&#x3D;&#39;FGCD&#39;&quot; engine&#x3D;innodb \
+--number-of-queries&#x3D;2000 -uroot -p123 -verbose<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h1 id="五、优化细节"><a href="#五、优化细节" class="headerlink" title="五、优化细节"></a>五、优化细节</h1><h5 id="5-1-参数优化"><a href="#5-1-参数优化" class="headerlink" title="5.1 参数优化"></a>5.1 参数优化</h5><h5 id="MAX-connections"><a href="#MAX-connections" class="headerlink" title="MAX_connections"></a>MAX_connections</h5><p>1）简介</p>
+<blockquote>
+<p>Mysql的最大连接数，如果服务器的并发请求量比较大，可以调高这个值，当然这是要建立在机器能够支撑的情况下，因为如果连接数越来越多，mysql会为每个连接提供缓冲区，就会开销的越多的内存，所以需要适当的调整该值，不能随便去提高设值。</p>
+</blockquote>
+<p>2）判断依据</p>
+<pre class="line-numbers language-none"><code class="language-none">show variables like &#39;max_connections&#39;;
+    +-----------------+-------+
+    | Variable_name   | Value |
+    +-----------------+-------+
+    | max_connections | 151   |
+    +-----------------+-------+
+show status like &#39;Max_used_connections&#39;;
+    +----------------------+-------+
+    | Variable_name        | Value |
+    +----------------------+-------+
+    | Max_used_connections | 101   |
+    +----------------------+-------+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>3）修改方式</p>
+<pre class="line-numbers language-none"><code class="language-none">vim &#x2F;etc&#x2F;my.cnf 
+Max_connections&#x3D;1024<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<ul>
+<li>1.开启数据库时，我们可以临时设置一个比较大的测试值</li>
+<li>2.观察show  status  like  ‘Max_used_connections’； 变化、</li>
+<li>3.如果max_used_connections跟max_connections 相同，那么就是max_used_connections 设置过低或者超过服务器的负载上限了，低于10%则设置过大</li>
+</ul>
+<h5 id="back-log"><a href="#back-log" class="headerlink" title="back_log"></a>back_log</h5><p>1）简介</p>
+<blockquote>
+<p>mysql能暂存的连接数量，当主要mysql线程在一个很短时间内得到非常多的连接请求时候它就会起作用，如果mysql的连接数据达到max_connections时候，新来的请求将会被存在堆栈中，等待某一连接释放资源，该推栈的数量及back_log,如果等待连接的数量超过back_log，将不被授予连接资源。<br>back_log值指出在mysql暂时停止回答新请求之前的短时间内有多少个请求可以被存在推栈中，只有如果期望在一个短时间内有很多连接的时候需要增加它</p>
+</blockquote>
+<p>2）依据</p>
+<pre class="line-numbers language-none"><code class="language-none">show full processlist<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>发现大量的待连接进程时，就需要加大back_log或者加大max_connections的值</p>
+<p>3）修改方式</p>
+<pre class="line-numbers language-none"><code class="language-none">vim &#x2F;etc&#x2F;my.cnf 
+back_log&#x3D;1024<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h5 id="wait-timeout和interactive-timeout"><a href="#wait-timeout和interactive-timeout" class="headerlink" title="wait_timeout和interactive_timeout"></a>wait_timeout和interactive_timeout</h5><p>1）简介</p>
+<blockquote>
+<p>wait_timeout：指的是mysql在关闭一个非交互的连接之前所要等待的秒数</p>
+</blockquote>
+<blockquote>
+<p>interactive_timeout：指的是mysql在关闭一个交互的连接之前所需要等待的秒数，比如我们在终端上进行mysql管理，使用的即使交互的连接，这时候，如果没有操作的时间超过了interactive_time设置的时间就会自动的断开，默认的是28800，可调优为720</p>
+</blockquote>
+<blockquote>
+<p>wait_timeout:如果设置太小，那么连接关闭的就很快，从而使一些持久的连接不起作用</p>
+</blockquote>
+<p>2）设置建议<br>如果设置太大，容易造成连接打开时间过长，在show processlist时候，能看到很多的连接 ，一般希望wait_timeout尽可能低<br>3）修改方式</p>
+<pre class="line-numbers language-none"><code class="language-none">wait_timeout&#x3D;60
+interactive_timeout&#x3D;1200<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>长连接的应用，为了不去反复的回收和分配资源，降低额外的开销。<br>一般我们会将wait_timeout设定比较小，interactive_timeout要和应用开发人员沟通长链接的应用是否很多。如果他需要长链接，那么这个值可以不需要调整。<br>另外还可以使用类外的参数弥补。</p>
+</blockquote>
+<h5 id="key-buffer-size"><a href="#key-buffer-size" class="headerlink" title="key_buffer_size"></a>key_buffer_size</h5><p>1）简介</p>
+<blockquote>
+<p>key_buffer_size指定索引缓冲区的大小，它决定索引处理的速度，尤其是索引读的速度<br>1.此参数与myisam表的索引有关<br>2.临时表的创建有关（多表连接、子查询中、union）</p>
+</blockquote>
+<blockquote>
+<p>在有以上查询语句出现的时候，需要创建临时表，用完之后就会被丢弃<br>临时表有两种创建方式：<br>1.内存中————key_buffer_size<br>2.磁盘上————ibdata1(5.6)   ibtmp1(5.7)</p>
+</blockquote>
+<p>2）设置依据</p>
+<p>注：key_buffer_size 支队myisam 表起作用，即使不适用myisam表，但是内部的临时磁盘表是myisam表，也要使用该值<br>可以使用检查状态值created_tmp_disk_tables得知：</p>
+<pre class="line-numbers language-none"><code class="language-none">mysql&gt; show status like &quot;created_tmp%&quot;;
+
++-------------------------+-------+
+| Variable_name           | Value |
++-------------------------+-------+
+| Created_tmp_disk_tables | 0     |
+| Created_tmp_files       | 6     |
+| Created_tmp_tables      | 1     |
++-------------------------+-------+
+3 rows in set (0.00 sec)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>通常的，我们习惯以Created_tmp_tables&#x2F;(Created_tmp_disk_tables + Created_tmp_tables)<br>Created_tmp_disk_tables&#x2F;(Created_tmp_disk_tables + Created_tmp_tables)<br>或者以各自的一个时段内的差额计算，来判断基于内存的临时表利用率。所以，我们会比较关注 Created_tmp_disk_tables<br>是否过多，从而认定当前服务器运行状态的优劣。<br>Created_tmp_disk_tables&#x2F;(Created_tmp_disk_tables + Created_tmp_tables)<br>控制在5%-10%以内</p>
+</blockquote>
+<p>看以下例子：<br>在调用mysqldump备份数据时，大概执行步骤如下：</p>
+<pre class="line-numbers language-none"><code class="language-none">180322 17:39:33       7 Connect     root@localhost on
+7 Query       &#x2F;*!40100 SET @@SQL_MODE&#x3D;&#39;&#39; *&#x2F;
+7 Init DB     guo
+7 Query       SHOW TABLES LIKE &#39;guo&#39;
+7 Query       LOCK TABLES &#96;guo&#96; READ &#x2F;*!32311 LOCAL *&#x2F;
+7 Query       SET OPTION SQL_QUOTE_SHOW_CREATE&#x3D;1
+7 Query       show create table &#96;guo&#96;
+7 Query       show fields from &#96;guo&#96;
+7 Query       show table status like &#39;guo&#39;
+7 Query       SELECT &#x2F;*!40001 SQL_NO_CACHE *&#x2F; * FROM &#96;guo&#96;
+7 Query       UNLOCK TABLES
+7 Quit<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中，有一步是：show fields from ‘guo’  从slow query记录的执行计划中，可以知道它也产生了Tmp_table_on_disk。<br>所以说，以上公式并不能真正反映到mysql里临时表的利用率，有些情况产生的Tmp_table_on_disk  我们完全不用担心，因此没必要过分关注<br>Created_tmp_disk_tables，但如果他的值大的离谱的话，那就好好查一下，你的服务器到底都在执行什么查询了。</p>
+<p>3）配置方法</p>
+<pre class="line-numbers language-none"><code class="language-none">key_buffer_size&#x3D;64M<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h5 id="max-connect-errors"><a href="#max-connect-errors" class="headerlink" title="max_connect_errors"></a>max_connect_errors</h5><blockquote>
+<p>max_connect_errors 是一个mysql中与安全有关的计数器值，它负责阻止过多尝试失败的客户端以防止暴力破解密码等情况，当超过指定次数，mysql服务器将禁止host的连接请求，直到mysql服务器重启或者通过flush hosts命令清空此host的相关信息  max_connect_error 的值 与性能并无太大关系。</p>
+</blockquote>
+<p>修改&#x2F;etc&#x2F;my.cnf 文件，在[mysqld]下面添加如下内容</p>
+<pre class="line-numbers language-none"><code class="language-none">max_connect_errors&#x3D;2000
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="sort-buffer-size"><a href="#sort-buffer-size" class="headerlink" title="sort_buffer_size"></a>sort_buffer_size</h5><p>1）简介<br>每个需要进行排序的 线程分配该大小的一个缓冲区，增加这值加速</p>
+<pre class="line-numbers language-none"><code class="language-none">ORDER BY 
+GROUP BY
+distinct
+union <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>2）配置<br>Sort_Buffer_Size 并不是越大越好，由于是connection级的参数，过大的设置+高并发可能会耗尽系统内存资源。<br>例如：500个连接将会消耗500*sort_buffer_size（2M）&#x3D;1G内存</p>
+<blockquote>
+<p>修改&#x2F;etc&#x2F;my.cnf问阿金，在[mysqld]下面添加如下：<br>sort_buffer_size&#x3D;1M</p>
+</blockquote>
+<h5 id="max-allowed-packet"><a href="#max-allowed-packet" class="headerlink" title="max_allowed_packet"></a>max_allowed_packet</h5><p>1）简介<br>myslq根据配置文件会限制，server接收的数据包大小。<br>2）配置<br>有时候大的插入和更新会受max_allowed_packet 参数限制，导致写入或者更新失败，更大值是1GB，必须设置1024的倍数</p>
+<pre class="line-numbers language-none"><code class="language-none">max_allowed_packet&#x3D;32M
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="join-buffer-size"><a href="#join-buffer-size" class="headerlink" title="join_buffer_size"></a>join_buffer_size</h5><blockquote>
+<p>select a.name,b.name from a join b on a.id&#x3D;b.id where xxxx<br>用于表间关联缓存的大小，和sort_buffer_size一样，该参数对应的分配内存也是每个连接独享。<br>尽量在SQL方法进行优化，效果较为明显。<br>优化的方法：在on条件列加索引，至少应当是有MUL索引</p>
+</blockquote>
+<h5 id="thread-cache-size"><a href="#thread-cache-size" class="headerlink" title="thread_cache_size"></a>thread_cache_size</h5><p>1）简介</p>
+<blockquote>
+<p>服务器线程缓存，这个值表示可以重新利用保存在缓存中线程的数量，当断开连接时，那么客户端的线程被放到缓存中以响应下一个客户而不是销毁（前提是缓存数未达上限），如果线程被重新请求，那么请求将从缓存中读取，如果缓存中是空的或者是新的请求，那么这个线程将被重新创建，如果有很多新的线程，增加这个值可以改善系统性能。</p>
+</blockquote>
+<p>2）配置依据</p>
+<blockquote>
+<p>通过比较connections和 threads_created状态的变量，可以看到这个变量的作用。<br>设置规则如下，1GB内存配置为8，2GB配置为16 ，3GB 配置为32 4GB 或者更高内存，可配置更大<br>服务器处理此用户的线程建辉缓存起来以响应下一个客户而不是销毁（前提是缓存数未达到上限）<br>试图连接到MySQL（不管是否连接成功）的连接数</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">mysql&gt;  show status like &#39;threads_%&#39;;
++-------------------+-------+
+| Variable_name     | Value |
++-------------------+-------+
+| Threads_cached    | 8     |
+| Threads_connected | 2     |
+| Threads_created   | 4783  |
+| Threads_running   | 1     |
++-------------------+-------+
+4 rows in set (0.00 sec)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>Threads_cached：代表当前此时此刻线程缓存中有多少空闲线程。<br>Threads_connected：代表当前已建立连接的数量，因为一个连接就需要一个线程，所以也可以看成当前被使用的线程数。<br>Threads_created：带包从最近一次服务启动，已创建线程的数量，如果发现Threads_created值过大的话，表明MySQL服务器一直在创建线程，这也是比较耗cpuSYS资源，可以适当增加配置文件中thread_cache_size值。<br>Threads_running：代表当前激活的（非睡眠状态）线程数。并不是代表正在使用的线程数，有时候连接已建立，但是连接处于sleep的状态。</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">thread_cache_size&#x3D;32
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<blockquote>
+<p>整理：<br>Threads_created：一般在架构设计阶段，会设置一个测试值，做压力测试。<br>结合zabbix监控，看一段时间内此状态的变化。<br>如果在一段时间内，Threads_created邹于平稳，说明对应参数设定是ok<br>如果一直陡峭的增长，或者出现大量峰值，那么继续增加此值的大小，在系统资源够用的情况下（内存）</p>
+</blockquote>
+<h5 id="innodb-buffer-pool-size"><a href="#innodb-buffer-pool-size" class="headerlink" title="innodb_buffer_pool_size"></a>innodb_buffer_pool_size</h5><p>1）简介</p>
+<blockquote>
+<p>对于InnoDB表来说，innodb_buffer_pool_size 的作用就相当于key_buffer_size 对于MyISAM 表的作用一样。</p>
+</blockquote>
+<p>2）配置</p>
+<blockquote>
+<p>InnoDb使用该参数指定大小的内存来缓冲数据和索引。<br>对于单独的MySQL数据库服务器，最大可以把该值设置成物理内存的80%，一般建议不要超过物理内存的70%。</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">innodb_buffer_pool_size&#x3D;2048M<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="innodb-flush-log-at-trx-commit"><a href="#innodb-flush-log-at-trx-commit" class="headerlink" title="innodb_flush_log_at_trx_commit"></a>innodb_flush_log_at_trx_commit</h5><p>1）简介<br>主要控制了innodb 将logbuffer 中的数据写入日志文件并flush磁盘的时间点，取值分别为0、1、2三个</p>
+<ul>
+<li>0：表示当事务提交时，不做日志写入操作，而是每秒钟将log  buffer中的数据写入日志文件并flush磁盘一次</li>
+<li>1：每次事务的提交都会引起redo日志文件写入、flush磁盘的操作，确保了事务的ACID；</li>
+<li>2：每次事务提交引起写入日志文件的动作，但每秒钟完成一个flush磁盘操作<br>2）配置依据</li>
+</ul>
+<blockquote>
+<p>实际测试发现，该值对插入数据的速度影响非常大，设置为2时，插入10000条记录只需要2秒，设置0时只需要1秒，而设置为1时则需要229秒。因此，MySQL手册也建议尽量将插入操作合并成一个事务，这样可以大幅度提升速度。<br>根据Mysql官方文档，在允许丢失最近部分事务的危险的前提下，可以吧该值设为0或2。</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">innodb_flush_log_at_trx_commit&#x3D;1<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>双一标准的一个1</p>
+<h3 id="安全相关参数"><a href="#安全相关参数" class="headerlink" title="安全相关参数"></a>安全相关参数</h3><p>Innodb_flush_method&#x3D;(O_DIRECT, fsync…..) </p>
+<h5 id="1-fsync"><a href="#1-fsync" class="headerlink" title="1.fsync"></a>1.fsync</h5><ul>
+<li>在数据页需要持久化时，首先将数据写入OS buffer中，然后由os决定什么时候写入磁盘</li>
+<li>在redo buffuer需要持久化时，首先将数据写入OS buffer中，然后由os决定什么时候写入磁盘<br> 但如果innodb_flush_log_at_trx_commit&#x3D;1的话，日志还是直接每次commit直接写入磁盘</li>
+</ul>
+<h5 id="2-Innodb-flush-method-x3D-O-DIRECT"><a href="#2-Innodb-flush-method-x3D-O-DIRECT" class="headerlink" title="2.Innodb_flush_method&#x3D;O_DIRECT"></a>2.Innodb_flush_method&#x3D;O_DIRECT</h5><ul>
+<li>在数据页需要持久化时，直接写入磁盘</li>
+<li>在redo buffer 需要持久化时，首先将数据写入OS buffer 中，然后由os决定什么时候写入磁盘，但如果innodb_fiush_log_at_trx_commit&#x3D;1的话，日志还是直接每次ommit直接写入磁盘</li>
+</ul>
+<p>最安全模式：</p>
+<pre class="line-numbers language-none"><code class="language-none">innodb_flush_log_at_trx_commit&#x3D;1
+innodb_flush_method&#x3D;O_DIRECT<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>最高性能：</p>
+<pre class="line-numbers language-none"><code class="language-none">innodb_flush_log_at_trx_commit&#x3D;0
+innodb_flush_method&#x3D;fsync<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>一般情况下，我们更偏于安全<br>“双一标准”</p>
+<pre class="line-numbers language-none"><code class="language-none">innodb_flush_log_at_trx_commit&#x3D;1        ***************
+sync_binlog&#x3D;1                                   ***************
+innodb_flush_method&#x3D;O_DIRECT<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h5 id="binary-log"><a href="#binary-log" class="headerlink" title="binary log"></a>binary log</h5><pre class="line-numbers language-none"><code class="language-none">log-bin&#x3D;&#x2F;data&#x2F;mysql-bin<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>binlog_cache_size &#x3D; 2M</li>
+</ul>
+<blockquote>
+<p>&#x2F;&#x2F;为每个session 分配的内存，在事务过程中用来存储二进制日志的缓存, 提高记录bin-log的效率。没有什么大事务，dml也不是很频繁的情况下可以设置小一点，如果事务大而且多，dml操作也频繁，则可以适当的调大一点。前者建议是–1M，后者建议是：即 2–4M</p>
+</blockquote>
+<ul>
+<li>max_binlog_cache_size &#x3D; 8M</li>
+</ul>
+<blockquote>
+<p>&#x2F;&#x2F;表示的是binlog 能够使用的最大cache 内存大小</p>
+</blockquote>
+<ul>
+<li>max_binlog_size&#x3D; 512M</li>
+</ul>
+<blockquote>
+<p>&#x2F;&#x2F;指定binlog日志文件的大小，如果当前的日志大小达到max_binlog_size，还会自动创建新的二进制日志。你不能将该变量设置为大于1GB或小于4096字节。默认值是1GB。在导入大容量的sql文件时，建议关闭sql_log_bin，否则硬盘扛不住，而且建议定期做删除。</p>
+</blockquote>
+<ul>
+<li>expire_logs_days &#x3D; 7</li>
+</ul>
+<blockquote>
+<p>   &#x2F;&#x2F;定义了mysql清除过期日志的时间。<br>   二进制日志自动删除的天数。默认值为0,表示“没有自动删除”</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">log-bin&#x3D;&#x2F;data&#x2F;mysql-bin
+binlog_format&#x3D;row 
+sync_binlog&#x3D;1<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>双一标准（基于安全的控制）：</p>
+<pre class="line-numbers language-none"><code class="language-none">sync_binlog&#x3D;1   什么时候刷新binlog到磁盘，每次事务commit
+innodb_flush_log_at_trx_commit&#x3D;1
+set sql_log_bin&#x3D;0;
+show status like &#39;com_%&#39;;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<ol>
+<li>双一是两个参数</li>
+<li>第一个参数是控制redo刷写策略的</li>
+<li>第二参数是控制binlog</li>
+<li>首先介绍下redo的刷写策略</li>
+<li>redo的书写策略,一共提供了三种,分别是:0,1,2</li>
+<li>所谓的双一就是参数设置为1.</li>
+<li>在5.5中默认是0,从5.6.x 开始默认是1.</li>
+<li>当参数为1时, 每次事务的提交都会引起redo日志文件写入OS buffer、立即fsync()磁盘的操作，确保了事务ACID的持久性；</li>
+<li>当参数为0,2时:<br>0，表示当事务提交时，不做日志写入操作，而是每秒钟将log buffer中的数据写入日志文件并flush磁盘一次；<br>2，每次事务提交引起写入日志文件的动作,但每秒钟完成一次flush磁盘操作。</li>
+<li>另外,redo的刷写,还会受到Innodb_flush_method&#x3D;(O_DIRECT, fsync) </li>
+<li>我们核心业务1,0………</li>
+<li>sync_binlog&#x3D;1 ……..</li>
+</ol>
+</blockquote>
+<h5 id="innodb-thread-concurrency"><a href="#innodb-thread-concurrency" class="headerlink" title="innodb_thread_concurrency"></a>innodb_thread_concurrency</h5><p>1）简介</p>
+<blockquote>
+<p>次参数用来设置innodb线程的并发数量，默认值为0表示不限制。</p>
+</blockquote>
+<p>2）配置依据</p>
+<blockquote>
+<p>在官方doc上，对于innodb_thread_concurrency的使用，也给出了一些建议，如下：<br>如果一个工作负载中，并发用户线程的数量小于64，建议设置innodb_thread_concurrency&#x3D;0；<br>如果工作负载一直较为严重甚至偶尔达到顶峰，建议先设置innodb_thread_concurrency&#x3D;128，<br>并通过不断的降低这个参数，96, 80, 64等等，直到发现能够提供最佳性能的线程数，<br>例如，假设系统通常有40到50个用户，但定期的数量增加至60，70，甚至200。你会发现，<br>性能在80个并发用户设置时表现稳定，如果高于这个数，性能反而下降。在这种情况下，<br>建议设置innodb_thread_concurrency参数为80，以避免影响性能。<br>如果你不希望InnoDB使用的虚拟CPU数量比用户线程使用的虚拟CPU更多（比如20个虚拟CPU），<br>建议通过设置innodb_thread_concurrency 参数为这个值（也可能更低，这取决于性能体现），<br>如果你的目标是将MySQL与其他应用隔离，你可以l考虑绑定mysqld进程到专有的虚拟CPU。<br>但是需 要注意的是，这种绑定，在myslqd进程一直不是很忙的情况下，可能会导致非最优的硬件使用率。在这种情况下，<br>你可能会设置mysqld进程绑定的虚拟 CPU，允许其他应用程序使用虚拟CPU的一部分或全部。<br>在某些情况下，最佳的innodb_thread_concurrency参数设置可以比虚拟CPU的数量小。<br>定期检测和分析系统，负载量、用户数或者工作环境的改变可能都需要对innodb_thread_concurrency参数的设置进行调整。<br>128   —–&gt; top  cpu  </p>
+</blockquote>
+<p>设置标准：</p>
+<ul>
+<li>1.当前系统cpu使用情况，均不均匀</li>
+<li>2.当前的连接数，有没有达到顶峰</li>
+</ul>
+<pre class="line-numbers language-none"><code class="language-none">show status like &#39;threads_%&#39;;
+show processlist;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>3）配置</p>
+<pre class="line-numbers language-none"><code class="language-none">innodb_thread_concurrency&#x3D;8
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>方法：</p>
+<ul>
+<li>1.看top，观察每个cpu的各自的负载情况</li>
+<li>2.发现不平均，先设置参数为cpou个数，然后不断增加（一倍）这个数值</li>
+<li>3.一直观察top状态，直到达到比较均匀的时候，书名已经到位了。</li>
+</ul>
+<blockquote>
+<p>innodb_log_buffer_size<br>此参数确定些日志文件所用的内存大小，以M为单位。缓冲区更大能提高性能，对于较大的事务，可以增大缓存大小。<br>innodb_log_buffer_size&#x3D;128M</p>
+</blockquote>
+<p>设定依据：</p>
+<ol>
+<li>大事务： 存储过程调用 CALL</li>
+<li>多事务</li>
+</ol>
+<pre class="line-numbers language-none"><code class="language-none">innodb_log_file_size &#x3D; 100M *****
+设置 ib_logfile0  ib_logfile1 
+此参数确定数据日志文件的大小，以M为单位，更大的设置可以提高性能.
+innodb_log_file_size &#x3D; 100M
+
+innodb_log_files_in_group &#x3D; 3 *****
+为提高性能，MySQL可以以循环方式将日志文件写到多个文件。推荐设置为3<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-none"><code class="language-none">read_buffer_size &#x3D; 1M **<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<blockquote>
+<p>MySql读入缓冲区大小。对表进行顺序扫描的请求将分配一个读入缓冲区，MySql会为它分配一段内存缓冲区。如果对表的顺序扫描请求非常频繁，并且你认为频繁扫描进行得太慢，可以通过增加该变量值以及内存缓冲区大小提高其性能。和 sort_buffer_size一样，该参数对应的分配内存也是每个连接独享</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">read_rnd_buffer_size &#x3D; 1M **<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<blockquote>
+<p>MySql的随机读（查询操作）缓冲区大小。当按任意顺序读取行时(例如，按照排序顺序)，将分配一个随机读缓存区。进行排序查询时，MySql会首先扫描一遍该缓冲，以避免磁盘搜索，提高查询速度，如果需要排序大量数据，可适当调高该值。但MySql会为每个客户连接发放该缓冲空间，所以应尽量适当设置该值，以避免内存开销过大。<br>注：顺序读是指根据索引的叶节点数据就能顺序地读取所需要的行数据。随机读是指一般需要根据辅助索引叶节点中的主键寻找实际行数据，而辅助索引和主键所在的数据段不同，因此访问方式是随机的。</p>
+</blockquote>
+<pre class="line-numbers language-none"><code class="language-none">bulk_insert_buffer_size &#x3D; 8M **
+批量插入数据缓存大小，可以有效提高插入效率，默认为8M
+tokuDB    percona
+myrocks   
+RocksDB
+TiDB
+MongoDB<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h1 id="六、总体优化参数"><a href="#六、总体优化参数" class="headerlink" title="六、总体优化参数"></a>六、总体优化参数</h1><pre class="line-numbers language-none"><code class="language-none">[mysqld]
+basedir&#x3D;&#x2F;data&#x2F;mysql
+datadir&#x3D;&#x2F;data&#x2F;mysql&#x2F;data
+socket&#x3D;&#x2F;tmp&#x2F;mysql.sock
+log-error&#x3D;&#x2F;var&#x2F;log&#x2F;mysql.log
+log_bin&#x3D;&#x2F;data&#x2F;binlog&#x2F;mysql-bin
+binlog_format&#x3D;row
+skip-name-resolve
+server-id&#x3D;52
+gtid-mode&#x3D;on
+enforce-gtid-consistency&#x3D;true
+log-slave-updates&#x3D;1
+relay_log_purge&#x3D;0
+max_connections&#x3D;1024
+back_log&#x3D;128
+wait_timeout&#x3D;60
+interactive_timeout&#x3D;7200
+key_buffer_size&#x3D;16M
+query_cache_size&#x3D;64M
+query_cache_type&#x3D;1
+query_cache_limit&#x3D;50M
+max_connect_errors&#x3D;20
+sort_buffer_size&#x3D;2M
+max_allowed_packet&#x3D;32M
+join_buffer_size&#x3D;2M
+thread_cache_size&#x3D;200
+innodb_buffer_pool_size&#x3D;4096M
+innodb_flush_log_at_trx_commit&#x3D;1
+innodb_log_buffer_size&#x3D;32M
+innodb_log_file_size&#x3D;128M
+innodb_log_files_in_group&#x3D;3
+binlog_cache_size&#x3D;2M
+max_binlog_cache_size&#x3D;8M
+max_binlog_size&#x3D;512M
+expire_logs_days&#x3D;7
+read_buffer_size&#x3D;2M
+read_rnd_buffer_size&#x3D;2M
+bulk_insert_buffer_size&#x3D;8M
+[client]
+socket&#x3D;&#x2F;tmp&#x2F;mysql.sock  <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h1 id="七、主从优化"><a href="#七、主从优化" class="headerlink" title="七、主从优化"></a>七、主从优化</h1><ol>
+<li>5.7以上的版本(忘记小版本)</li>
+<li>必须开启GTID </li>
+<li>binlog必须是row模式</li>
+</ol>
+<pre class="line-numbers language-none"><code class="language-none">gtid_mode&#x3D;ON
+enforce_gtid_consistency&#x3D;ON
+log_slave_updates&#x3D;ON
+slave-parallel-type&#x3D;LOGICAL_CLOCK
+slave-parallel-workers&#x3D;16
+master_info_repository&#x3D;TABLE
+relay_log_info_repository&#x3D;TABLE
+relay_log_recovery&#x3D;ON<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>5.7</p>
+<pre class="line-numbers language-none"><code class="language-none">slave-parallel-type&#x3D;LOGICAL_CLOCK
+slave-parallel-workers&#x3D;8
+cpu核心数作为标准
+CHANGE MASTER TO
+  MASTER_HOST&#x3D;&#39;10.0.0.128&#39;,
+  MASTER_USER&#x3D;&#39;repl&#39;,
+  MASTER_PASSWORD&#x3D;&#39;123&#39;,
+  MASTER_PORT&#x3D;3307,
+  MASTER_AUTO_POSITION&#x3D;1;
+start slave;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloudnavite.love">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloudnavite.love/2019/03/24/MySQL%20%E4%BC%98%E5%8C%96/">http://dycloudnavite.love/2019/03/24/MySQL%20%E4%BC%98%E5%8C%96/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloudnavite.love" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/mysql/">mysql</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2019/03/24/MySQL%20MHA%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><img class="prev-cover" src="/img/mysql.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">MySQL MHA 高可用</div></div></a></div><div class="next-post pull-right"><a href="/2019/03/23/MySQL%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%EF%BC%88Replication%EF%BC%89/"><img class="next-cover" src="/img/mysql.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL主从复制（Replication）</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2019/03/24/MySQL%20MHA%20%E9%AB%98%E5%8F%AF%E7%94%A8/" title="MySQL MHA 高可用"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-24</div><div class="title">MySQL MHA 高可用</div></div></a></div><div><a href="/2019/03/19/MySQL%20%E5%A4%87%E4%BB%BD%E6%81%A2%E5%A4%8D%EF%BC%88mysqldump%EF%BC%89/" title="MySQL 备份恢复(mysqldump)"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-19</div><div class="title">MySQL 备份恢复(mysqldump)</div></div></a></div><div><a href="/2019/03/26/MySQL%20%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/" title="MySQL 日志管理"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-26</div><div class="title">MySQL 日志管理</div></div></a></div><div><a href="/2019/03/23/MySQL%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%EF%BC%88Replication%EF%BC%89/" title="MySQL主从复制（Replication）"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-23</div><div class="title">MySQL主从复制（Replication）</div></div></a></div><div><a href="/2019/03/08/MySQL%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84-MyCAT/" title="MySQL分布式架构-MyCAT"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-08</div><div class="title">MySQL分布式架构-MyCAT</div></div></a></div><div><a href="/2019/03/14/MySQL%E7%89%A9%E7%90%86%E5%A4%87%E4%BB%BD%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%EF%BC%88Percona%20Xtrabackup%EF%BC%89PBK%20%20%20XBK/" title="MySQL物理备份工具使用（Percona Xtrabackup）"><img class="cover" src="/img/mysql.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2019-03-14</div><div class="title">MySQL物理备份工具使用（Percona Xtrabackup）</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">73</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BC%98%E5%8C%96%E5%B7%A5%E5%85%B7"><span class="toc-number">1.</span> <span class="toc-text">一、优化工具</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-1-OS"><span class="toc-number">1.0.0.0.1.</span> <span class="toc-text">1.1 OS</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-2-%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">1.0.0.0.2.</span> <span class="toc-text">1.2 数据库</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-3-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.0.0.0.3.</span> <span class="toc-text">1.3 工具使用方法介绍</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BC%98%E5%8C%96%E6%80%9D%E8%B7%AF%E5%88%86%E8%A7%A3"><span class="toc-number">2.</span> <span class="toc-text">二、优化思路分解</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#2-1-%E7%A1%AC%E4%BB%B6%E4%BC%98%E5%8C%96"><span class="toc-number">2.0.0.0.1.</span> <span class="toc-text">2.1 硬件优化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96"><span class="toc-number">2.0.0.0.2.</span> <span class="toc-text">2.2 操作系统优化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-3-%E5%BA%94%E7%94%A8%E7%AB%AF"><span class="toc-number">2.0.0.0.3.</span> <span class="toc-text">2.3 应用端</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81MySQL-%E5%8F%82%E6%95%B0%E4%BC%98%E5%8C%96%E6%B5%8B%E8%AF%95"><span class="toc-number">3.</span> <span class="toc-text">三、MySQL 参数优化测试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%BC%98%E5%8C%96%E7%BB%86%E8%8A%82"><span class="toc-number">4.</span> <span class="toc-text">五、优化细节</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#5-1-%E5%8F%82%E6%95%B0%E4%BC%98%E5%8C%96"><span class="toc-number">4.0.0.0.1.</span> <span class="toc-text">5.1 参数优化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#MAX-connections"><span class="toc-number">4.0.0.0.2.</span> <span class="toc-text">MAX_connections</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#back-log"><span class="toc-number">4.0.0.0.3.</span> <span class="toc-text">back_log</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#wait-timeout%E5%92%8Cinteractive-timeout"><span class="toc-number">4.0.0.0.4.</span> <span class="toc-text">wait_timeout和interactive_timeout</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#key-buffer-size"><span class="toc-number">4.0.0.0.5.</span> <span class="toc-text">key_buffer_size</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#max-connect-errors"><span class="toc-number">4.0.0.0.6.</span> <span class="toc-text">max_connect_errors</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#sort-buffer-size"><span class="toc-number">4.0.0.0.7.</span> <span class="toc-text">sort_buffer_size</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#max-allowed-packet"><span class="toc-number">4.0.0.0.8.</span> <span class="toc-text">max_allowed_packet</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#join-buffer-size"><span class="toc-number">4.0.0.0.9.</span> <span class="toc-text">join_buffer_size</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#thread-cache-size"><span class="toc-number">4.0.0.0.10.</span> <span class="toc-text">thread_cache_size</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#innodb-buffer-pool-size"><span class="toc-number">4.0.0.0.11.</span> <span class="toc-text">innodb_buffer_pool_size</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#innodb-flush-log-at-trx-commit"><span class="toc-number">4.0.0.0.12.</span> <span class="toc-text">innodb_flush_log_at_trx_commit</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%E7%9B%B8%E5%85%B3%E5%8F%82%E6%95%B0"><span class="toc-number">4.0.1.</span> <span class="toc-text">安全相关参数</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-fsync"><span class="toc-number">4.0.1.0.1.</span> <span class="toc-text">1.fsync</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-Innodb-flush-method-x3D-O-DIRECT"><span class="toc-number">4.0.1.0.2.</span> <span class="toc-text">2.Innodb_flush_method&#x3D;O_DIRECT</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#binary-log"><span class="toc-number">4.0.1.0.3.</span> <span class="toc-text">binary log</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#innodb-thread-concurrency"><span class="toc-number">4.0.1.0.4.</span> <span class="toc-text">innodb_thread_concurrency</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%80%BB%E4%BD%93%E4%BC%98%E5%8C%96%E5%8F%82%E6%95%B0"><span class="toc-number">5.</span> <span class="toc-text">六、总体优化参数</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E4%B8%BB%E4%BB%8E%E4%BC%98%E5%8C%96"><span class="toc-number">6.</span> <span class="toc-text">七、主从优化</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Gin框架"/></a><div class="content"><a class="title" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架">Gin框架</a><time datetime="2023-06-23T06:32:00.000Z" title="发表于 2023-06-23 14:32:00">2023-06-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ServeMux、httprouter"/></a><div class="content"><a class="title" href="/2023/06/04/ServeMux%E3%80%81httprouter/" title="ServeMux、httprouter">ServeMux、httprouter</a><time datetime="2023-06-04T03:32:00.000Z" title="发表于 2023-06-04 11:32:00">2023-06-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/" title="Sync包实现并发"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Sync包实现并发"/></a><div class="content"><a class="title" href="/2023/06/01/Sync%E5%8C%85%E5%AE%9E%E7%8E%B0%E5%B9%B6%E5%8F%91/" title="Sync包实现并发">Sync包实现并发</a><time datetime="2023-06-01T06:32:00.000Z" title="发表于 2023-06-01 14:32:00">2023-06-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Go文件处理"/></a><div class="content"><a class="title" href="/2023/05/26/Go%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="Go文件处理">Go文件处理</a><time datetime="2023-05-26T06:32:00.000Z" title="发表于 2023-05-26 14:32:00">2023-05-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Channel通道"/></a><div class="content"><a class="title" href="/2023/05/20/Channel%E9%80%9A%E9%81%93/" title="Channel通道">Channel通道</a><time datetime="2023-05-20T12:32:00.000Z" title="发表于 2023-05-20 20:32:00">2023-05-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>
