@@ -19793,16 +19793,16 @@ state<span class="token punctuation">.</span>value <span class="token operator">
     <title>记录AWS Oracle实例数据迁移的艰辛过程</title>
     <url>/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/</url>
     <content><![CDATA[<p>最近公司在aws的项目要迁移到我们公司云平台，需要将aws上面的rds（oracle）实例迁移到本地云平台，遇到各种各样的问题，下面总结下遇到的所有问题及解决方法。<br>我这边用了各种各样的方法进行迁移，最终才成功将数据迁回</p>
-<h3 id="方法1（失败）：navicat-工具，因对oracle数据库不太熟悉，所以首先选择用工具直接同步，此过程步骤简单，只需要在工具上选择源库和目标库同步即可"><a href="#方法1（失败）：navicat-工具，因对oracle数据库不太熟悉，所以首先选择用工具直接同步，此过程步骤简单，只需要在工具上选择源库和目标库同步即可" class="headerlink" title="方法1（失败）：navicat 工具，因对oracle数据库不太熟悉，所以首先选择用工具直接同步，此过程步骤简单，只需要在工具上选择源库和目标库同步即可"></a>方法1（失败）：navicat 工具，因对oracle数据库不太熟悉，所以首先选择用工具直接同步，此过程步骤简单，只需要在工具上选择源库和目标库同步即可</h3><p><img src="https://img-blog.csdnimg.cn/direct/3a53a4fdc57045aca51eda517d7d625b.png" alt="在这里插入图片描述"><br>问题：</p>
+<h3 id="方法1（失败）：navicat-工具，因对oracle数据库不太熟悉，所以首先选择用工具直接同步，此过程步骤简单，只需要在工具上选择源库和目标库同步即可"><a href="#方法1（失败）：navicat-工具，因对oracle数据库不太熟悉，所以首先选择用工具直接同步，此过程步骤简单，只需要在工具上选择源库和目标库同步即可" class="headerlink" title="方法1（失败）：navicat 工具，因对oracle数据库不太熟悉，所以首先选择用工具直接同步，此过程步骤简单，只需要在工具上选择源库和目标库同步即可"></a>方法1（失败）：navicat 工具，因对oracle数据库不太熟悉，所以首先选择用工具直接同步，此过程步骤简单，只需要在工具上选择源库和目标库同步即可</h3><p><img src="/images/aws1.png" alt="image"><br>问题：</p>
 <ul>
 <li>用工具导出速度很慢，1秒大概导出1000条左右，且会随着导出时长增加而增加</li>
 <li>容易中断，我这边首次导出到60多w条数据时工具卡住，无法继续导出</li>
 <li>数据导出不全，通过navicat导出发现大部分表数据不全，甚至有些表数据完全没有导入</li>
 </ul>
 <p>基于上面遇到的问题，所以舍弃了该方法</p>
-<h3 id="方法2（失败）：导出sql文件后，使用sqlplus导入"><a href="#方法2（失败）：导出sql文件后，使用sqlplus导入" class="headerlink" title="方法2（失败）：导出sql文件后，使用sqlplus导入"></a>方法2（失败）：导出sql文件后，使用sqlplus导入</h3><p>sql文件可以用工具导出，我这边还是使用navicat导出sql文件，导出后如下图是每个表生成一个sql文件<br><img src="https://img-blog.csdnimg.cn/direct/5b36f7a6bea1479f8be9856eb9376d20.png" alt="在这里插入图片描述"></p>
+<h3 id="方法2（失败）：导出sql文件后，使用sqlplus导入"><a href="#方法2（失败）：导出sql文件后，使用sqlplus导入" class="headerlink" title="方法2（失败）：导出sql文件后，使用sqlplus导入"></a>方法2（失败）：导出sql文件后，使用sqlplus导入</h3><p>sql文件可以用工具导出，我这边还是使用navicat导出sql文件，导出后如下图是每个表生成一个sql文件<br><img src="/images/aws2.png" alt="image"></p>
 <p>使用sqlplus进入需导入数据的库中进行导入发现部分表报错了，报错原因是中有超过3000个字符长度的字段，而sqlplus不支持超过3000的，需要手动更改sql语句，因表数据量较大，故放弃此方法</p>
-<p><img src="https://img-blog.csdnimg.cn/direct/17f0ff2054c14e799e7f893be486b63a.png" alt="在这里插入图片描述"></p>
+<p><img src="/images/aws3.png" alt="image"></p>
 <h3 id="方法3（失败）：导出csv文件，再通过sqlload导入"><a href="#方法3（失败）：导出csv文件，再通过sqlload导入" class="headerlink" title="方法3（失败）：导出csv文件，再通过sqlload导入"></a>方法3（失败）：导出csv文件，再通过sqlload导入</h3><h5 id="1、使用工具导出csv文件，注意字段分隔符和行分隔符。"><a href="#1、使用工具导出csv文件，注意字段分隔符和行分隔符。" class="headerlink" title="1、使用工具导出csv文件，注意字段分隔符和行分隔符。"></a>1、使用工具导出csv文件，注意字段分隔符和行分隔符。</h5><h5 id="2、创建控制文件"><a href="#2、创建控制文件" class="headerlink" title="2、创建控制文件"></a>2、创建控制文件</h5><p>该定义解析和导入CSV文件的数据。控制文件需要指定csv文件的位置、字段分隔符、数据格式等，需要和导出时候指定的相同，下面是我导出某个表的一个控制文件，可以看到字段比较多</p>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>oracle@waixuan-prod ~/pub<span class="token punctuation">]</span>$ <span class="token function">cat</span> epub_p_publications.ctl
 LOAD DATA
@@ -19931,7 +19931,7 @@ SHELVES_STATUS
 <span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h5 id="3、运行sqlldr命令"><a href="#3、运行sqlldr命令" class="headerlink" title="3、运行sqlldr命令"></a>3、运行sqlldr命令</h5><p>需要指定用户名、密码、控制文件、日志文件、支持最大的错误数量，注意要导入的表不能有数据，必须是空表</p>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>oracle@waixuan-prod ~/pub<span class="token punctuation">]</span>$ sqlldr <span class="token assign-left variable">userid</span><span class="token operator">=</span>epublishing/xxxxxxx <span class="token assign-left variable">control</span><span class="token operator">=</span>epub_p_publications.ctl <span class="token assign-left variable">log</span><span class="token operator">=</span>epub_p_publications.log <span class="token assign-left variable">errors</span><span class="token operator">=</span><span class="token number">9999999999</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>执行后如下图开始导入，原本以为很顺利，导入速度也比较快，100万数据大概30+秒左右导入完成<br><img src="https://img-blog.csdnimg.cn/direct/cb618f91db5642c085d79fddcfc5456c.png" alt="在这里插入图片描述"><br>导入完成发现导入日志有大量报错信息，信息如下：</p>
+<p>执行后如下图开始导入，原本以为很顺利，导入速度也比较快，100万数据大概30+秒左右导入完成<br><img src="/images/aws4.png" alt="image"><br>导入完成发现导入日志有大量报错信息，信息如下：</p>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">Record <span class="token number">13110</span>: Rejected - Error on table EPUBLISHING.EPUB_P_PUBLICATIONS, <span class="token function">column</span> PUB_ABSTRACT.
 second enclosure string not present
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
@@ -20029,7 +20029,7 @@ total <span class="token number">9506324</span>
 <li><code>LOGFILE</code>：指定导入的日志文件名</li>
 </ul>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">impdp  converterserver/xxxxxx <span class="token assign-left variable">DIRECTORY</span><span class="token operator">=</span>yusys_dbdump_dir <span class="token assign-left variable">DUMPFILE</span><span class="token operator">=</span>CONVERTER_ALL_TABLES_all.dmp <span class="token assign-left variable">LOGFILE</span><span class="token operator">=</span>import_log.log<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>原以为这样终于可以导入成功。。。但意外来的总是那么突然<br><img src="https://img-blog.csdnimg.cn/direct/20188c41806e49879c87d60e7b0b618d.png" alt="在这里插入图片描述"></p>
+<p>原以为这样终于可以导入成功。。。但意外来的总是那么突然<br><img src="/images/aws5.png" alt="image"></p>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">ORA-39002: invalid operation
 ORA-39405: Oracle Data Pump does not support importing from a <span class="token builtin class-name">source</span> database with TSTZ version <span class="token number">33</span> into a target database with TSTZ version <span class="token number">32</span>.
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
@@ -20086,7 +20086,7 @@ drwxrwxrwx <span class="token number">2</span> oracle oinstall  <span class="tok
 <p>在此目录下执行</p>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>oracle@iZ2zehl1ro7yd08bzf0h3rZ OPatch<span class="token punctuation">]</span>$ ./opatch apply
 <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p><img src="https://img-blog.csdnimg.cn/direct/de3437ebe1ff4252b0bb2f47102a3494.png" alt="在这里插入图片描述"><br>看到下图的提示就是成功了<br><img src="https://img-blog.csdnimg.cn/direct/82ced0efb4814344b90d6d33e73a90f4.png" alt="在这里插入图片描述"><br>查看已装补丁情况</p>
+<p><img src="/images/aws6.png" alt="image"><br>看到下图的提示就是成功了<br><img src="/images/aws7.png" alt="image"><br>查看已装补丁情况</p>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">opatch lsinventory
 <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>然后需要执行补丁sql<br>upg_tzv_check.sql<br>upg_tzv_apply.sql</p>
@@ -20177,7 +20177,7 @@ INFO: Your new Server RDBMS DST version is DSTv33 <span class="token builtin cla
 INFO: The RDBMS DST update is successfully finished.
 INFO: Make sure to <span class="token builtin class-name">exit</span> this sqlplus session.
 INFO: Do not use it <span class="token keyword">for</span> timezone related selects.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>执行过后查看当前数据库时区，和源库相同都是33了！<br><img src="https://img-blog.csdnimg.cn/direct/312ad03f3e8646c9844ad9ad94668de3.png" alt="在这里插入图片描述"><br>此时再执行导入命令就可以了<br><img src="https://img-blog.csdnimg.cn/direct/c47a328f14894aabbe52d92159db936f.png" alt="在这里插入图片描述"></p>
+<p>执行过后查看当前数据库时区，和源库相同都是33了！<br><img src="/images/aws8.png" alt="image"><br>此时再执行导入命令就可以了<br><img src="/images/aws9.png" alt="image"></p>
 ]]></content>
       <categories>
         <category>oracle</category>
