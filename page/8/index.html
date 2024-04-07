@@ -48,7 +48,7 @@
   isHome: true,
   isHighlightShrink: false,
   isToc: false,
-  postUpdate: '2024-04-07 16:33:02'
+  postUpdate: '2024-04-07 16:55:10'
 }</script><noscript><style type="text/css">
   #nav {
     opacity: 1
@@ -138,159 +138,288 @@
     }
     detectApple()
     })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
-</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="site-info"><h1 id="site-title">J.のblog</h1><div id="site-subtitle"><span id="subtitle"></span></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="post_cover left"><a href="/2022/09/15/Django%E4%B8%AD%E9%97%B4%E4%BB%B6%E5%8F%8A%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" title="Django中间件及源码解读"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Django中间件及源码解读"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/09/15/Django%E4%B8%AD%E9%97%B4%E4%BB%B6%E5%8F%8A%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" title="Django中间件及源码解读">Django中间件及源码解读</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-09-15T04:51:23.000Z" title="发表于 2022-09-15 12:51:23">2022-09-15</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">Django中间件及源码解读洋葱模型中间件和视图，如同洋葱一层层包裹着最中心的视图想要见到视图函数或返回给浏览器端很不容易，需要在来路和去路都要经过这些中间件。
-get_response非常重要，表示去调用下一层的对象。对象可能是下一级中间件，也可能是洋葱心儿——视图。
-在阅读wsgi.py源码中，进入 django.core.handlers.wsgi.WSGIHandler 类，可以看到 __init__ 中加载了中间件，在 __call__ 中调用了get_response。
-中间件定义Django1.10版本开始，中间件帮助文档已经不能很好的体现其技术原理了。在官网切换到1.8版本帮
-助，看到下面内容 https://docs.djangoproject.com/en/1.8/topics/http/middleware/
-
-再看看目前的版本的文档 https://docs.djangoproject.com/en/3.2/topics/http/middleware/
-从文档中可以看出保留process_view、process_exception、process_templ ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/09/15/Session%E5%92%8CCookie/" title="Session和Cookie"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Session和Cookie"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/09/15/Session%E5%92%8CCookie/" title="Session和Cookie">Session和Cookie</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-09-15T04:51:23.000Z" title="发表于 2022-09-15 12:51:23">2022-09-15</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">Session和Cookie浏览器端和服务器端身份认证的一种方式。简单讲，就是为了让服务端确定你是谁。
-无状态，无连接
-无连接：Http1.1之前，都是一个请求一个连接，连接用完即刻断开，其实是无连接。
-有连接：是因为他基于TCP协议，是面向对象的，需要3次握手、4次断开
-短连接：而tcp的连接创建销毁成本高，对服务器有很大影响。所以，自http1.1开始，支持keep-alive，默认页开启，一个连接打开后，会保持一段时间（可以设置），浏览器再访问该服务器就使用这个TCP连接，减轻了服务器压力，提高了效率
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">130</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="site-info"><h1 id="site-title">J.のblog</h1><div id="site-subtitle"><span id="subtitle"></span></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="post_cover left"><a href="/2022/10/04/%E6%A8%A1%E5%9D%97%E5%8C%96/" title="python模块化"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="python模块化"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/10/04/%E6%A8%A1%E5%9D%97%E5%8C%96/" title="python模块化">python模块化</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-10-04T02:51:23.000Z" title="发表于 2022-10-04 10:51:23">2022-10-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">模块化一般来说，编程语言中，库、包、模块是同一种概念，是代码组织方式。
+Python中只有一种模块对象类型，但是为了模块化组织模块的便利，提供了”包”的概念。
+模块module：指的是Python的源代码文件。
+包package：指的是模块组织在一起的和包名同名的目录及其相关文件
+导入语句语句
 
 
-无状态：服务器端没有记录每一次客户端请求相关的任何状态数据，服务器无法确定2次请求之间的联系，即使是前后2次同一个浏览器也没有任何数据能够判断出是同一个浏览器的请求，后来可以通过cookie、session来判断
-
-cookie技术
-键值对信息
-是一种客户端、服务器端传递数据的技术
-一般来说cookie信息是在服务器端生成，返回给浏览器端的
-浏览器端可以保持这些值，浏览器对同一域发起每一请求时，都会把cookie信息发送给服务器端
-服务端收到浏览器端发过来的cookie，处理这 ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/09/14/ModelSerializer/" title="ModelSerializer"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ModelSerializer"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/09/14/ModelSerializer/" title="ModelSerializer">ModelSerializer</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-09-14T07:51:23.000Z" title="发表于 2022-09-14 15:51:23">2022-09-14</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">ModelSerializer参考： https://www.django-rest-framework.org/api-guide/serializers/#modelserializer
-ModelSerializer是Serializer的子类除了具有Serializer的功能外：
-
-根据Model类，自动生成字段
-为序列化器自动生成校验器
-为序列化器提供了简单的create()和update()方法实现，所以可以直接save()
-注意虽然感觉上序列化器sava(create、update)，但是真正操作数据库是通过Model类
+语句
+含义
 
 
 
+import 模块1[,模块2,…]
+完全导入
 
-序列化器需要解决2个问题
 
-依照哪个Model类
-需要哪些字段
+import … as …
+模块别名
 
-from rest_framework import serizlizers
-from .models import Employee
-class EmployeeSerizlizer(serializers.ModelSerializer):
-    class Meta:
-        model = Employees  #参照谁，谁save
-        fields  ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/09/14/DRF/" title="DRF"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DRF"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/09/14/DRF/" title="DRF">DRF</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-09-14T04:51:23.000Z" title="发表于 2022-09-14 12:51:23">2022-09-14</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">DRFDRF(Django Rest Framework)是可以快速基于Restful开发的Django应用的插件，功能非常多。
-安装pip install djangorestframework
-Django需要2.2
-注册settings.py中增加
+
+import 语句
+
+找到指定的模块，加载和初始化它，生成模块对象。找不到抛出异常
+在import所在的作用域的局部命名空间中，增加名称和上一步创建的对象关联
+
+单独运行下面例子，体会区别：
+import  functools #导入模块
+print(dir())
+print(functools , type(functools))
+print(functools.wraps)
+#输出
+['__annotations__', '__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__',  ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/10/04/%E7%94%A8%E6%88%B7%E5%8A%9F%E8%83%BD1/" title="猛犸系统-用户功能1"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="猛犸系统-用户功能1"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/10/04/%E7%94%A8%E6%88%B7%E5%8A%9F%E8%83%BD1/" title="猛犸系统-用户功能1">猛犸系统-用户功能1</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-10-04T02:51:23.000Z" title="发表于 2022-10-04 10:51:23">2022-10-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">用户功能1用户功能实现功能有：
+
+用户列表、分页
+添加用户、用户修改、用户删除
+激活、禁用用户
+用户搜索
+角色配置
+
+
+
+
+
+组件和路由新建src&#x2F;views&#x2F;users&#x2F;UserView.vue
+&lt;template>
+  &lt;div>用户列表页&lt;/div>
+&lt;/template>
+&lt;script>
+export default &#123;&#125;
+&lt;/script>
+&lt;style>
+&lt;/style>
+路由配置
+import User from '../views/user/UserView' // .vue可以省略
+const routes = [
+ &#123; path: '/', redirect: '/login' &#125;,
+ &#123; path: '/login', component: Login &#125;,
+ &#123;
+    path: '/home',
+    component: Home,
+    redirect: '/welcome', // 访问/home重 ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/10/04/%E7%94%A8%E6%88%B7%E5%8A%9F%E8%83%BD2/" title="猛犸系统-用户功能2"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="猛犸系统-用户功能2"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/10/04/%E7%94%A8%E6%88%B7%E5%8A%9F%E8%83%BD2/" title="猛犸系统-用户功能2">猛犸系统-用户功能2</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-10-04T02:51:23.000Z" title="发表于 2022-10-04 10:51:23">2022-10-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">用户功能2Vue插槽参考 https://cn.vuejs.org/v2/guide/components-slots.html
+插槽插槽，指的是在子组件中挖一个空(slot插槽)，在父组件中使用子组件标签内的内容，来填充子组件的空。
+
+注意：以上是原理图，不能和Vue的实际代码完全对应。
+插槽测试新建T1.vue和T2.vue，T1是父组件，T2是子组件。
+&lt;template>
+  &lt;div>
+   父组件T1内容
+    &lt;hr />
+    &lt;T2>父组件中在子组件插入的内容c&lt;/T2>
+  &lt;/div>
+&lt;/template>
+&lt;script>
+import T2 from './T2.vue'
+export default &#123;
+  components: &#123;
+    T2
+ &#125;
+&#125;
+&lt;/script>
+&lt;style>
+&lt;/style>
+&lt;template>
+  &lt;div>子组件T2内容&lt;/div>
+&lt;/template>
+&lt;script>
+e ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/10/04/%E7%94%A8%E6%88%B7%E5%8A%9F%E8%83%BD3/" title="猛犸系统-用户功能3"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="猛犸系统-用户功能3"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/10/04/%E7%94%A8%E6%88%B7%E5%8A%9F%E8%83%BD3/" title="猛犸系统-用户功能3">猛犸系统-用户功能3</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-10-04T02:51:23.000Z" title="发表于 2022-10-04 10:51:23">2022-10-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">用户功能3用户信息菜单下拉菜单参考https://element.eleme.cn/#/zh-CN/component/dropdown
+src&#x2F;plugins&#x2F;element.js
+import Vue from 'vue'
+import &#123;
+  Form, FormItem, Input, Button, Message, Container,
+  Header, Aside, Main, Menu, MenuItem, Submenu, Breadcrumb,
+  BreadcrumbItem, Card, Row, Col, Table, TableColumn,
+  Dialog, Pagination, Switch, MessageBox, Tooltip, 
+  DropdownMenu, DropdownItem, Dropdown
+&#125; from 'element-ui'
+Vue.use(Dropdown)
+Vue.use(DropdownMenu)
+Vue.use(DropdownItem)
+src&#x2F;views&#x ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/10/04/%E7%99%BB%E5%BD%95%E5%89%8D%E5%8F%B0%E5%BC%80%E5%8F%91/" title="猛犸系统-登录前台开发"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="猛犸系统-登录前台开发"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/10/04/%E7%99%BB%E5%BD%95%E5%89%8D%E5%8F%B0%E5%BC%80%E5%8F%91/" title="猛犸系统-登录前台开发">猛犸系统-登录前台开发</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-10-04T02:51:23.000Z" title="发表于 2022-10-04 10:51:23">2022-10-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">登录前台开发登录功能分支增加一个login分支检出，开发完成后合并到master，并提交到Gitee仓库。
+在项目根目录下
+wayne@wayne-pc MINGW64 /e/ClassProjects/frontprojects/mammoth (master)
+
+$ git status
+On branch master
+Your branch is up to date with 'origin/master'.
+nothing to commit, working tree clean
+wayne@wayne-pc MINGW64 /e/ClassProjects/frontprojects/mammoth (master)
+
+$ git checkout -b login
+Switched to a new branch 'login'
+注意下面分支的变化，已近变成login分支了
+wayne@wayne-pc MINGW64 /e/ClassProjects/frontprojects/mammoth (login)
+
+$ git status
+On branch logi ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/10/04/%E7%99%BB%E5%BD%95%E5%8A%9F%E8%83%BD%E5%BC%80%E5%8F%91/" title="猛犸系统-登录功能开发"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="猛犸系统-登录功能开发"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/10/04/%E7%99%BB%E5%BD%95%E5%8A%9F%E8%83%BD%E5%BC%80%E5%8F%91/" title="猛犸系统-登录功能开发">猛犸系统-登录功能开发</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-10-04T02:51:23.000Z" title="发表于 2022-10-04 10:51:23">2022-10-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">登录功能开发
+后台构建python3.7+、Django3.0+
+安装在Pycharm中，创建Django项目Mammothbe，命令行中执行以下操作
+$ pip install django
+$ pip install mysqlclient
+$ pip install djangorestframework
+$ django-admin startproject mammoth .
+$ python manage.py startapp user
+在user包目录下，新建urls.py、serializers.py
+在项目根目录下，创建utils包目录
+全局配置setting.py
+前后端分离，不使用模板
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent.parent
+DEBUG = True # 生产环境一定设置为False
 INSTALLED_APPS = [
-   ...
-    'rest_framework',
-]
-注册他，可以使用它提供的网页。也可以不注册，使用PostMan调试
-序列化器采用前后端分离后，前端与后端交互实际上使用的只是JSON数据
-
-序列化：后端查数据库获得模型类，发给前端的数据就是JSON字符串，核心就是如何把实例序列化成JSON发给浏览器
-实例转换为字典，如何做，使用序列化器
-字典转换为JSON字符串，使用json模块的dumps
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django. ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/10/04/%E7%9B%AE%E5%BD%95%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="python目录文件处理"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="python目录文件处理"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/10/04/%E7%9B%AE%E5%BD%95%E6%96%87%E4%BB%B6%E5%A4%84%E7%90%86/" title="python目录文件处理">python目录文件处理</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-10-04T02:51:23.000Z" title="发表于 2022-10-04 10:51:23">2022-10-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">目录文件处理文件IO操作
 
 
-反序列化：前端浏览器发请求报文到 后端，封装为request请求对象，提交的数据是JSON字符串，需要反序列化
-JSON字符串转换为字典谁来做？  json.loads
-字典&#x3D;&gt;?
+函数
+说明
 
 
 
-序列化器类DRF中序列化器的作用
-
-将实例序列化为字典
-反序列化后得到字典，交给序列化器进 ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/09/13/DRF%E8%A7%86%E5%9B%BE/" title="DRF视图"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DRF视图"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/09/13/DRF%E8%A7%86%E5%9B%BE/" title="DRF视图">DRF视图</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-09-13T07:51:23.000Z" title="发表于 2022-09-13 15:51:23">2022-09-13</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">DRF视图请求参数利用HTTP请求报文传递参数有3种方式
-
-查询字符串，GET方法，参数在URL中，http://127.0.0.1:8000/emp/?x=123x=abc
-表单，前端网页中填写表单，一般使用POST方法，参数在body中
-
-POST /xxx/yyy?id=5&amp;name=magedu HTTP/1.1
-HOST: 127.0.0.1:9999
-content-length: 26
-content-type: application/x-www-form-urlencoded
-age=5&amp;weight=80&amp;height=170
-也可以POST、PUT提交JSON格式数据3. URL本身就是数据的表达，http://127.0.0.1:8080/python/2010/u101
-
-请求方法method表示CRUD
-也可以使用查询字符串，例如分页?page&#x3D;5
-也可以提交数据
-
-Django视图原理：Django的视图都从View类开始，View.as_view()方法本质：
-URL映射当中需要路径映射到视图函数，在as_view()方 ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/08/23/%E5%88%86%E6%9E%90%20ExitCode%20%E5%AE%9A%E4%BD%8D%20Pod%20%E5%BC%82%E5%B8%B8%E9%80%80%E5%87%BA%E5%8E%9F%E5%9B%A0%20/" title="分析ExitCode定位Pod异常退出原因"><img class="post_bg" src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="分析ExitCode定位Pod异常退出原因"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/08/23/%E5%88%86%E6%9E%90%20ExitCode%20%E5%AE%9A%E4%BD%8D%20Pod%20%E5%BC%82%E5%B8%B8%E9%80%80%E5%87%BA%E5%8E%9F%E5%9B%A0%20/" title="分析ExitCode定位Pod异常退出原因">分析ExitCode定位Pod异常退出原因</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-23T06:32:00.000Z" title="发表于 2022-08-23 14:32:00">2022-08-23</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/kubernetes/">kubernetes</a></span></div><div class="content">使用kubectl describe pod &lt;pod name&gt;查看异常  pod 的状态:
-Containers :
-  kubedns :  
-      Container ID :
-docker :&#x2F;&#x2F;5fb8adf9ee62afc6d3f6f3d9590041818750b392dff015d7091eaaf99cf1c945
-      Image: ccr.ccs.tencentyun.com&#x2F;library&#x2F;kubedns-amd64:1.14.4
-      Image ID: docker-pullable:&#x2F;&#x2F;ccr.ccs.tencentyun.com&#x2F;library&#x2F;kubedns- amd64@sha256:40790881bbe9ef4ae4ff7fe8b892498eecb7fe6dcc22661402f271e03f7de344
-      Ports: 10053&#x2F;UDP, 10053&#x2F;TCP, 10055&#x2F;TCP
-       ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/08/23/%E5%AE%B9%E5%99%A8%E8%BF%9B%E7%A8%8B%E4%B8%BB%E5%8A%A8%E9%80%80%E5%87%BA%E5%8E%9F%E5%9B%A0/" title="容器进程退出原因"><img class="post_bg" src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="容器进程退出原因"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/08/23/%E5%AE%B9%E5%99%A8%E8%BF%9B%E7%A8%8B%E4%B8%BB%E5%8A%A8%E9%80%80%E5%87%BA%E5%8E%9F%E5%9B%A0/" title="容器进程退出原因">容器进程退出原因</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-23T06:32:00.000Z" title="发表于 2022-08-23 14:32:00">2022-08-23</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/kubernetes/">kubernetes</a></span></div><div class="content">容器进程如果是自己主动退出(不是被外界中断杀死)，  退出状态码一般在  0-128 之间，  根据约定，  正 常退出时状态码为  0，  1-127 说明是程序发生异常，  主动退出了，   比如检测到启动的参数和条件不满  足要求，  或者运行过程中发生  panic 但没有捕获处理导致程序退出。   除了可能是业务程序  BUG，  还   有其它许多可能原因
-DNS 无法解析可能程序依赖  集群  DNS 服务，   比如启动时连接数据库，  数据库使用  service 名称或外部域名都需 要  DNS 解析，  如果解析失败程序将报错并主动退出。   解析失败的可能原因:
-
-集群网络有问题，   Pod 连不上集群  DNS 服务
-集群  DNS 服务挂了，  无法响应解析请求
-Service 或域名地址配置有误，  本身是无法解析的地址
-
-程序配置有误
-配置文件格式错误，  程序启动解析配置失败报错退出
-配置内容不符合规范，   比如配置中某个字段是必选但没有填写，  配置校验不通过，  程序报错主动退出
-
-</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/08/19/kubernetes%E7%A3%81%E7%9B%98%E7%88%86%E6%BB%A1%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="kubernetes 磁盘爆满故障处理"><img class="post_bg" src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="kubernetes 磁盘爆满故障处理"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/08/19/kubernetes%E7%A3%81%E7%9B%98%E7%88%86%E6%BB%A1%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" title="kubernetes 磁盘爆满故障处理">kubernetes 磁盘爆满故障处理</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-19T06:32:00.000Z" title="发表于 2022-08-19 14:32:00">2022-08-19</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/kubernetes/">kubernetes</a></span></div><div class="content">一、什么情况下磁盘可能会爆满 ？kubelet 有 gc 和驱逐机制，通过 --image-gc-high-threshold，--image-gc-low- threshold，--eviction-hard，--eviction-soft，--eviction-minimum-reclaim 等参数控制 kubelet 的 gc 和驱逐策略来释放磁盘空间，如果配置正确的情况下，磁盘一般不会爆满。
-
-通常导致爆满的原因可能是配置不正确或者节点上有其它非 K8S 管理的进程在不断写数据到磁盘占用 大量空间导致磁盘爆满。
-
-二、磁盘爆满会有什么影响 ？影响 K8S 运行我们主要关注 kubelet 和容器运行时这两个最关键的组件，它们所使用的目录通常不 一样，kubelet 一般不会单独挂盘，直接使用系统磁盘，因为通常占用空间不会很大，容器运行时单 独挂盘的场景比较多，当磁盘爆满的时候我们也要看 kubelet 和 容器运行时使用的目录是否在这个 磁盘，通过 df 命令可以查看磁盘挂载点。
+open
+打开
 
 
-容器运行时使用的目录所在磁盘爆满
+read
+读取
+
+
+write
+写入
+
+
+close
+关闭
+
+
+readline
+行读取
+
+
+readlines
+多行读取
+
+
+1、open方法
+open(file, mode&#x3D;’r’, buffering&#x3D;-1, encoding&#x3D;None, errors&#x3D;None, newline&#x3D;None,closefd&#x3D;True, opener&#x3D;None)
+
+打开一个文件，返回一个文件对象(流对象)和文件描述符。打开文件失败，则返回异常。
+基本使用：创建一个文件test，然后打开它，用完关闭
+f = open("test") # file对象
+# windows &lt;_io.TextIOWrapper name='test' mode='r' encoding='cp936'>
+# linux &lt;_io.TextIOWrapper name='test' mode='r' encoding='UTF-8'>
+print(f.read()) # 读取 ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/10/04/%E8%A3%85%E9%A5%B0%E5%99%A8/" title="python装饰器"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="python装饰器"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/10/04/%E8%A3%85%E9%A5%B0%E5%99%A8/" title="python装饰器">python装饰器</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-10-04T02:51:23.000Z" title="发表于 2022-10-04 10:51:23">2022-10-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">装饰器高阶函数高阶函数满足下面一个条件
+
+接受一个或多个函数作为参数
+
+输出一个函数
+
+函数也是对象，是可调用对象
+
+函数可以作为普通变量，也可以作为函数的参数、返回值
+
+
+def counter(base):
+    def inc(step=1):
+        base += step
+        return base
+    return inc
+def counter(base):
+    def inc(step=1): # 有没有闭包？
+        nonlocal base # 形参base也是外部函数counter的local变量
+        base += step
+        return base
+    return inc
+c1 = counter(5)
+print(c1())
+print(c1())
+print(c1())
+f1 = counter(5)
+f2 = counter(5)
+print(f1 == f2) # 相等吗？ 不相等
 
 
 
-如果容器运行时使用的目录所在磁盘空间爆满，可能会造成容 ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/08/16/Jenkins%E7%94%A8%E6%88%B7%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6%E6%8F%92%E4%BB%B6%E2%80%94%E2%80%94Role-based%20Authorization%20Strategy/" title="Jenkins用户权限控制插件——Role-based Authorization Strategy"><img class="post_bg" src="/img/jenkins.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Jenkins用户权限控制插件——Role-based Authorization Strategy"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/08/16/Jenkins%E7%94%A8%E6%88%B7%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6%E6%8F%92%E4%BB%B6%E2%80%94%E2%80%94Role-based%20Authorization%20Strategy/" title="Jenkins用户权限控制插件——Role-based Authorization Strategy">Jenkins用户权限控制插件——Role-based Authorization Strategy</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-16T02:02:00.000Z" title="发表于 2022-08-16 10:02:00">2022-08-16</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/jenkins/">jenkins</a></span></div><div class="content">
-看了下公司的jenkins权限配置，发现公司用的是Role-based AuthorizationStrategy插件做的权限控制（之前公司一直用的是安全矩阵的方式控制的） 这里就大概记录一下吧
 
-使用Role-based Authorization Strategy这个插件需要在jenkins插件里搜索并下载下载成功后重启jenkins，发现在jenkins管理中会多出一个Manage and Assign Roles，如下图：
+柯里化
+指的是将原来接受两个参数的函数变成新的接受一个参数的函数的过程。新的函数返回一个以 ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2022/10/04/%E9%AD%94%E6%9C%AF%E6%96%B9%E6%B3%95/" title="python魔术方法"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="python魔术方法"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/10/04/%E9%AD%94%E6%9C%AF%E6%96%B9%E6%B3%95/" title="python魔术方法">python魔术方法</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-10-04T02:51:23.000Z" title="发表于 2022-10-04 10:51:23">2022-10-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">魔术方法一、实例化
 
 
-点进去可以分别管理角色和给用户分配角色：
+方法
+意义
 
-我们首先看下Manage Roles：
 
-这里包括几个选项，Global roles ：这个选项是添加一个角色，该角色对项目可以有哪些权限，一般会给开放分配build，cancel等权限，每个公司不太一样Project roles：这个选项就是添加一个可以对哪些job进行操作的角色权限，Role是角色名，会在Assign Roles里展示的，Pattern是匹配项目，比如你的项目名是dys-web-prod，那么这里就要写dys-web-.*进行匹配（我个人测试的结果是这样的）Slave roles：这个公司 ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/08/15/Pod%E5%BC%82%E5%B8%B8%E7%8A%B6%E6%80%81%E6%8E%92%E9%94%99/" title="Pod异常状态排错"><img class="post_bg" src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Pod异常状态排错"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/08/15/Pod%E5%BC%82%E5%B8%B8%E7%8A%B6%E6%80%81%E6%8E%92%E9%94%99/" title="Pod异常状态排错">Pod异常状态排错</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-15T06:32:00.000Z" title="发表于 2022-08-15 14:32:00">2022-08-15</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/kubernetes/">kubernetes</a></span></div><div class="content">一、常用命令首先列出Pod排查过程中我这边的常用命令：
 
-查看Pod状态：kubectl get pod  podname -o wide
-查看Pod的yaml配置：kubectl get pods podname -o yaml
-查看pod事件：kubectl describe pods podname 
-查看容器日志：kubectl logs podsname -c  container-name
+__new__
+实例化一个对象，该方法需要返回一个值，如果该值不是cls的实例，则不会调用__init__ 该方法永远都是静态方法
 
-二、Pod状态
-Error：Pod 启动过程中发生错误
-NodeLost : Pod 所在节点失联
-Unkown : Pod 所在节点失联或其它未知异常
-Waiting : Pod 等待启动
-Pending : Pod 等待被调度
-ContainerCreating : Pod 容器正在被创建
-Terminating : Pod 正在被销毁
-CrashLoopBackOff ： 容器退出，kubelet 正在将它重启
-InvalidImageName ： 无法解析镜像名称
-ImageInspectError ： 无法校验镜像
-ErrImageNeverPull ： 策略禁止拉取镜像
-I ...</div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/7/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/#content-inner">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/#content-inner">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/#content-inner">12</a><a class="extend next" rel="next" href="/page/9/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程"><img src="/img/oracle.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="记录AWS Oracle实例数据迁移的艰辛过程"/></a><div class="content"><a class="title" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程">记录AWS Oracle实例数据迁移的艰辛过程</a><time datetime="2024-03-12T04:12:23.000Z" title="发表于 2024-03-12 12:12:23">2024-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/29/%E6%A0%B9%E6%8D%AErouter%E6%98%BE%E7%A4%BA%E5%B7%A6%E4%BE%A7%E8%8F%9C%E5%8D%95%E6%A0%8F%E9%9A%90%E8%97%8F%E6%9F%90%E4%B8%AA%E8%8F%9C%E5%8D%95%E9%80%89%E9%A1%B9/" title="vue3左侧菜单隐藏某选项"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="vue3左侧菜单隐藏某选项"/></a><div class="content"><a class="title" href="/2023/07/29/%E6%A0%B9%E6%8D%AErouter%E6%98%BE%E7%A4%BA%E5%B7%A6%E4%BE%A7%E8%8F%9C%E5%8D%95%E6%A0%8F%E9%9A%90%E8%97%8F%E6%9F%90%E4%B8%AA%E8%8F%9C%E5%8D%95%E9%80%89%E9%A1%B9/" title="vue3左侧菜单隐藏某选项">vue3左侧菜单隐藏某选项</a><time datetime="2023-07-29T06:32:00.000Z" title="发表于 2023-07-29 14:32:00">2023-07-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/13/Vue%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/" title="Vue状态管理"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Vue状态管理"/></a><div class="content"><a class="title" href="/2023/07/13/Vue%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/" title="Vue状态管理">Vue状态管理</a><time datetime="2023-07-13T09:29:00.000Z" title="发表于 2023-07-13 17:29:00">2023-07-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/27/%E5%9F%BA%E4%BA%8EIOC%E8%A7%A3%E5%86%B3%E5%AF%B9%E8%B1%A1%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98/" title="基于IOC解决对象依赖问题"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于IOC解决对象依赖问题"/></a><div class="content"><a class="title" href="/2023/06/27/%E5%9F%BA%E4%BA%8EIOC%E8%A7%A3%E5%86%B3%E5%AF%B9%E8%B1%A1%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98/" title="基于IOC解决对象依赖问题">基于IOC解决对象依赖问题</a><time datetime="2023-06-27T03:32:00.000Z" title="发表于 2023-06-27 11:32:00">2023-06-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Gin框架"/></a><div class="content"><a class="title" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架">Gin框架</a><time datetime="2023-06-23T06:32:00.000Z" title="发表于 2023-06-23 14:32:00">2023-06-23</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+
+class A:
+    def __new__(cls, *args, **kwargs):
+        print(cls)
+        print(args)
+        print(kwargs)
+        return None
+    def __init__(self,name):
+        self.name = name
+a = A(1,2)
+print(a)
+#输出
+&lt;class '__main__.A'>
+(1, 2)
+&#123;&#125;
+None
+__new__ 方法很少使用，即使创建了该方法，也会使用return super().__new__(cls) 基类obejct的__new__ 方法来创建实例并返回。
+二、可视化
+
+
+方法
+意义
+
+
+
+__str__
+str()函数、format()函数、print()函数调用，需要返回对象的字符串表达，如 ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2022/10/03/pymysql/" title="pymysql"><img class="post_bg" src="/img/python.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="pymysql"></a></div><div class="recent-post-info"><a class="article-title" href="/2022/10/03/pymysql/" title="pymysql">pymysql</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-10-03T02:51:23.000Z" title="发表于 2022-10-03 10:51:23">2022-10-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Python/">Python</a></span></div><div class="content">pymysql驱动与mysql通信就是典型的cs模式。Server就是服务端，使用客户端先建立连接，数据库编程时，这个客户端就变成了程序。
+mysql基于TCP协议之上开发，传输的数据必须遵循mysql的协议。
+封装好mysql协议的包，习惯上称为驱动程序。
+MYSQL的驱动
+
+MySQLdb
+
+最有名的库，对Mysql的C Client封装实现，支持Python2，不更新了，不支持python3
+
+mysqlclient
+在mysqldb的基础上，增加了对python3的支持
+
+
+Mysql官网Connector
+Mysql官网 https://dev.mysql.com/downloads/connector/
+
+
+pymsql
+语法兼容mysqldb，使用纯python写的mysql客户端库，支持python3
+cpython2.7、3.4
+mysql5.5+、mariadb5.5
+
+
+
+pymysql使用安装
+pip install pymsql
+pip isntall simplejson
+simplejson处理json文件方便。
+创建数据库和表CREATE DATABAS ...</div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/7/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/#content-inner">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/#content-inner">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/#content-inner">13</a><a class="extend next" rel="next" href="/page/9/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">130</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程"><img src="/img/oracle.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="记录AWS Oracle实例数据迁移的艰辛过程"/></a><div class="content"><a class="title" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程">记录AWS Oracle实例数据迁移的艰辛过程</a><time datetime="2024-03-12T04:12:23.000Z" title="发表于 2024-03-12 12:12:23">2024-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/02/26/k8s%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%E9%A1%B9%E7%9B%AE%E5%89%8D%E7%AB%AF-1/" title="k8s管理系统项目前端-1"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="k8s管理系统项目前端-1"/></a><div class="content"><a class="title" href="/2024/02/26/k8s%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%E9%A1%B9%E7%9B%AE%E5%89%8D%E7%AB%AF-1/" title="k8s管理系统项目前端-1">k8s管理系统项目前端-1</a><time datetime="2024-02-26T06:32:00.000Z" title="发表于 2024-02-26 14:32:00">2024-02-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-cluster%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-cluster相关组件"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="kubernetes platform后端开发-cluster相关组件"/></a><div class="content"><a class="title" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-cluster%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-cluster相关组件">kubernetes platform后端开发-cluster相关组件</a><time datetime="2024-02-25T06:32:00.000Z" title="发表于 2024-02-25 14:32:00">2024-02-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-loadbalance%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-loadbalance相关组件"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="kubernetes platform后端开发-loadbalance相关组件"/></a><div class="content"><a class="title" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-loadbalance%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-loadbalance相关组件">kubernetes platform后端开发-loadbalance相关组件</a><time datetime="2024-02-25T06:32:00.000Z" title="发表于 2024-02-25 14:32:00">2024-02-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/02/23/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-workload/" title="kubernetes platform后端开发-workload"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="kubernetes platform后端开发-workload"/></a><div class="content"><a class="title" href="/2024/02/23/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-workload/" title="kubernetes platform后端开发-workload">kubernetes platform后端开发-workload</a><time datetime="2024-02-23T06:32:00.000Z" title="发表于 2024-02-23 14:32:00">2024-02-23</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
             <i class="fas fa-folder-open"></i>
             <span>分类</span>
             <a class="card-more-btn" href="/categories/" title="查看更多">
     <i class="fas fa-angle-right"></i></a>
             </div>
             <ul class="card-category-list" id="aside-cat-list">
-            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Docker/"><span class="card-category-list-name">Docker</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Python/"><span class="card-category-list-name">Python</span><span class="card-category-list-count">35</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/SonarQube/"><span class="card-category-list-name">SonarQube</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/golang/"><span class="card-category-list-name">golang</span><span class="card-category-list-count">30</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/iptables/"><span class="card-category-list-name">iptables</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/jenkins/"><span class="card-category-list-name">jenkins</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/kubernetes/"><span class="card-category-list-name">kubernetes</span><span class="card-category-list-count">19</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/linux/"><span class="card-category-list-name">linux</span><span class="card-category-list-count">7</span></a></li>
-            </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Django/" style="font-size: 1.1em; color: #999">Django</a> <a href="/tags/Python/" style="font-size: 1.45em; color: #99a7ba">Python</a> <a href="/tags/SonarQube/" style="font-size: 1.1em; color: #999">SonarQube</a> <a href="/tags/centos/" style="font-size: 1.2em; color: #999da3">centos</a> <a href="/tags/docker/" style="font-size: 1.1em; color: #999">docker</a> <a href="/tags/golang/" style="font-size: 1.4em; color: #99a5b6">golang</a> <a href="/tags/grafana/" style="font-size: 1.1em; color: #999">grafana</a> <a href="/tags/iptables/" style="font-size: 1.1em; color: #999">iptables</a> <a href="/tags/jenkins/" style="font-size: 1.15em; color: #999b9e">jenkins</a> <a href="/tags/kubernetes/" style="font-size: 1.35em; color: #99a3b1">kubernetes</a> <a href="/tags/linux/" style="font-size: 1.2em; color: #999da3">linux</a> <a href="/tags/mysql/" style="font-size: 1.3em; color: #99a1ac">mysql</a> <a href="/tags/oracle/" style="font-size: 1.1em; color: #999">oracle</a> <a href="/tags/prometheus/" style="font-size: 1.1em; color: #999">prometheus</a> <a href="/tags/python/" style="font-size: 1.1em; color: #999">python</a> <a href="/tags/svn/" style="font-size: 1.1em; color: #999">svn</a> <a href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/" style="font-size: 1.5em; color: #99a9bf">云原生</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 1.25em; color: #999fa7">前端</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 1.1em; color: #999">阿里云</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span><a class="card-more-btn" href="/archives/" title="查看更多">
-    <i class="fas fa-angle-right"></i></a></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/03/"><span class="card-archive-list-date">三月 2024</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/07/"><span class="card-archive-list-date">七月 2023</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/06/"><span class="card-archive-list-date">六月 2023</span><span class="card-archive-list-count">4</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/05/"><span class="card-archive-list-date">五月 2023</span><span class="card-archive-list-count">9</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/04/"><span class="card-archive-list-date">四月 2023</span><span class="card-archive-list-count">12</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/02/"><span class="card-archive-list-date">二月 2023</span><span class="card-archive-list-count">4</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/01/"><span class="card-archive-list-date">一月 2023</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2022/10/"><span class="card-archive-list-date">十月 2022</span><span class="card-archive-list-count">33</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">116</div></div><div class="webinfo-item"><div class="item-name">已运行时间 :</div><div class="item-count" id="runtimeshow" data-publishDate="2019-09-04T16:00:00.000Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2024-04-07T08:33:01.779Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Docker/"><span class="card-category-list-name">Docker</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Python/"><span class="card-category-list-name">Python</span><span class="card-category-list-count">35</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/SonarQube/"><span class="card-category-list-name">SonarQube</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/golang/"><span class="card-category-list-name">golang</span><span class="card-category-list-count">30</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/iptables/"><span class="card-category-list-name">iptables</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/jenkins/"><span class="card-category-list-name">jenkins</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/kubernetes/"><span class="card-category-list-name">kubernetes</span><span class="card-category-list-count">33</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/linux/"><span class="card-category-list-name">linux</span><span class="card-category-list-count">7</span></a></li>
+            </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Django/" style="font-size: 1.1em; color: #999">Django</a> <a href="/tags/Python/" style="font-size: 1.45em; color: #99a7ba">Python</a> <a href="/tags/SonarQube/" style="font-size: 1.1em; color: #999">SonarQube</a> <a href="/tags/centos/" style="font-size: 1.2em; color: #999da3">centos</a> <a href="/tags/docker/" style="font-size: 1.1em; color: #999">docker</a> <a href="/tags/golang/" style="font-size: 1.35em; color: #99a3b1">golang</a> <a href="/tags/grafana/" style="font-size: 1.1em; color: #999">grafana</a> <a href="/tags/iptables/" style="font-size: 1.1em; color: #999">iptables</a> <a href="/tags/jenkins/" style="font-size: 1.15em; color: #999b9e">jenkins</a> <a href="/tags/kubernetes/" style="font-size: 1.4em; color: #99a5b6">kubernetes</a> <a href="/tags/linux/" style="font-size: 1.2em; color: #999da3">linux</a> <a href="/tags/mysql/" style="font-size: 1.3em; color: #99a1ac">mysql</a> <a href="/tags/oracle/" style="font-size: 1.1em; color: #999">oracle</a> <a href="/tags/prometheus/" style="font-size: 1.1em; color: #999">prometheus</a> <a href="/tags/python/" style="font-size: 1.1em; color: #999">python</a> <a href="/tags/svn/" style="font-size: 1.1em; color: #999">svn</a> <a href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/" style="font-size: 1.5em; color: #99a9bf">云原生</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 1.25em; color: #999fa7">前端</a> <a href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" style="font-size: 1.1em; color: #999">阿里云</a></div></div><div class="card-widget card-archives"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span><a class="card-more-btn" href="/archives/" title="查看更多">
+    <i class="fas fa-angle-right"></i></a></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/03/"><span class="card-archive-list-date">三月 2024</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/02/"><span class="card-archive-list-date">二月 2024</span><span class="card-archive-list-count">5</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/01/"><span class="card-archive-list-date">一月 2024</span><span class="card-archive-list-count">9</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/07/"><span class="card-archive-list-date">七月 2023</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/06/"><span class="card-archive-list-date">六月 2023</span><span class="card-archive-list-count">4</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/05/"><span class="card-archive-list-date">五月 2023</span><span class="card-archive-list-count">9</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/04/"><span class="card-archive-list-date">四月 2023</span><span class="card-archive-list-count">12</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2023/02/"><span class="card-archive-list-date">二月 2023</span><span class="card-archive-list-count">4</span></a></li></ul></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">130</div></div><div class="webinfo-item"><div class="item-name">已运行时间 :</div><div class="item-count" id="runtimeshow" data-publishDate="2019-09-04T16:00:00.000Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总访问量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2024-04-07T08:55:09.110Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
   endLoading: () => {
     document.body.style.overflow = 'auto';
     document.getElementById('loading-box').classList.add("loaded")
