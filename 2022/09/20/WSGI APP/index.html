@@ -1,0 +1,484 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>WSGI APP | J.のblog</title><meta name="keywords" content="Python"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="WSGI APP函数必须两参数，一个是envirn 字典wsgiserver封装成请求字典，另一个是start_response ，然后调用app， wsgi 原理： 客户端（网站）发送请求报文到  wsgi Server，wsgiserver会将请求封装成environ 字典，还会提供start_response函数，然后通过Django调用app函数，函数必须有两个参数，一个是enviro字典">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WSGI APP">
+<meta property="og:url" content="http://dycloud.fun/2022/09/20/WSGI%20APP/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="WSGI APP函数必须两参数，一个是envirn 字典wsgiserver封装成请求字典，另一个是start_response ，然后调用app， wsgi 原理： 客户端（网站）发送请求报文到  wsgi Server，wsgiserver会将请求封装成environ 字典，还会提供start_response函数，然后通过Django调用app函数，函数必须有两个参数，一个是enviro字典">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloud.fun/img/python.png">
+<meta property="article:published_time" content="2022-09-20T01:12:23.000Z">
+<meta property="article:modified_time" content="2024-04-07T04:16:53.043Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloud.fun/img/python.png"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloud.fun/2022/09/20/WSGI%20APP/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'WSGI APP',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-04-07 12:16:53'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">WSGI APP</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-09-20T01:12:23.000Z" title="发表于 2022-09-20 09:12:23">2022-09-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-04-07T04:16:53.043Z" title="更新于 2024-04-07 12:16:53">2024-04-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Python/">Python</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="WSGI APP"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="WSGI-APP"><a href="#WSGI-APP" class="headerlink" title="WSGI APP"></a>WSGI APP</h1><p>函数必须两参数，一个是envirn 字典wsgiserver封装成请求字典，另一个是start_response ，然后调用app，</p>
+<p>wsgi 原理：</p>
+<p>客户端（网站）发送请求报文到  wsgi Server，wsgiserver会将请求封装成environ 字典，还会提供start_response函数，然后通过Django调用app函数，函数必须有两个参数，一个是enviro字典，另一个是start_response 函数（两个参数，一个是status状态码，另一个是二元组比如：start_response(‘200 OK’,[(‘Content-Type’,’text&#x2F;html;charset&#x3D;utf-8’)])），在app函数返回前，必须调用start_response（返回响应头），生成响应body体，然后返回给wsgi，wsgi生成响应报文，返回给客户端。</p>
+<p><img src="/images/wsgi1.png" alt="image"></p>
+<h4 id="WSGI"><a href="#WSGI" class="headerlink" title="WSGI"></a>WSGI</h4><p><img src="/images/wsgi2.png" alt="image"></p>
+<p>WSGI （Web Server Gateway Interface） 主要规定了服务器端和应用程序间的接口</p>
+<p>WEB server主要负责HTTP协议请求和响应，但不一定支持WSGI接口访问。</p>
+<p><img src="/images/wsgi3.png" alt="image"></p>
+<ul>
+<li>environ是简单封装的请求报文的字典</li>
+<li>start_response 解决响应报文头的函数</li>
+<li>app函数返回响应报文正文，简单理解就是html</li>
+</ul>
+<p><img src="/images/wsgi4.png" alt="image"></p>
+<h3 id><a href="#" class="headerlink" title></a></h3><p><img src="/images/wsgi5.png" alt="image"></p>
+<h5 id="自定义响应头和响应报文"><a href="#自定义响应头和响应报文" class="headerlink" title="自定义响应头和响应报文"></a>自定义响应头和响应报文</h5><p><img src="/images/wsgi6.png" alt="image"></p>
+<p>WSGI服务器——wsgiref</p>
+<p>wsgiref是python提供的一个wsgi参考实现库，不适合生产环境使用。</p>
+<p>wsgiref.simple_server 模块实现了一个简单的wsgi http服务器</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment"># 启动一个WSGI服务器</span>
+wsgiref<span class="token punctuation">.</span>simple_server<span class="token punctuation">.</span>make_server<span class="token punctuation">(</span>host<span class="token punctuation">,</span> port<span class="token punctuation">,</span> app<span class="token punctuation">,</span> server_class<span class="token operator">=</span>WSGIServer<span class="token punctuation">,</span> 
+handler_class<span class="token operator">=</span>WSGIRequestHandler<span class="token punctuation">)</span> 
+<span class="token comment"># 一个两参数函数，小巧完整的WSGI的应用程序的实现</span>
+wsgiref<span class="token punctuation">.</span>simple_server<span class="token punctuation">.</span>demo_app<span class="token punctuation">(</span>environ<span class="token punctuation">,</span> start_response<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment"># 返回文本例子</span>
+<span class="token keyword">from</span> wsgiref<span class="token punctuation">.</span>simple_server <span class="token keyword">import</span> make_server<span class="token punctuation">,</span> demo_app
+ip <span class="token operator">=</span> <span class="token string">'127.0.0.1'</span>
+port <span class="token operator">=</span> <span class="token number">9999</span>
+server <span class="token operator">=</span> make_server<span class="token punctuation">(</span>ip<span class="token punctuation">,</span> port<span class="token punctuation">,</span> demo_app<span class="token punctuation">)</span> <span class="token comment"># demo_app应用程序，可调用</span>
+server<span class="token punctuation">.</span>serve_forever<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment"># server.handle_request() 执行一次</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h3 id="WSGI-APP应用程序端"><a href="#WSGI-APP应用程序端" class="headerlink" title="WSGI APP应用程序端"></a>WSGI APP应用程序端</h3><ol>
+<li>应用程序应该是一个可调用对象</li>
+</ol>
+<p>python中应该是函数、类、实现了__call__方法的类的实例</p>
+<ol start="2">
+<li>这个可调用对象应该接受两个参数</li>
+</ol>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token keyword">import</span> wsgiref<span class="token punctuation">.</span>simple_server
+<span class="token keyword">from</span> wsgiref<span class="token punctuation">.</span>simple_server <span class="token keyword">import</span> make_server<span class="token punctuation">,</span> demo_app
+def fn<span class="token punctuation">(</span><span class="token punctuation">)</span>:
+    <span class="token keyword">return</span>  <span class="token string">"""
+    &lt;html>
+    &lt;head>&lt;title>test page&lt;/title>&lt;/head>
+    &lt;body>
+        &lt;h2> 你好啊，这是我的网站 &lt;/h2>
+    &lt;/body>
+    &lt;/html>
+    """</span><span class="token punctuation">.</span>encode<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment">#1、函数</span>
+def app<span class="token punctuation">(</span>environ<span class="token punctuation">,</span>start_response<span class="token punctuation">)</span>:
+    content <span class="token operator">=</span> fn<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">#返回正文html，本质是字符串</span>
+    start_response<span class="token punctuation">(</span><span class="token string">'200 OK'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">'Content-Type'</span><span class="token punctuation">,</span><span class="token string">'text/html; charset=utf-8'</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span>  <span class="token punctuation">[</span>content<span class="token punctuation">]</span><span class="token comment">#动态生成body</span>
+<span class="token comment"># ret值类型是可迭代对象，每一个元素响应正文一部分</span>
+<span class="token comment"># 2 class</span>
+class App:
+    def __init__<span class="token punctuation">(</span>self<span class="token punctuation">,</span>environ<span class="token punctuation">,</span>start_response<span class="token punctuation">)</span>:
+        self<span class="token punctuation">.</span>environ <span class="token operator">=</span> environ
+        self<span class="token punctuation">.</span>start_response <span class="token operator">=</span> start_response
+    def __iter__<span class="token punctuation">(</span>self<span class="token punctuation">)</span>:
+        content <span class="token operator">=</span> fn<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>start_response<span class="token punctuation">(</span><span class="token string">'200 OK'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">'Content-Type'</span><span class="token punctuation">,</span><span class="token string">'text/html; charset=utf-8'</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> iter<span class="token punctuation">(</span>content<span class="token punctuation">)</span>
+
+<span class="token comment"># 3 class的实例，实例是可调用对象</span>
+class Test:
+    def __init__<span class="token punctuation">(</span>self<span class="token punctuation">)</span>:
+        pass
+    def __call__<span class="token punctuation">(</span>self<span class="token punctuation">,</span>environ<span class="token punctuation">,</span>start_response<span class="token punctuation">)</span>:
+        content <span class="token operator">=</span> fn<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        start_response<span class="token punctuation">(</span><span class="token string">'200 OK'</span><span class="token punctuation">,</span><span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">'Content-Type'</span><span class="token punctuation">,</span><span class="token string">'text/html; charset=utf-8'</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token punctuation">[</span>content<span class="token punctuation">]</span>
+t <span class="token operator">=</span> Test<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+
+server <span class="token operator">=</span> make_server<span class="token punctuation">(</span><span class="token string">'127.0.0.1'</span><span class="token punctuation">,</span><span class="token number">8080</span><span class="token punctuation">,</span>app<span class="token punctuation">)</span>
+server<span class="token punctuation">.</span>serve_forever<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>environ 和start_response 这两个参数名都可以是任何合法名，但是一般默认都是这2个名字。</p>
+<p>应用程序端还有些其他的规定，暂不关心。</p>
+<p>注意：第2、第3种实现调用时的不同</p>
+<h3 id="environ"><a href="#environ" class="headerlink" title="environ"></a>environ</h3><p>environ 是包含http请求信息的dict字典对象</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>REQUEST_METHOD</td>
+<td>请求方法，GET、POST等</td>
+</tr>
+<tr>
+<td>PATH_INFO</td>
+<td>URL中的路径部分</td>
+</tr>
+<tr>
+<td>QUERY_STRING</td>
+<td>查询字符串</td>
+</tr>
+<tr>
+<td>SERVER_NAME,SERVER_PORT</td>
+<td>服务器名、端口</td>
+</tr>
+<tr>
+<td>HTTP_HOST</td>
+<td>地址和端口</td>
+</tr>
+<tr>
+<td>SERVER_PROTOCOL</td>
+<td>协议</td>
+</tr>
+<tr>
+<td>HTTP_USER_AGENT</td>
+<td>UserAgent信息</td>
+</tr>
+</tbody></table>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">CONTENT_TYPE <span class="token operator">=</span> <span class="token string">'text/plain'</span>
+HTTP_HOST <span class="token operator">=</span> <span class="token string">'127.0.0.1:9999'</span>
+HTTP_USER_AGENT <span class="token operator">=</span> <span class="token string">'Mozilla/5.0 (Windows; U; Windows NT 6.1; zh-CN) AppleWebKit/537.36 (KHTML, like Gecko) Version/5.0.1 Safari/537.36'</span>
+PATH_INFO <span class="token operator">=</span> <span class="token string">'/'</span>
+QUERY_STRING <span class="token operator">=</span> <span class="token string">''</span>
+REMOTE_ADDR <span class="token operator">=</span> <span class="token string">'127.0.0.1'</span>
+REMOTE_HOST <span class="token operator">=</span> <span class="token string">''</span>
+REQUEST_METHOD <span class="token operator">=</span> <span class="token string">'GET'</span>
+SERVER_NAME <span class="token operator">=</span> <span class="token string">'DESKTOP-D34H5HF'</span>
+SERVER_PORT <span class="token operator">=</span> <span class="token string">'9999'</span>
+SERVER_PROTOCOL <span class="token operator">=</span> <span class="token string">'HTTP/1.1'</span>
+SERVER_SOFTWARE <span class="token operator">=</span> <span class="token string">'WSGIServer/0.2'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h3 id="start-response"><a href="#start-response" class="headerlink" title="start_response"></a>start_response</h3><p>它是一个可调用对象，有3个参数，定义如下：</p>
+<p><code>start_response(status, response_headers, exc_info=None)</code></p>
+<table>
+<thead>
+<tr>
+<th>参数名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>status</td>
+<td>状态码和状态描述，例如 200 OK</td>
+</tr>
+<tr>
+<td>response_headers</td>
+<td>一个元素为二元组的列表，例如[(‘Content-Type’, ‘text&#x2F;plain;charset&#x3D;uft-8’</td>
+</tr>
+<tr>
+<td>exc_info</td>
+<td>在错误处理的时候使用</td>
+</tr>
+<tr>
+<td>start_response应该在返回可迭代对象执勤调用，因为它是Response Header。返回的可迭代对象是Response Body</td>
+<td></td>
+</tr>
+</tbody></table>
+<h3 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h3><p>服务器程序需要调用符合上述定义的可调用对象APP，传入environ、start_response，APP处理后，返回响应头和可迭代对象的正文，由服务器封装返回浏览器端。</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment"># 返回网页的例子</span>
+<span class="token keyword">from</span> wsgiref<span class="token punctuation">.</span>simple_server <span class="token keyword">import</span> make_server
+def application<span class="token punctuation">(</span>environ<span class="token punctuation">,</span> start_response<span class="token punctuation">)</span>:
+    <span class="token keyword">status</span> <span class="token operator">=</span> <span class="token string">'200 OK'</span>
+    headers <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">'Content-Type'</span><span class="token punctuation">,</span> <span class="token string">'text/html;charset=utf-8'</span><span class="token punctuation">)</span><span class="token punctuation">]</span>
+    start_response<span class="token punctuation">(</span><span class="token keyword">status</span><span class="token punctuation">,</span> headers<span class="token punctuation">)</span>
+    <span class="token comment"># 返回可迭代对象</span>
+    html <span class="token operator">=</span> <span class="token string">'&lt;h1>马哥教育欢迎你&lt;/h1>'</span><span class="token punctuation">.</span>encode<span class="token punctuation">(</span><span class="token string">"utf-8"</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> <span class="token punctuation">[</span>html<span class="token punctuation">]</span>
+ip <span class="token operator">=</span> <span class="token string">'127.0.0.1'</span>
+port <span class="token operator">=</span> <span class="token number">9999</span>
+server <span class="token operator">=</span> make_server<span class="token punctuation">(</span>ip<span class="token punctuation">,</span> port<span class="token punctuation">,</span> application<span class="token punctuation">)</span>
+server<span class="token punctuation">.</span>serve_forever<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment"># server.handle_request() 一次</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>simple_server 只是参考用，不能用于生产环境。</p>
+<p>测试用命令</p>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">$ curl <span class="token operator">-</span>I http:<span class="token comment">//192.168.142.1:9999/xxx?id=5</span>
+$ curl <span class="token operator">-</span>X POST http:<span class="token comment">//192.168.142.1:9999/yyy -d '&#123;"x":2&#125;'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>-I 使用HEAD方法</p>
+<p>-X 指定方法，-d传输数据</p>
+<p>到这里就完成了一个简单的WEB 程序开发。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>WSGI 服务器 的作用</p>
+<ol>
+<li>监听HTTP服务端口（TCPServer，默认端口80）接受浏览器端的HTTP请求，这是www server的作用</li>
+<li>解析请求报文封装成environ环境数据</li>
+<li>负责调用应用程序app，将environ和start_response 方法以参数传给app</li>
+<li>例如app的返回值，和start_response返回的值，构建http响应报文</li>
+<li>将响应报文返回给浏览器</li>
+</ol>
+<p>2、3、4要实现WSGI协议，该协议约定了和应用程序之间接口（参看PEP333，<a target="_blank" rel="noopener" href="https://www.python.org/dev/peps/pep-0333/%EF%BC%89">https://www.python.org/dev/peps/pep-0333/）</a></p>
+<p>WSGI APP应用程序</p>
+<ul>
+<li>遵从WSGI协议</li>
+<li>本身是一个可调用对象</li>
+<li>调用start_response，返回响应头部</li>
+<li>返回包含正文的可迭代对象</li>
+</ul>
+<p>Django、Flask都是符合WSGI协议且可以快速开发的框架，但本质上是编写Application，说白了，就是编写一个函数，这个函数签名为app(environ, start_response) ，这不过在app函数内部调用非常复杂而已。比如要解决访问数据库、静态HTML页面读取、动态网页生成等。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloud.fun">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloud.fun/2022/09/20/WSGI%20APP/">http://dycloud.fun/2022/09/20/WSGI%20APP/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloud.fun" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Python/">Python</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/10/03/pymysql/"><img class="prev-cover" src="/img/python.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">pymysql</div></div></a></div><div class="next-post pull-right"><a href="/2022/09/19/Django%E9%A1%B9%E7%9B%AE%E6%9E%84%E5%BB%BA/"><img class="next-cover" src="/img/python.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Django项目构建</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/02/23/Django%E8%A7%86%E5%9B%BE%E7%B1%BBView%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="Django视图类View源码分析"><img class="cover" src="/img/django.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-23</div><div class="title">Django视图类View源码分析</div></div></a></div><div><a href="/2022/09/13/DRF%E8%A7%86%E5%9B%BE/" title="DRF视图"><img class="cover" src="/img/python.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-13</div><div class="title">DRF视图</div></div></a></div><div><a href="/2022/09/14/ModelSerializer/" title="ModelSerializer"><img class="cover" src="/img/python.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-14</div><div class="title">ModelSerializer</div></div></a></div><div><a href="/2022/09/14/DRF/" title="DRF"><img class="cover" src="/img/python.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-14</div><div class="title">DRF</div></div></a></div><div><a href="/2022/09/15/Django%E4%B8%AD%E9%97%B4%E4%BB%B6%E5%8F%8A%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" title="Django中间件及源码解读"><img class="cover" src="/img/python.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-15</div><div class="title">Django中间件及源码解读</div></div></a></div><div><a href="/2022/09/17/Django%E6%9F%A5%E8%AF%A2/" title="Django查询"><img class="cover" src="/img/python.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-17</div><div class="title">Django查询</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#WSGI-APP"><span class="toc-number">1.</span> <span class="toc-text">WSGI APP</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#WSGI"><span class="toc-number">1.0.0.1.</span> <span class="toc-text">WSGI</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link"><span class="toc-number">1.0.1.</span> <span class="toc-text"></span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E5%93%8D%E5%BA%94%E5%A4%B4%E5%92%8C%E5%93%8D%E5%BA%94%E6%8A%A5%E6%96%87"><span class="toc-number">1.0.1.0.1.</span> <span class="toc-text">自定义响应头和响应报文</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#WSGI-APP%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%AB%AF"><span class="toc-number">1.0.2.</span> <span class="toc-text">WSGI APP应用程序端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#environ"><span class="toc-number">1.0.3.</span> <span class="toc-text">environ</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#start-response"><span class="toc-number">1.0.4.</span> <span class="toc-text">start_response</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF"><span class="toc-number">1.0.5.</span> <span class="toc-text">服务器端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.0.6.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程"><img src="/img/oracle.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="记录AWS Oracle实例数据迁移的艰辛过程"/></a><div class="content"><a class="title" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程">记录AWS Oracle实例数据迁移的艰辛过程</a><time datetime="2024-03-12T04:12:23.000Z" title="发表于 2024-03-12 12:12:23">2024-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/29/%E6%A0%B9%E6%8D%AErouter%E6%98%BE%E7%A4%BA%E5%B7%A6%E4%BE%A7%E8%8F%9C%E5%8D%95%E6%A0%8F%E9%9A%90%E8%97%8F%E6%9F%90%E4%B8%AA%E8%8F%9C%E5%8D%95%E9%80%89%E9%A1%B9/" title="vue3左侧菜单隐藏某选项"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="vue3左侧菜单隐藏某选项"/></a><div class="content"><a class="title" href="/2023/07/29/%E6%A0%B9%E6%8D%AErouter%E6%98%BE%E7%A4%BA%E5%B7%A6%E4%BE%A7%E8%8F%9C%E5%8D%95%E6%A0%8F%E9%9A%90%E8%97%8F%E6%9F%90%E4%B8%AA%E8%8F%9C%E5%8D%95%E9%80%89%E9%A1%B9/" title="vue3左侧菜单隐藏某选项">vue3左侧菜单隐藏某选项</a><time datetime="2023-07-29T06:32:00.000Z" title="发表于 2023-07-29 14:32:00">2023-07-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/13/Vue%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/" title="Vue状态管理"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Vue状态管理"/></a><div class="content"><a class="title" href="/2023/07/13/Vue%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/" title="Vue状态管理">Vue状态管理</a><time datetime="2023-07-13T09:29:00.000Z" title="发表于 2023-07-13 17:29:00">2023-07-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/27/%E5%9F%BA%E4%BA%8EIOC%E8%A7%A3%E5%86%B3%E5%AF%B9%E8%B1%A1%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98/" title="基于IOC解决对象依赖问题"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于IOC解决对象依赖问题"/></a><div class="content"><a class="title" href="/2023/06/27/%E5%9F%BA%E4%BA%8EIOC%E8%A7%A3%E5%86%B3%E5%AF%B9%E8%B1%A1%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98/" title="基于IOC解决对象依赖问题">基于IOC解决对象依赖问题</a><time datetime="2023-06-27T03:32:00.000Z" title="发表于 2023-06-27 11:32:00">2023-06-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Gin框架"/></a><div class="content"><a class="title" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架">Gin框架</a><time datetime="2023-06-23T06:32:00.000Z" title="发表于 2023-06-23 14:32:00">2023-06-23</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>

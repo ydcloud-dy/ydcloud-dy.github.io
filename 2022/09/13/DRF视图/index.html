@@ -1,0 +1,671 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>DRF视图 | J.のblog</title><meta name="keywords" content="Python"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="DRF视图请求参数利用HTTP请求报文传递参数有3种方式  查询字符串，GET方法，参数在URL中，http:&#x2F;&#x2F;127.0.0.1:8000&#x2F;emp&#x2F;?x&#x3D;123x&#x3D;abc 表单，前端网页中填写表单，一般使用POST方法，参数在body中  POST &#x2F;xxx&#x2F;yyy?id&#x3D;5&amp;name&#x3D;magedu HTTP&#x2F;1.1 HOST: 127.0.0.1:9999 content-lengt">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DRF视图">
+<meta property="og:url" content="http://dycloud.fun/2022/09/13/DRF%E8%A7%86%E5%9B%BE/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="DRF视图请求参数利用HTTP请求报文传递参数有3种方式  查询字符串，GET方法，参数在URL中，http:&#x2F;&#x2F;127.0.0.1:8000&#x2F;emp&#x2F;?x&#x3D;123x&#x3D;abc 表单，前端网页中填写表单，一般使用POST方法，参数在body中  POST &#x2F;xxx&#x2F;yyy?id&#x3D;5&amp;name&#x3D;magedu HTTP&#x2F;1.1 HOST: 127.0.0.1:9999 content-lengt">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloud.fun/img/python.png">
+<meta property="article:published_time" content="2022-09-13T07:51:23.000Z">
+<meta property="article:modified_time" content="2024-04-07T03:43:11.557Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloud.fun/img/python.png"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloud.fun/2022/09/13/DRF%E8%A7%86%E5%9B%BE/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'DRF视图',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-04-07 11:43:11'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">DRF视图</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-09-13T07:51:23.000Z" title="发表于 2022-09-13 15:51:23">2022-09-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-04-07T03:43:11.557Z" title="更新于 2024-04-07 11:43:11">2024-04-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Python/">Python</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="DRF视图"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="DRF视图"><a href="#DRF视图" class="headerlink" title="DRF视图"></a>DRF视图</h1><h3 id="请求参数"><a href="#请求参数" class="headerlink" title="请求参数"></a>请求参数</h3><p>利用HTTP请求报文传递参数有3种方式</p>
+<ol>
+<li>查询字符串，GET方法，参数在URL中，<a target="_blank" rel="noopener" href="http://127.0.0.1:8000/emp/?x=123x=abc">http://127.0.0.1:8000/emp/?x=123x=abc</a></li>
+<li>表单，前端网页中填写表单，一般使用POST方法，参数在body中</li>
+</ol>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">POST <span class="token operator">/</span>xxx<span class="token operator">/</span>yyy?<span class="token builtin">id</span><span class="token operator">=</span><span class="token number">5</span><span class="token operator">&amp;</span>name<span class="token operator">=</span>magedu HTTP<span class="token operator">/</span><span class="token number">1.1</span>
+HOST<span class="token punctuation">:</span> <span class="token number">127.0</span><span class="token number">.0</span><span class="token number">.1</span><span class="token punctuation">:</span><span class="token number">9999</span>
+content<span class="token operator">-</span>length<span class="token punctuation">:</span> <span class="token number">26</span>
+content<span class="token operator">-</span><span class="token builtin">type</span><span class="token punctuation">:</span> application<span class="token operator">/</span>x<span class="token operator">-</span>www<span class="token operator">-</span>form<span class="token operator">-</span>urlencoded
+age<span class="token operator">=</span><span class="token number">5</span><span class="token operator">&amp;</span>weight<span class="token operator">=</span><span class="token number">80</span><span class="token operator">&amp;</span>height<span class="token operator">=</span><span class="token number">170</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>也可以POST、PUT提交JSON格式数据<br>3. URL本身就是数据的表达，<a target="_blank" rel="noopener" href="http://127.0.0.1:8080/python/2010/u101">http://127.0.0.1:8080/python/2010/u101</a></p>
+<ul>
+<li>请求方法method表示CRUD</li>
+<li>也可以使用查询字符串，例如分页?page&#x3D;5</li>
+<li>也可以提交数据</li>
+</ul>
+<h3 id="Django视图原理："><a href="#Django视图原理：" class="headerlink" title="Django视图原理："></a>Django视图原理：</h3><p>Django的视图都从View类开始，View.as_view()方法本质：</p>
+<p>URL映射当中需要路径映射到视图函数，在as_view()方法中，它将View类包装成一个视图函数，一个请求一个View实例，内部通过dispatch方法通过request.method分发给同名小写的handler处理，返回HttpResponse实例。</p>
+<h3 id="APIView"><a href="#APIView" class="headerlink" title="APIView"></a>APIView</h3><p>在Django中，View是视图类基类，路由配置中需要把类通过as_view()伪装成视图哈桑农户，请求通过路由进入到这个视图函数中，内部为每一个请求实例化一个视图类实例，并根据request.method找到对应的handler。而这个基本流程已经被View类固定在其内部，我们只需要定义get、post等方法即可，简化了编程。</p>
+<p>使用DRF，基于Django，也要使用View类<strong>，并不会改变请求和响应的处理流程</strong>。由于遵守REST要求，请求的参数使用JSON格式提交，返回的数据使用JSON格式返回。</p>
+<p>请求的参数是JSON格式，先要反序列化它，然后验证，验证合格可以入库。响应的数据应该序列化成JSON格式。，也可以简化</p>
+<p>参考：<a target="_blank" rel="noopener" href="https://www.django-rest-framework.org/api-guide/views/">https://www.django-rest-framework.org/api-guide/views/</a></p>
+<p>APIView</p>
+<ul>
+<li>APIView是DRF的视图类的基类，其基类是Django的View类</li>
+<li>as_view()调用基类的View的，但是使用了csrf_exempt(view)来排除CSRF保护</li>
+<li>重写了dispath()，根据request.method.lower()找对应的handler。调用handler之前，封装request，处理调用handler的异常，最终处理这个response</li>
+<li>重新定义了Request类来替代Django的，虽是重写。但是依然有联系</li>
+<li>重新定义了Response类来增强替代Django的</li>
+<li>异常类都是基于APIException类的</li>
+<li>对请求进行<strong>认证和授权</strong></li>
+</ul>
+<p>APIView没有提供增删改查的 handler方法，也就是说和View一样，需要自己定义get、post、put、patch、delete方法</p>
+<h3 id="GET请求测试"><a href="#GET请求测试" class="headerlink" title="GET请求测试"></a>GET请求测试</h3><p>GET请求：<a target="_blank" rel="noopener" href="http://127.0.0.1:8000/emp/?x=123&amp;x=abc&amp;y=789">http://127.0.0.1:8000/emp/?x=123&amp;x=abc&amp;y=789</a></p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> rest_framework<span class="token punctuation">.</span>views <span class="token keyword">import</span> APIView<span class="token punctuation">,</span> Response<span class="token punctuation">,</span> Request
+<span class="token keyword">from</span> <span class="token punctuation">.</span>models <span class="token keyword">import</span> Employees
+<span class="token keyword">from</span> <span class="token punctuation">.</span>serializers <span class="token keyword">import</span> EmployeeSerizlizer
+<span class="token keyword">class</span> <span class="token class-name">EmployeesView</span><span class="token punctuation">(</span>APIView<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">get</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span>request<span class="token punctuation">:</span>Request<span class="token punctuation">,</span><span class="token operator">*</span>args<span class="token punctuation">,</span><span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        emp <span class="token operator">=</span> Employees<span class="token punctuation">.</span>objects<span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        serializer <span class="token operator">=</span> EmployeeSerizlizer<span class="token punctuation">(</span>instance<span class="token operator">=</span>emp<span class="token punctuation">,</span>many<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span>serializer<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>query_params<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>content_type<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>GET<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>serializer<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+
+
+<span class="token comment">#输出</span>
+<span class="token number">1</span> <span class="token punctuation">[</span>OrderedDict<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">'emp_no'</span><span class="token punctuation">,</span> <span class="token number">10001</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'birth_date'</span><span class="token punctuation">,</span> <span class="token string">'1953-09-02'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'first_name'</span><span class="token punctuation">,</span> <span class="token string">'Georgi'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'last_name'</span><span class="token punctuation">,</span> <span class="token string">'Facello'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'gender'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'hire_date'</span><span class="token punctuation">,</span> <span class="token string">'1986-06-26'</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span> OrderedDict<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">'emp_no'</span><span class="token punctuation">,</span> <span class="token number">10002</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>'birth_dat
+e<span class="token string">', '</span><span class="token number">1964</span><span class="token operator">-</span><span class="token number">06</span><span class="token operator">-</span><span class="token number">02</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Bezalel<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Simmel<span class="token string">'), ('</span>gende<span class="token string">r', 2), ('</span>hire_date<span class="token string">', '</span><span class="token number">1985</span><span class="token operator">-</span><span class="token number">11</span><span class="token operator">-</span><span class="token number">21</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10003), ('</span>birth_date<span class="token string">', '</span><span class="token number">1959</span><span class="token operator">-</span><span class="token number">12</span><span class="token operator">-</span><span class="token number">03</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Parto<span class="token string">'), ('</span>
+last_name<span class="token string">', '</span>Bamford<span class="token string">'), ('</span>gende<span class="token string">r', 1), ('</span>hire_date<span class="token string">', '</span><span class="token number">1986</span><span class="token operator">-</span><span class="token number">08</span><span class="token operator">-</span><span class="token number">28</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10004), ('</span>birth_date<span class="token string">', '</span><span class="token number">1954</span><span class="token operator">-</span><span class="token number">05</span><span class="token operator">-</span><span class="token number">01</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Chirstian<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Koblick<span class="token string">'), ('</span>gende<span class="token string">r', 1), ('</span>hi
+re_date<span class="token string">', '</span><span class="token number">1986</span><span class="token operator">-</span><span class="token number">12</span><span class="token operator">-</span><span class="token number">01</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10005), ('</span>birth_date<span class="token string">', '</span><span class="token number">1955</span><span class="token operator">-</span><span class="token number">01</span><span class="token operator">-</span><span class="token number">21</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Kyoichi<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Maliniak<span class="token string">'), ('</span>gende<span class="token string">r', 1), ('</span>hire_date<span class="token string">', '</span><span class="token number">1989</span><span class="token operator">-</span><span class="token number">09</span><span class="token operator">-</span><span class="token number">12</span><span class="token string">')]), OrderedDict([('</span>em
+p_no<span class="token string">', 10006), ('</span>birth_date<span class="token string">', '</span><span class="token number">1953</span><span class="token operator">-</span><span class="token number">04</span><span class="token operator">-</span><span class="token number">20</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Anneke<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Preusig<span class="token string">'), ('</span>gende<span class="token string">r', 2), ('</span>hire_date<span class="token string">', '</span><span class="token number">1989</span><span class="token operator">-</span><span class="token number">06</span><span class="token operator">-</span><span class="token number">02</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10007), ('</span>birth_date<span class="token string">', '</span><span class="token number">1957</span><span class="token operator">-</span><span class="token number">05</span><span class="token operator">-</span><span class="token number">23</span>'<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>
+<span class="token string">'first_name'</span><span class="token punctuation">,</span> <span class="token string">'Tzvetan'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'last_name'</span><span class="token punctuation">,</span> <span class="token string">'Zielinski'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'gender'</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'hire_date'</span><span class="token punctuation">,</span> <span class="token string">'1989-02-10'</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span> OrderedDict<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">'emp_no'</span><span class="token punctuation">,</span> <span class="token number">10008</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'birth_date'</span><span class="token punctuation">,</span> <span class="token string">'1958-02-19'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'first_name'</span><span class="token punctuation">,</span> <span class="token string">'Saniya'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'last_name'</span><span class="token punctuation">,</span> 'Kal
+loufi<span class="token string">'), ('</span>gende<span class="token string">r', 1), ('</span>hire_date<span class="token string">', '</span><span class="token number">1994</span><span class="token operator">-</span><span class="token number">09</span><span class="token operator">-</span><span class="token number">15</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10009), ('</span>birth_date<span class="token string">', '</span><span class="token number">1952</span><span class="token operator">-</span><span class="token number">04</span><span class="token operator">-</span><span class="token number">19</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Sumant<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Peac<span class="token string">'), ('</span>gende<span class="token string">r', 2), ('</span>hire_date<span class="token string">', '</span><span class="token number">1985</span><span class="token operator">-</span><span class="token number">02</span><span class="token operator">-</span><span class="token number">18</span>
+<span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10010), ('</span>birth_date<span class="token string">', '</span><span class="token number">1963</span><span class="token operator">-</span><span class="token number">06</span><span class="token operator">-</span><span class="token number">01</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Duangkaew<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Pivetea<span class="token string">u'), ('</span>gende<span class="token string">r', 2), ('</span>hire_date<span class="token string">', '</span><span class="token number">1989</span><span class="token operator">-</span><span class="token number">08</span><span class="token operator">-</span><span class="token number">24</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10011), ('</span>bi
+rth_date<span class="token string">', '</span><span class="token number">1953</span><span class="token operator">-</span><span class="token number">11</span><span class="token operator">-</span><span class="token number">07</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Mary<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Sluis<span class="token string">'), ('</span>gende<span class="token string">r', 2), ('</span>hire_date<span class="token string">', '</span><span class="token number">1990</span><span class="token operator">-</span><span class="token number">01</span><span class="token operator">-</span><span class="token number">22</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10012), ('</span>birth_date<span class="token string">', '</span><span class="token number">1960</span><span class="token operator">-</span><span class="token number">10</span><span class="token operator">-</span><span class="token number">04</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Patricio
+<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Bridgland<span class="token string">'), ('</span>gende<span class="token string">r', 1), ('</span>hire_date<span class="token string">', '</span><span class="token number">1992</span><span class="token operator">-</span><span class="token number">12</span><span class="token operator">-</span><span class="token number">18</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10013), ('</span>birth_date<span class="token string">', '</span><span class="token number">1963</span><span class="token operator">-</span><span class="token number">06</span><span class="token operator">-</span><span class="token number">07</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Eberhardt<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Terkki<span class="token string">'), ('</span>gender'<span class="token punctuation">,</span> <span class="token number">1</span>
+<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'hire_date'</span><span class="token punctuation">,</span> <span class="token string">'1985-10-20'</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span> OrderedDict<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">'emp_no'</span><span class="token punctuation">,</span> <span class="token number">10014</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'birth_date'</span><span class="token punctuation">,</span> <span class="token string">'1956-02-12'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'first_name'</span><span class="token punctuation">,</span> <span class="token string">'Berni'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'last_name'</span><span class="token punctuation">,</span> <span class="token string">'Genin'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'gender'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'hire_date'</span><span class="token punctuation">,</span> <span class="token string">'1987-03-11'</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span> OrderedDict<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">(</span>'
+emp_no<span class="token string">', 10015), ('</span>birth_date<span class="token string">', '</span><span class="token number">1959</span><span class="token operator">-</span><span class="token number">08</span><span class="token operator">-</span><span class="token number">19</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Guoxiang<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Nooteboom<span class="token string">'), ('</span>gende<span class="token string">r', 1), ('</span>hire_date<span class="token string">', '</span><span class="token number">1987</span><span class="token operator">-</span><span class="token number">07</span><span class="token operator">-</span><span class="token number">02</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10016), ('</span>birth_date<span class="token string">', '</span><span class="token number">1961</span><span class="token operator">-</span><span class="token number">05</span><span class="token operator">-</span><span class="token number">0</span>
+<span class="token number">2</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Kazuhito<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Cappelletti<span class="token string">'), ('</span>gende<span class="token string">r', 1), ('</span>hire_date<span class="token string">', '</span><span class="token number">1995</span><span class="token operator">-</span><span class="token number">01</span><span class="token operator">-</span><span class="token number">27</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10017), ('</span>birth_date<span class="token string">', '</span><span class="token number">1958</span><span class="token operator">-</span><span class="token number">07</span><span class="token operator">-</span><span class="token number">06</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Cristinel<span class="token string">'), ('</span>last
+_name<span class="token string">', '</span>Bouloucos<span class="token string">'), ('</span>gende<span class="token string">r', 2), ('</span>hire_date<span class="token string">', '</span><span class="token number">1993</span><span class="token operator">-</span><span class="token number">08</span><span class="token operator">-</span><span class="token number">03</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10018), ('</span>birth_date<span class="token string">', '</span><span class="token number">1954</span><span class="token operator">-</span><span class="token number">06</span><span class="token operator">-</span><span class="token number">19</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Kazuhide<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Peha<span class="token string">'), ('</span>gende<span class="token string">r', 2), ('</span>hire_dat
+e<span class="token string">', '</span><span class="token number">1987</span><span class="token operator">-</span><span class="token number">04</span><span class="token operator">-</span><span class="token number">03</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10019), ('</span>birth_date<span class="token string">', '</span><span class="token number">1953</span><span class="token operator">-</span><span class="token number">01</span><span class="token operator">-</span><span class="token number">23</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>Lillian<span class="token string">'), ('</span>last_name<span class="token string">', '</span>Haddadi<span class="token string">'), ('</span>gende<span class="token string">r', 1), ('</span>hire_date<span class="token string">', '</span><span class="token number">1999</span><span class="token operator">-</span><span class="token number">04</span><span class="token operator">-</span><span class="token number">30</span><span class="token string">')]), OrderedDict([('</span>emp_no'<span class="token punctuation">,</span> 
+<span class="token number">10020</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'birth_date'</span><span class="token punctuation">,</span> <span class="token string">'1952-12-24'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'first_name'</span><span class="token punctuation">,</span> <span class="token string">'Mayuko'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'last_name'</span><span class="token punctuation">,</span> <span class="token string">'Warwick'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'gender'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'hire_date'</span><span class="token punctuation">,</span> <span class="token string">'1991-01-26'</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span> OrderedDict<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">'emp_no'</span><span class="token punctuation">,</span> <span class="token number">10030</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">'birth_date'</span><span class="token punctuation">,</span> <span class="token string">'1963-06-01'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>'first_
+name<span class="token string">', '</span>d<span class="token string">u'), ('</span>last_name<span class="token string">', '</span>jie<span class="token string">'), ('</span>gende<span class="token string">r', 2), ('</span>hire_date<span class="token string">', '</span><span class="token number">1989</span><span class="token operator">-</span><span class="token number">08</span><span class="token operator">-</span><span class="token number">24</span><span class="token string">')]), OrderedDict([('</span>emp_no<span class="token string">', 10040), ('</span>birth_date<span class="token string">', '</span><span class="token number">1963</span><span class="token operator">-</span><span class="token number">06</span><span class="token operator">-</span><span class="token number">01</span><span class="token string">'), ('</span>first_name<span class="token string">', '</span>www<span class="token string">'), ('</span>last_name<span class="token string">', '</span><span class="token number">333</span><span class="token string">'), ('</span>gende<span class="token string">r', 2), ('</span>hire_date<span class="token string">', '</span><span class="token number">1989</span><span class="token operator">-</span><span class="token number">08</span><span class="token operator">-</span><span class="token number">24</span>'<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">]</span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+<span class="token operator">&lt;</span>QueryDict<span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token operator">></span>
+text<span class="token operator">/</span>plain
+<span class="token operator">&lt;</span>QueryDict<span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token operator">></span>
+<span class="token punctuation">[</span><span class="token number">30</span><span class="token operator">/</span>Mar<span class="token operator">/</span><span class="token number">2023</span> <span class="token number">09</span><span class="token punctuation">:</span><span class="token number">25</span><span class="token punctuation">:</span><span class="token number">29</span><span class="token punctuation">]</span> <span class="token string">"GET /emp/ HTTP/1.1"</span> <span class="token number">200</span> <span class="token number">11576</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>QueryDict本质就是字典，对于同一个参数有多值情况使用了列表。</p>
+<h3 id="POST请求测试"><a href="#POST请求测试" class="headerlink" title="POST请求测试"></a>POST请求测试</h3><p>POST请求：<a target="_blank" rel="noopener" href="http://127.0.0.1:8000/emp/?x=123&amp;x=abc&amp;y=789">http://127.0.0.1:8000/emp/?x=123&amp;x=abc&amp;y=789</a></p>
+<h6 id="一、采用表单提交方式"><a href="#一、采用表单提交方式" class="headerlink" title="一、采用表单提交方式"></a><strong>一、采用表单提交方式</strong></h6><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> rest_framework<span class="token punctuation">.</span>views <span class="token keyword">import</span> APIView<span class="token punctuation">,</span> Request<span class="token punctuation">,</span> Response
+<span class="token keyword">class</span> <span class="token class-name">TestIndex</span><span class="token punctuation">(</span>APIView<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">post</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">:</span>Request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'~'</span> <span class="token operator">*</span> <span class="token number">30</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>method<span class="token punctuation">)</span>       <span class="token comment"># HttpRequest的属性</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>GET<span class="token punctuation">)</span>          <span class="token comment"># HttpRequest的属性</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>query_params<span class="token punctuation">)</span> <span class="token comment"># Request的属性，使用小写的</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>content_type<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>POST<span class="token punctuation">)</span>         <span class="token comment"># HttpRequest的属性</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>data<span class="token punctuation">)</span>         <span class="token comment"># Request的属性，使用小写的</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">'~'</span> <span class="token operator">*</span> <span class="token number">30</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token comment">#输出</span>
+<span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span>
+POST
+<span class="token operator">&lt;</span>QueryDict<span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token string">'dujie'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'123'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">'zhangsan'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'233'</span><span class="token punctuation">]</span><span class="token punctuation">&#125;</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>QueryDict<span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token string">'dujie'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'123'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">'zhangsan'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'233'</span><span class="token punctuation">]</span><span class="token punctuation">&#125;</span><span class="token operator">></span>
+application<span class="token operator">/</span>x<span class="token operator">-</span>www<span class="token operator">-</span>form<span class="token operator">-</span>urlencoded
+<span class="token operator">&lt;</span>QueryDict<span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token string">'dujie'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'123'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">'zzz'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'34445'</span><span class="token punctuation">]</span><span class="token punctuation">&#125;</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>QueryDict<span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token string">'dujie'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'123'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">'zzz'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'34445'</span><span class="token punctuation">]</span><span class="token punctuation">&#125;</span><span class="token operator">></span>
+<span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/images/DRF%E8%A7%86%E5%9B%BE1.png" alt="image"></p>
+<h3 id="二、JSON数据"><a href="#二、JSON数据" class="headerlink" title="二、JSON数据"></a>二、JSON数据</h3><p><img src="/images/DRF%E8%A7%86%E5%9B%BE2.png" alt="image"></p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment">#输出</span>
+<span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span>
+POST
+<span class="token operator">&lt;</span>QueryDict<span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token string">'dujie'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'123'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">'zhangsan'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'233'</span><span class="token punctuation">]</span><span class="token punctuation">&#125;</span><span class="token operator">></span>
+<span class="token operator">&lt;</span>QueryDict<span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token string">'dujie'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'123'</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">'zhangsan'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'233'</span><span class="token punctuation">]</span><span class="token punctuation">&#125;</span><span class="token operator">></span>
+application<span class="token operator">/</span>json
+<span class="token operator">&lt;</span>QueryDict<span class="token punctuation">:</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token operator">></span>
+<span class="token punctuation">&#123;</span><span class="token string">'dict'</span><span class="token punctuation">:</span> <span class="token number">4566</span><span class="token punctuation">,</span> <span class="token string">'asdd'</span><span class="token punctuation">:</span> <span class="token number">3333</span><span class="token punctuation">&#125;</span>
+<span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span><span class="token operator">~</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="请求总结"><a href="#请求总结" class="headerlink" title="请求总结"></a>请求总结</h3><ul>
+<li>GET请求，查询字符串使用query_params提取</li>
+<li>POST请求，访问data属性<ul>
+<li>支持了POST、PUT、PATCH方法（增，改）</li>
+<li>统一将请求处理放到data属性中</li>
+<li>如果是Json数据，帮我们反序列化</li>
+</ul>
+</li>
+</ul>
+<h3 id="响应"><a href="#响应" class="headerlink" title="响应"></a><strong>响应</strong></h3><p>DRF对Django的响应也做了增强，使用更加简单方便</p>
+<p><code>Response(data=None, status=None, template_name=None, headers=None,content_type=None)</code></p>
+<ul>
+<li>data将要序列化的数据，例如字典</li>
+<li>status 状态码，默认200</li>
+<li>headers响应报文头，字典</li>
+<li>content_type响应内容类型，有时候需要手动设置</li>
+</ul>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> rest_framework<span class="token punctuation">.</span>views <span class="token keyword">import</span> APIView<span class="token punctuation">,</span> Request<span class="token punctuation">,</span> Response
+<span class="token keyword">class</span> <span class="token class-name">TestIndex</span><span class="token punctuation">(</span>APIView<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">get</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">:</span>Request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>query_params<span class="token punctuation">)</span> <span class="token comment"># Request的属性，使用小写的</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">post</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">:</span>Request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>query_params<span class="token punctuation">)</span> <span class="token comment"># Request的属性，使用小写的</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>data<span class="token punctuation">)</span>         <span class="token comment"># Request的属性，使用小写的</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span><span class="token punctuation">&#123;</span>
+            <span class="token string">'host'</span><span class="token punctuation">:</span><span class="token string">'python'</span><span class="token punctuation">,</span> <span class="token string">'domain'</span><span class="token punctuation">:</span><span class="token string">'magedu.com'</span>
+       <span class="token punctuation">&#125;</span><span class="token punctuation">,</span> status<span class="token operator">=</span><span class="token number">201</span><span class="token punctuation">,</span> headers<span class="token operator">=</span><span class="token punctuation">&#123;</span><span class="token string">'X-Server'</span><span class="token punctuation">:</span><span class="token string">'Magedu'</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h3 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h3><p>需要构建两个类</p>
+<ul>
+<li>列表页，返回列表和新增功能</li>
+<li>详情页，基于<strong>主键</strong>的查看详情、修改、删除</li>
+</ul>
+<h5 id="路由"><a href="#路由" class="headerlink" title="路由"></a>路由</h5><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> django<span class="token punctuation">.</span>urls <span class="token keyword">import</span> path
+<span class="token keyword">from</span> <span class="token punctuation">.</span>views <span class="token keyword">import</span> EmpsView<span class="token punctuation">,</span> EmpView
+urlpatterns <span class="token operator">=</span> <span class="token punctuation">[</span>
+    path<span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">,</span> EmpsView<span class="token punctuation">.</span>as_view<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token comment"># /emp/</span>
+    path<span class="token punctuation">(</span><span class="token string">'&lt;int:pk>/'</span><span class="token punctuation">,</span> EmpView<span class="token punctuation">.</span>as_view<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token comment"># /emp/10021/ 更换参数名称pk</span>
+<span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="列表页"><a href="#列表页" class="headerlink" title="列表页"></a>列表页</h5><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment"># 使用APIView开发，列表页和详情页发现基本的CRUD具有通用性</span>
+<span class="token comment">#实际上其他业务开发就是换Model和序列化器就行</span>
+<span class="token keyword">class</span> <span class="token class-name">EmpsView</span><span class="token punctuation">(</span>APIView<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""/emp"""</span>
+    <span class="token keyword">def</span> <span class="token function">get</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">:</span>Request<span class="token punctuation">,</span> <span class="token operator">*</span>args<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""返回查询的列表"""</span>
+        <span class="token comment">#1、 查询数据库 2、序列化器 3、data</span>
+        emps <span class="token operator">=</span> Employees<span class="token punctuation">.</span>objects<span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        serializer <span class="token operator">=</span> EmployeeSerizlizer<span class="token punctuation">(</span>emps<span class="token punctuation">,</span>many<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>serializer<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">post</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">:</span>Request<span class="token punctuation">,</span> <span class="token operator">*</span>args<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""新增数据校验后入库，返回201和新增的实例"""</span>
+        data <span class="token operator">=</span> request<span class="token punctuation">.</span>data <span class="token comment"># 1、DRF请求封装，字典</span>
+        serializer <span class="token operator">=</span> EmployeeSerizlizer<span class="token punctuation">(</span>data<span class="token operator">=</span>data<span class="token punctuation">)</span> <span class="token comment">#2、序列化器</span>
+        serializer<span class="token punctuation">.</span>is_valid<span class="token punctuation">(</span>raise_exception<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span> <span class="token comment">#3、校验</span>
+        serializer<span class="token punctuation">.</span>save<span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment">#入库</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>serializer<span class="token punctuation">.</span>data<span class="token punctuation">,</span><span class="token number">201</span><span class="token punctuation">)</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>详情页</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">
+<span class="token keyword">class</span> <span class="token class-name">EmpView</span><span class="token punctuation">(</span>APIView<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""/emp/10001"""</span>
+    <span class="token keyword">def</span> <span class="token function">get</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">:</span>Request<span class="token punctuation">,</span> <span class="token operator">*</span>args<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> self<span class="token punctuation">.</span>args<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> self<span class="token punctuation">.</span>kwargs<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">,</span> args<span class="token punctuation">,</span> kwargs<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span> request<span class="token punctuation">.</span>query_params<span class="token punctuation">)</span>
+        emp <span class="token operator">=</span> Employees<span class="token punctuation">.</span>objects<span class="token punctuation">.</span>get<span class="token punctuation">(</span>pk<span class="token operator">=</span><span class="token punctuation">(</span>kwargs<span class="token punctuation">[</span><span class="token string">'pk'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        serializer <span class="token operator">=</span> EmployeeSerizlizer<span class="token punctuation">(</span>emp<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>serializer<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">put</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">,</span> <span class="token operator">*</span>args<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""先查后改"""</span>
+        obj <span class="token operator">=</span> Employees<span class="token punctuation">.</span>objects<span class="token punctuation">.</span>get<span class="token punctuation">(</span>pk<span class="token operator">=</span><span class="token punctuation">(</span>kwargs<span class="token punctuation">[</span><span class="token string">'pk'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        serializer <span class="token operator">=</span> EmployeeSerizlizer<span class="token punctuation">(</span>instance<span class="token operator">=</span>obj<span class="token punctuation">,</span> data<span class="token operator">=</span>request<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+        serializer<span class="token punctuation">.</span>is_valid<span class="token punctuation">(</span>raise_exception<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>serializer<span class="token punctuation">.</span>data<span class="token punctuation">,</span> <span class="token number">201</span><span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">delete</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">,</span> <span class="token operator">*</span>args<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""先查后删"""</span>
+        obj <span class="token operator">=</span> Employees<span class="token punctuation">.</span>objects<span class="token punctuation">.</span>get<span class="token punctuation">(</span>pk<span class="token operator">=</span><span class="token punctuation">(</span>kwargs<span class="token punctuation">[</span><span class="token string">'pk'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        obj<span class="token punctuation">.</span>delete<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>status<span class="token operator">=</span><span class="token number">204</span><span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">patch</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">,</span> <span class="token operator">*</span>args<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h3 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a><strong>异常处理</strong></h3><p>参考 <a target="_blank" rel="noopener" href="https://www.django-rest-framework.org/api-guide/exceptions/">https://www.django-rest-framework.org/api-guide/exceptions/</a></p>
+<p>测试<a target="_blank" rel="noopener" href="http://127.0.0.1:8000/emp/100%EF%BC%8C%E8%BF%94%E5%9B%9E500%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%86%85%E9%83%A8%E9%94%99%E8%AF%AF%E3%80%82">http://127.0.0.1:8000/emp/100，返回500服务器内部错误。</a></p>
+<p>按平常做法，就应该出什么问题，返回什么出错信息。但这样做会有安全风险，且在浏览器端的普通用户根本不管什么错误，就认为网站出问题了。所以，返回更加友好的出错页面是有必要的，例如更换404页面。</p>
+<p>我们的项目采用前后端分离，返回出错页面不合适，需要返回Json格式的出错信息，有必要拦截所有的异常做处理。</p>
+<h6 id="异常全局配置"><a href="#异常全局配置" class="headerlink" title="异常全局配置"></a><strong>异常全局配置</strong></h6><p>自定义全局异常处理器，参考rest_framework.views.exception_handler 实现</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">REST_FRAMEWORK <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+    <span class="token string">'EXCEPTION_HANDLER'</span><span class="token punctuation">:</span> <span class="token string">'utils.exceptions.global_exception_handler'</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h6 id="全局异常处理"><a href="#全局异常处理" class="headerlink" title="全局异常处理"></a><strong>全局异常处理</strong></h6><p>exception_handler 会转化Django的Http404、PermissionDenied为DRF的基于APIException的类。</p>
+<p>项目根目录下新建包utils，其中新建模块exceptions.py ，内容如下</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> rest_framework<span class="token punctuation">.</span>response <span class="token keyword">import</span> Response
+<span class="token keyword">from</span> rest_framework<span class="token punctuation">.</span>views <span class="token keyword">import</span> exception_handler
+<span class="token keyword">from</span> rest_framework <span class="token keyword">import</span> exceptions
+<span class="token keyword">class</span> <span class="token class-name">MagBaseException</span><span class="token punctuation">(</span>exceptions<span class="token punctuation">.</span>APIException<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""基类定义基本的异常"""</span>
+    code <span class="token operator">=</span> <span class="token number">10000</span> <span class="token comment"># code为0表示正常，非0表示错误</span>
+    message <span class="token operator">=</span> <span class="token string">"非法请求"</span> <span class="token comment"># 错误描述</span>
+    @<span class="token builtin">classmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_message</span><span class="token punctuation">(</span>cls<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token punctuation">&#123;</span><span class="token string">'code'</span><span class="token punctuation">:</span> cls<span class="token punctuation">.</span>code<span class="token punctuation">,</span> <span class="token string">'message'</span><span class="token punctuation">:</span> cls<span class="token punctuation">.</span>message<span class="token punctuation">&#125;</span>
+<span class="token comment"># 内部异常暴露细节，替换为自定义</span>
+exc_map <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">def</span> <span class="token function">global_exception_handler</span><span class="token punctuation">(</span>exc<span class="token punctuation">,</span> context<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+   全局异常处理
+   不管什么异常这里统一处理。根据不同类型显示不同的信息
+   为了前端JS解析方便，这里响应的状态码采用默认的200
+   异常对应处理后返回对应的错误码和错误描述
+   异常找不到对应就返回缺省
+   """</span>
+    <span class="token comment"># 调用DRF缺省异常处理，返回Response对象或None</span>
+    response <span class="token operator">=</span> exception_handler<span class="token punctuation">(</span>exc<span class="token punctuation">,</span> context<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> response <span class="token keyword">is</span> <span class="token keyword">not</span> <span class="token boolean">None</span><span class="token punctuation">:</span> <span class="token comment"># 说明就是APIException，否则是None</span>
+        <span class="token comment"># 如果是APIException，就利用exc的类型名称映射到自定义类型</span>
+        errmsg <span class="token operator">=</span> exc_map<span class="token punctuation">.</span>get<span class="token punctuation">(</span>exc<span class="token punctuation">.</span>__class__<span class="token punctuation">.</span>__name__<span class="token punctuation">,</span> 
+MagBaseException<span class="token punctuation">)</span><span class="token punctuation">.</span>get_message<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>errmsg<span class="token punctuation">,</span> status<span class="token operator">=</span><span class="token number">200</span><span class="token punctuation">)</span> <span class="token comment"># 状态恒为200</span>
+    <span class="token keyword">return</span> response<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>抛出异常后，拦截他们，这里做统一的处理</p>
+<h5 id="列表页和新增实现"><a href="#列表页和新增实现" class="headerlink" title="列表页和新增实现"></a><strong>列表页和新增实现</strong></h5><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> rest_framework<span class="token punctuation">.</span>views <span class="token keyword">import</span> APIView<span class="token punctuation">,</span> Request<span class="token punctuation">,</span> Response
+<span class="token keyword">from</span> <span class="token punctuation">.</span>models <span class="token keyword">import</span> Employee
+<span class="token keyword">from</span> <span class="token punctuation">.</span>serializers <span class="token keyword">import</span> EmpSerializer
+<span class="token keyword">class</span> <span class="token class-name">EmpsView</span><span class="token punctuation">(</span>APIView<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+   实现列表页get、新增post
+   http://127.0.0.1:8000/emp/
+   """</span>
+    <span class="token keyword">def</span> <span class="token function">get</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        emps <span class="token operator">=</span> Employee<span class="token punctuation">.</span>objects<span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>EmpSerializer<span class="token punctuation">(</span>emps<span class="token punctuation">,</span> many<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span><span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">post</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        serializer <span class="token operator">=</span> EmpSerializer<span class="token punctuation">(</span>data<span class="token operator">=</span>request<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+        serializer<span class="token punctuation">.</span>is_valid<span class="token punctuation">(</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        serializer<span class="token punctuation">.</span>save<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>serializer<span class="token punctuation">.</span>data<span class="token punctuation">,</span> <span class="token number">201</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>POST测试数据</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token punctuation">&#123;</span>
+    <span class="token string">"emp_no"</span><span class="token punctuation">:</span> <span class="token number">10023</span><span class="token punctuation">,</span>
+    <span class="token string">"birth_date"</span><span class="token punctuation">:</span> <span class="token string">"2000-06-01"</span><span class="token punctuation">,</span>
+    <span class="token string">"first_name"</span><span class="token punctuation">:</span> <span class="token string">"sam"</span><span class="token punctuation">,</span>
+    <span class="token string">"last_name"</span><span class="token punctuation">:</span> <span class="token string">"lee"</span><span class="token punctuation">,</span>
+    <span class="token string">"gender"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token string">"hire_date"</span><span class="token punctuation">:</span> <span class="token string">"2020-08-24"</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="详情页、修改和删除实现"><a href="#详情页、修改和删除实现" class="headerlink" title="详情页、修改和删除实现"></a>详情页、修改和删除实现</h5><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> rest_framework<span class="token punctuation">.</span>views <span class="token keyword">import</span> APIView<span class="token punctuation">,</span> Request<span class="token punctuation">,</span> Response
+<span class="token keyword">from</span> <span class="token punctuation">.</span>models <span class="token keyword">import</span> Employee
+<span class="token keyword">from</span> <span class="token punctuation">.</span>serializers <span class="token keyword">import</span> EmpSerializer
+<span class="token keyword">class</span> <span class="token class-name">EmpView</span><span class="token punctuation">(</span>APIView<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+   实现详情页get、修改put、删除delete
+   http://127.0.0.1:8000/emp/10021
+   """</span>
+    <span class="token keyword">def</span> <span class="token function">get</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">,</span> pk<span class="token punctuation">:</span><span class="token builtin">int</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        obj <span class="token operator">=</span> Employee<span class="token punctuation">.</span>objects<span class="token punctuation">.</span>get<span class="token punctuation">(</span>pk<span class="token operator">=</span>pk<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>EmpSerializer<span class="token punctuation">(</span>obj<span class="token punctuation">)</span><span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">put</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">,</span> pk<span class="token punctuation">:</span><span class="token builtin">int</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 必须先查后改</span>
+        obj <span class="token operator">=</span> Employee<span class="token punctuation">.</span>objects<span class="token punctuation">.</span>get<span class="token punctuation">(</span>pk<span class="token operator">=</span>pk<span class="token punctuation">)</span>
+        serializer <span class="token operator">=</span> EmpSerializer<span class="token punctuation">(</span>obj<span class="token punctuation">,</span> data<span class="token operator">=</span>request<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+        serializer<span class="token punctuation">.</span>is_valid<span class="token punctuation">(</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        serializer<span class="token punctuation">.</span>save<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>serializer<span class="token punctuation">.</span>data<span class="token punctuation">,</span> <span class="token number">201</span><span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">delete</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">,</span> pk<span class="token punctuation">:</span><span class="token builtin">int</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        obj <span class="token operator">=</span> Employee<span class="token punctuation">.</span>objects<span class="token punctuation">.</span>get<span class="token punctuation">(</span>pk<span class="token operator">=</span>pk<span class="token punctuation">)</span>
+        obj<span class="token punctuation">.</span>delete<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>status<span class="token operator">=</span><span class="token number">204</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>PUT测试用Json</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token punctuation">&#123;</span>
+    <span class="token string">"emp_no"</span><span class="token punctuation">:</span> <span class="token number">10023</span><span class="token punctuation">,</span>
+    <span class="token string">"birth_date"</span><span class="token punctuation">:</span> <span class="token string">"2000-06-01"</span><span class="token punctuation">,</span>
+    <span class="token string">"first_name"</span><span class="token punctuation">:</span> <span class="token string">"sam"</span><span class="token punctuation">,</span>
+    <span class="token string">"last_name"</span><span class="token punctuation">:</span> <span class="token string">"lee"</span><span class="token punctuation">,</span>
+    <span class="token string">"gender"</span><span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+    <span class="token string">"hire_date"</span><span class="token punctuation">:</span> <span class="token string">"2019-08-24"</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>完整参考代码</p>
+<p>employee&#x2F;views.py</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> rest_framework<span class="token punctuation">.</span>views <span class="token keyword">import</span> APIView<span class="token punctuation">,</span> Request<span class="token punctuation">,</span> Response
+<span class="token keyword">from</span> <span class="token punctuation">.</span>models <span class="token keyword">import</span> Employee
+<span class="token keyword">from</span> <span class="token punctuation">.</span>serializers <span class="token keyword">import</span> EmpSerializer
+<span class="token keyword">class</span> <span class="token class-name">EmpsView</span><span class="token punctuation">(</span>APIView<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+   实现列表页get、新增post
+   http://127.0.0.1:8000/emp/
+   """</span>
+    <span class="token keyword">def</span> <span class="token function">get</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        emps <span class="token operator">=</span> Employee<span class="token punctuation">.</span>objects<span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>EmpSerializer<span class="token punctuation">(</span>emps<span class="token punctuation">,</span> many<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span><span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">post</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        serializer <span class="token operator">=</span> EmpSerializer<span class="token punctuation">(</span>data<span class="token operator">=</span>request<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+        serializer<span class="token punctuation">.</span>is_valid<span class="token punctuation">(</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        serializer<span class="token punctuation">.</span>save<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>serializer<span class="token punctuation">.</span>data<span class="token punctuation">,</span> <span class="token number">201</span><span class="token punctuation">)</span>
+<span class="token keyword">class</span> <span class="token class-name">EmpView</span><span class="token punctuation">(</span>APIView<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+   实现详情页get、修改put、删除delete
+   http://127.0.0.1:8000/emp/10021
+   """</span>
+    <span class="token keyword">def</span> <span class="token function">get</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">,</span> pk<span class="token punctuation">:</span><span class="token builtin">int</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        obj <span class="token operator">=</span> Employee<span class="token punctuation">.</span>objects<span class="token punctuation">.</span>get<span class="token punctuation">(</span>pk<span class="token operator">=</span>pk<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>EmpSerializer<span class="token punctuation">(</span>obj<span class="token punctuation">)</span><span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">put</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">,</span> pk<span class="token punctuation">:</span><span class="token builtin">int</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 必须先查后改</span>
+        obj <span class="token operator">=</span> Employee<span class="token punctuation">.</span>objects<span class="token punctuation">.</span>get<span class="token punctuation">(</span>pk<span class="token operator">=</span>pk<span class="token punctuation">)</span>
+        serializer <span class="token operator">=</span> EmpSerializer<span class="token punctuation">(</span>obj<span class="token punctuation">,</span> data<span class="token operator">=</span>request<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+        serializer<span class="token punctuation">.</span>is_valid<span class="token punctuation">(</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        serializer<span class="token punctuation">.</span>save<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>serializer<span class="token punctuation">.</span>data<span class="token punctuation">,</span> <span class="token number">201</span><span class="token punctuation">)</span>
+    <span class="token keyword">def</span> <span class="token function">delete</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> request<span class="token punctuation">,</span> pk<span class="token punctuation">:</span><span class="token builtin">int</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        obj <span class="token operator">=</span> Employee<span class="token punctuation">.</span>objects<span class="token punctuation">.</span>get<span class="token punctuation">(</span>pk<span class="token operator">=</span>pk<span class="token punctuation">)</span>
+        obj<span class="token punctuation">.</span>delete<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> Response<span class="token punctuation">(</span>status<span class="token operator">=</span><span class="token number">204</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>employee&#x2F;models.py</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> django<span class="token punctuation">.</span>db <span class="token keyword">import</span> models
+<span class="token keyword">class</span> <span class="token class-name">Employee</span><span class="token punctuation">(</span>models<span class="token punctuation">.</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">class</span> <span class="token class-name">Gender</span><span class="token punctuation">(</span>models<span class="token punctuation">.</span>IntegerChoices<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token comment"># 枚举类型，限定取值范围</span>
+        MAN <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token string">'男'</span>
+        FEMALE <span class="token operator">=</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token string">'女'</span>
+    <span class="token keyword">class</span> <span class="token class-name">Meta</span><span class="token punctuation">:</span>
+        db_table <span class="token operator">=</span> <span class="token string">'employees'</span>
+        verbose_name <span class="token operator">=</span> <span class="token string">'员工'</span>
+    emp_no <span class="token operator">=</span> models<span class="token punctuation">.</span>IntegerField<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> verbose_name<span class="token operator">=</span><span class="token string">'工号'</span><span class="token punctuation">)</span>
+    birth_date <span class="token operator">=</span> models<span class="token punctuation">.</span>DateField<span class="token punctuation">(</span>verbose_name<span class="token operator">=</span><span class="token string">'生日'</span><span class="token punctuation">)</span>
+    first_name <span class="token operator">=</span> models<span class="token punctuation">.</span>CharField<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">14</span><span class="token punctuation">,</span> verbose_name<span class="token operator">=</span><span class="token string">'名'</span><span class="token punctuation">)</span>
+    last_name <span class="token operator">=</span> models<span class="token punctuation">.</span>CharField<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">16</span><span class="token punctuation">,</span> verbose_name<span class="token operator">=</span><span class="token string">'姓'</span><span class="token punctuation">)</span>
+    gender <span class="token operator">=</span> models<span class="token punctuation">.</span>SmallIntegerField<span class="token punctuation">(</span>verbose_name<span class="token operator">=</span><span class="token string">'性别'</span><span class="token punctuation">,</span> 
+choices<span class="token operator">=</span>Gender<span class="token punctuation">.</span>choices<span class="token punctuation">)</span>
+    hire_date <span class="token operator">=</span> models<span class="token punctuation">.</span>DateField<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">class</span> <span class="token class-name">Salary</span><span class="token punctuation">(</span>models<span class="token punctuation">.</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">class</span> <span class="token class-name">Meta</span><span class="token punctuation">:</span>
+        db_table <span class="token operator">=</span> <span class="token string">"salaries"</span>
+    <span class="token comment">#id = models.AutoField(primary_key=True) # 额外增加的主键，Django不支持联合主</span>
+键
+    emp_no <span class="token operator">=</span> models<span class="token punctuation">.</span>ForeignKey<span class="token punctuation">(</span>Employee<span class="token punctuation">,</span> on_delete<span class="token operator">=</span>models<span class="token punctuation">.</span>CASCADE<span class="token punctuation">,</span>
+                               db_column<span class="token operator">=</span><span class="token string">'emp_no'</span><span class="token punctuation">,</span> related_name<span class="token operator">=</span><span class="token string">'salaries'</span><span class="token punctuation">)</span>
+    from_date <span class="token operator">=</span> models<span class="token punctuation">.</span>DateField<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    salary <span class="token operator">=</span> models<span class="token punctuation">.</span>IntegerField<span class="token punctuation">(</span>verbose_name<span class="token operator">=</span><span class="token string">'工资'</span><span class="token punctuation">)</span>
+    to_date <span class="token operator">=</span> models<span class="token punctuation">.</span>DateField<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>employee&#x2F;serizlizers.py</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> rest_framework <span class="token keyword">import</span> serializers
+<span class="token keyword">from</span> <span class="token punctuation">.</span>models <span class="token keyword">import</span> Employee<span class="token punctuation">,</span> Salary
+<span class="token keyword">class</span> <span class="token class-name">SalarySerializer</span><span class="token punctuation">(</span>serializers<span class="token punctuation">.</span>ModelSerializer<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">class</span> <span class="token class-name">Meta</span><span class="token punctuation">:</span>
+        model <span class="token operator">=</span> Salary
+        fields <span class="token operator">=</span> <span class="token string">'__all__'</span>
+<span class="token keyword">class</span> <span class="token class-name">EmpSerializer</span><span class="token punctuation">(</span>serializers<span class="token punctuation">.</span>ModelSerializer<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">class</span> <span class="token class-name">Meta</span><span class="token punctuation">:</span>
+        model <span class="token operator">=</span> Employee
+        fields <span class="token operator">=</span> <span class="token string">'__all__'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloud.fun">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloud.fun/2022/09/13/DRF%E8%A7%86%E5%9B%BE/">http://dycloud.fun/2022/09/13/DRF%E8%A7%86%E5%9B%BE/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloud.fun" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Python/">Python</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/09/14/DRF/"><img class="prev-cover" src="/img/python.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">DRF</div></div></a></div><div class="next-post pull-right"><a href="/2022/08/23/%E5%88%86%E6%9E%90%20ExitCode%20%E5%AE%9A%E4%BD%8D%20Pod%20%E5%BC%82%E5%B8%B8%E9%80%80%E5%87%BA%E5%8E%9F%E5%9B%A0%20/"><img class="next-cover" src="/img/kubernetes.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">分析ExitCode定位Pod异常退出原因</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/02/23/Django%E8%A7%86%E5%9B%BE%E7%B1%BBView%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="Django视图类View源码分析"><img class="cover" src="/img/django.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-23</div><div class="title">Django视图类View源码分析</div></div></a></div><div><a href="/2022/09/14/ModelSerializer/" title="ModelSerializer"><img class="cover" src="/img/python.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-14</div><div class="title">ModelSerializer</div></div></a></div><div><a href="/2022/09/14/DRF/" title="DRF"><img class="cover" src="/img/python.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-14</div><div class="title">DRF</div></div></a></div><div><a href="/2022/09/15/Django%E4%B8%AD%E9%97%B4%E4%BB%B6%E5%8F%8A%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" title="Django中间件及源码解读"><img class="cover" src="/img/python.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-15</div><div class="title">Django中间件及源码解读</div></div></a></div><div><a href="/2022/09/17/Django%E6%9F%A5%E8%AF%A2/" title="Django查询"><img class="cover" src="/img/python.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-17</div><div class="title">Django查询</div></div></a></div><div><a href="/2022/09/18/DjangoORM/" title="DjangoORM"><img class="cover" src="/img/python.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-18</div><div class="title">DjangoORM</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">116</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#DRF%E8%A7%86%E5%9B%BE"><span class="toc-number">1.</span> <span class="toc-text">DRF视图</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E5%8F%82%E6%95%B0"><span class="toc-number">1.0.1.</span> <span class="toc-text">请求参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Django%E8%A7%86%E5%9B%BE%E5%8E%9F%E7%90%86%EF%BC%9A"><span class="toc-number">1.0.2.</span> <span class="toc-text">Django视图原理：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#APIView"><span class="toc-number">1.0.3.</span> <span class="toc-text">APIView</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GET%E8%AF%B7%E6%B1%82%E6%B5%8B%E8%AF%95"><span class="toc-number">1.0.4.</span> <span class="toc-text">GET请求测试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#POST%E8%AF%B7%E6%B1%82%E6%B5%8B%E8%AF%95"><span class="toc-number">1.0.5.</span> <span class="toc-text">POST请求测试</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%87%87%E7%94%A8%E8%A1%A8%E5%8D%95%E6%8F%90%E4%BA%A4%E6%96%B9%E5%BC%8F"><span class="toc-number">1.0.5.0.0.1.</span> <span class="toc-text">一、采用表单提交方式</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81JSON%E6%95%B0%E6%8D%AE"><span class="toc-number">1.0.6.</span> <span class="toc-text">二、JSON数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E6%80%BB%E7%BB%93"><span class="toc-number">1.0.7.</span> <span class="toc-text">请求总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%93%8D%E5%BA%94"><span class="toc-number">1.0.8.</span> <span class="toc-text">响应</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%94%E7%94%A8"><span class="toc-number">1.0.9.</span> <span class="toc-text">应用</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1"><span class="toc-number">1.0.9.0.1.</span> <span class="toc-text">路由</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%97%E8%A1%A8%E9%A1%B5"><span class="toc-number">1.0.9.0.2.</span> <span class="toc-text">列表页</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="toc-number">1.0.10.</span> <span class="toc-text">异常处理</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8%E5%85%A8%E5%B1%80%E9%85%8D%E7%BD%AE"><span class="toc-number">1.0.10.0.0.1.</span> <span class="toc-text">异常全局配置</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="toc-number">1.0.10.0.0.2.</span> <span class="toc-text">全局异常处理</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%97%E8%A1%A8%E9%A1%B5%E5%92%8C%E6%96%B0%E5%A2%9E%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.0.10.0.1.</span> <span class="toc-text">列表页和新增实现</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%AF%A6%E6%83%85%E9%A1%B5%E3%80%81%E4%BF%AE%E6%94%B9%E5%92%8C%E5%88%A0%E9%99%A4%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.0.10.0.2.</span> <span class="toc-text">详情页、修改和删除实现</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程"><img src="/img/oracle.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="记录AWS Oracle实例数据迁移的艰辛过程"/></a><div class="content"><a class="title" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程">记录AWS Oracle实例数据迁移的艰辛过程</a><time datetime="2024-03-12T04:12:23.000Z" title="发表于 2024-03-12 12:12:23">2024-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/29/%E6%A0%B9%E6%8D%AErouter%E6%98%BE%E7%A4%BA%E5%B7%A6%E4%BE%A7%E8%8F%9C%E5%8D%95%E6%A0%8F%E9%9A%90%E8%97%8F%E6%9F%90%E4%B8%AA%E8%8F%9C%E5%8D%95%E9%80%89%E9%A1%B9/" title="vue3左侧菜单隐藏某选项"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="vue3左侧菜单隐藏某选项"/></a><div class="content"><a class="title" href="/2023/07/29/%E6%A0%B9%E6%8D%AErouter%E6%98%BE%E7%A4%BA%E5%B7%A6%E4%BE%A7%E8%8F%9C%E5%8D%95%E6%A0%8F%E9%9A%90%E8%97%8F%E6%9F%90%E4%B8%AA%E8%8F%9C%E5%8D%95%E9%80%89%E9%A1%B9/" title="vue3左侧菜单隐藏某选项">vue3左侧菜单隐藏某选项</a><time datetime="2023-07-29T06:32:00.000Z" title="发表于 2023-07-29 14:32:00">2023-07-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/13/Vue%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/" title="Vue状态管理"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Vue状态管理"/></a><div class="content"><a class="title" href="/2023/07/13/Vue%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86/" title="Vue状态管理">Vue状态管理</a><time datetime="2023-07-13T09:29:00.000Z" title="发表于 2023-07-13 17:29:00">2023-07-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/27/%E5%9F%BA%E4%BA%8EIOC%E8%A7%A3%E5%86%B3%E5%AF%B9%E8%B1%A1%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98/" title="基于IOC解决对象依赖问题"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于IOC解决对象依赖问题"/></a><div class="content"><a class="title" href="/2023/06/27/%E5%9F%BA%E4%BA%8EIOC%E8%A7%A3%E5%86%B3%E5%AF%B9%E8%B1%A1%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98/" title="基于IOC解决对象依赖问题">基于IOC解决对象依赖问题</a><time datetime="2023-06-27T03:32:00.000Z" title="发表于 2023-06-27 11:32:00">2023-06-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架"><img src="/img/golang.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Gin框架"/></a><div class="content"><a class="title" href="/2023/06/23/Gin%E6%A1%86%E6%9E%B6/" title="Gin框架">Gin框架</a><time datetime="2023-06-23T06:32:00.000Z" title="发表于 2023-06-23 14:32:00">2023-06-23</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>
