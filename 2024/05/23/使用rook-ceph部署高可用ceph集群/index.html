@@ -1,0 +1,1196 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>使用rook-ceph部署高可用ceph集群 | J.のblog</title><meta name="keywords" content="ceph"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="使用rook-ceph部署高可用ceph集群一、Rook介绍及安装注意 1：rook 的版本大于 1.3，不要使用目录创建集群，要使用单独的裸盘进行创建，也就是创建一个新的磁盘，挂载到宿主机，不进行格式化，直接使用即可。对于的磁盘节点配置如下：  注意 2：做这个实验需要高配置，每个节点配置不能低于 2 核 4G 注意 3：k8s 1.19 以上版本，快照功能需要单独安装 snapshot 控制器">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用rook-ceph部署高可用ceph集群">
+<meta property="og:url" content="http://dycloud.fun/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="使用rook-ceph部署高可用ceph集群一、Rook介绍及安装注意 1：rook 的版本大于 1.3，不要使用目录创建集群，要使用单独的裸盘进行创建，也就是创建一个新的磁盘，挂载到宿主机，不进行格式化，直接使用即可。对于的磁盘节点配置如下：  注意 2：做这个实验需要高配置，每个节点配置不能低于 2 核 4G 注意 3：k8s 1.19 以上版本，快照功能需要单独安装 snapshot 控制器">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloud.fun/img/ceph.png">
+<meta property="article:published_time" content="2024-05-23T07:51:23.000Z">
+<meta property="article:modified_time" content="2024-07-15T05:56:41.540Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="ceph">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloud.fun/img/ceph.png"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloud.fun/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '使用rook-ceph部署高可用ceph集群',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-07-15 13:56:41'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">132</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">使用rook-ceph部署高可用ceph集群</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-05-23T07:51:23.000Z" title="发表于 2024-05-23 15:51:23">2024-05-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-07-15T05:56:41.540Z" title="更新于 2024-07-15 13:56:41">2024-07-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/ceph/">ceph</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="使用rook-ceph部署高可用ceph集群"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="使用rook-ceph部署高可用ceph集群"><a href="#使用rook-ceph部署高可用ceph集群" class="headerlink" title="使用rook-ceph部署高可用ceph集群"></a>使用rook-ceph部署高可用ceph集群</h1><h3 id="一、Rook介绍及安装"><a href="#一、Rook介绍及安装" class="headerlink" title="一、Rook介绍及安装"></a>一、Rook介绍及安装</h3><p>注意 1：rook 的版本大于 1.3，不要使用目录创建集群，要使用单独的裸盘进行创建，也就是创建一个新的磁盘，挂载到宿主机，不进行格式化，直接使用即可。对于的磁盘节点配置如下：</p>
+<p><img src="/images/ceph1.png" alt="image"></p>
+<p>注意 2：做这个实验需要高配置，每个节点配置不能低于 2 核 4G</p>
+<p>注意 3：k8s 1.19 以上版本，快照功能需要单独安装 snapshot 控制器</p>
+<h5 id="1-1-Rook介绍"><a href="#1-1-Rook介绍" class="headerlink" title="1.1 Rook介绍"></a>1.1 Rook介绍</h5><p>Rook是一种开源的、云原生存储的编排器，可以为各种存储服务在云原生的环境中实现无缝先和，提供了所必须的平台、框架和服务；而Ceph是Rook所支持的众多存储的一种，在k8s环境中，Ceph基于Rook能够为应用提供块存储（Block Storage），对象存储（Object Storage）以及共享文件系统服务。</p>
+<p><a target="_blank" rel="noopener" href="https://rook.io/docs/rook/v1.14/Getting-Started/quickstart/#prerequisites">https://rook.io/docs/rook/v1.14/Getting-Started/quickstart/#prerequisites</a></p>
+<h5 id="1-2-下载Rook安装文件"><a href="#1-2-下载Rook安装文件" class="headerlink" title="1.2 下载Rook安装文件"></a>1.2 下载Rook安装文件</h5><p>下载指定版本Rook</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ <span class="token function">git</span> clone --single-branch --branch v1.14.7 https://github.com/rook/rook.git
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h5 id="1-3-配置更改"><a href="#1-3-配置更改" class="headerlink" title="1.3 配置更改"></a>1.3 配置更改</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># cd /root/yaml/rook/rook/deploy/examples</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>修改Rook CSI镜像地址，原本的地址可能是gcr的进行，国内无法访问，所以我这边是通过一台香港节点的机器pull然后推送到我本地镜像仓库进行下载。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># egrep -v "#|^$" operator.yaml</span>
+<span class="token comment"># 定义了Rook Ceph Operator 的配置参数</span>
+kind: ConfigMap 
+apiVersion: v1
+metadata:
+  name: rook-ceph-operator-config
+data:
+  <span class="token comment"># 日志级别</span>
+  ROOK_LOG_LEVEL: <span class="token string">"INFO"</span>
+  <span class="token comment"># 是否允许使用循环设备</span>
+  ROOK_CEPH_ALLOW_LOOP_DEVICES: <span class="token string">"false"</span>
+  <span class="token comment"># 是否使用CephFS CSI插件</span>
+  ROOK_CSI_ENABLE_CEPHFS: <span class="token string">"true"</span>
+  <span class="token comment"># 是否启用RBD 插件</span>
+  ROOK_CSI_ENABLE_RBD: <span class="token string">"true"</span>
+  <span class="token comment"># 是否使用NFS插件</span>
+  ROOK_CSI_ENABLE_NFS: <span class="token string">"false"</span>
+  <span class="token comment"># 是否禁用CSI 驱动</span>
+  ROOK_CSI_DISABLE_DRIVER: <span class="token string">"false"</span>
+  <span class="token comment"># 是否开启CSI 加密</span>
+  CSI_ENABLE_ENCRYPTION: <span class="token string">"false"</span>
+  <span class="token comment"># 是否禁用持有者Pod</span>
+  CSI_DISABLE_HOLDER_PODS: <span class="token string">"true"</span>
+  <span class="token comment"># CSI 供应者副本数</span>
+  CSI_PROVISIONER_REPLICAS: <span class="token string">"2"</span>
+  <span class="token comment"># 是否启用CephFS 快照功能</span>
+  CSI_ENABLE_CEPHFS_SNAPSHOTTER: <span class="token string">"true"</span>
+  <span class="token comment"># 是否启用NFS 快照功能</span>
+  CSI_ENABLE_NFS_SNAPSHOTTER: <span class="token string">"true"</span>
+  <span class="token comment"># 是否启用RBD 快照功能</span>
+  CSI_ENABLE_RBD_SNAPSHOTTER: <span class="token string">"true"</span>
+  <span class="token comment"># 是否启用卷组快照</span>
+  CSI_ENABLE_VOLUME_GROUP_SNAPSHOT: <span class="token string">"true"</span>
+  <span class="token comment"># 是否强制使用 CephFS 内核客户端</span>
+  CSI_FORCE_CEPHFS_KERNEL_CLIENT: <span class="token string">"true"</span>
+  <span class="token comment"># RBD CSI 插件的 FSGroup 策略</span>
+  CSI_RBD_FSGROUPPOLICY: <span class="token string">"File"</span>
+  <span class="token comment"># CephFS CSI 插件的 FSGroup 策略</span>
+  CSI_CEPHFS_FSGROUPPOLICY: <span class="token string">"File"</span>
+  <span class="token comment"># NFS CSI 插件的 FSGroup 策略</span>
+  CSI_NFS_FSGROUPPOLICY: <span class="token string">"File"</span>
+  <span class="token comment"># 是否允许使用不受支持的 Ceph 版本</span>
+  ROOK_CSI_ALLOW_UNSUPPORTED_VERSION: <span class="token string">"false"</span>
+  <span class="token comment"># 是否启用 SELinux 主机挂载</span>
+  CSI_PLUGIN_ENABLE_SELINUX_HOST_MOUNT: <span class="token string">"false"</span>
+  <span class="token comment"># Ceph CSI 插件的镜像</span>
+  ROOK_CSI_CEPH_IMAGE: <span class="token string">"harbor.dujie.com/dujie/cephcsi:v3.11.0"</span>
+  <span class="token comment"># CSI 节点驱动注册器镜像</span>
+  ROOK_CSI_REGISTRAR_IMAGE: <span class="token string">"harbor.dujie.com/dujie/csi-node-driver-registrar:v2.10.1"</span>
+  <span class="token comment"># CSI 调整器镜像</span>
+  ROOK_CSI_RESIZER_IMAGE: <span class="token string">"harbor.dujie.com/dujie/csi-resizer:v1.10.1"</span>
+  <span class="token comment"># CSI 供应者镜像</span>
+  ROOK_CSI_PROVISIONER_IMAGE: <span class="token string">"harbor.dujie.com/dujie/csi-provisioner:v4.0.1"</span>
+  <span class="token comment"># CSI 快照管理器镜像</span>
+  ROOK_CSI_SNAPSHOTTER_IMAGE: <span class="token string">"harbor.dujie.com/dujie/csi-snapshotter:v7.0.2"</span>
+  <span class="token comment"># CSI 附件管理器镜像</span>
+  ROOK_CSI_ATTACHER_IMAGE: <span class="token string">"harbor.dujie.com/dujie/csi-attacher:v4.5.1"</span>
+  <span class="token comment"># CSI 插件的优先级类名称</span>
+  CSI_PLUGIN_PRIORITY_CLASSNAME: <span class="token string">"system-node-critical"</span>
+  <span class="token comment"># CSI 供应者的优先级类名称</span>
+  CSI_PROVISIONER_PRIORITY_CLASSNAME: <span class="token string">"system-cluster-critical"</span>
+  <span class="token comment"># CSI 供应者的容忍度</span>
+  CSI_PROVISIONER_TOLERATIONS: <span class="token operator">|</span>
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
+      operator: Exists
+    - effect: NoExecute
+      key: node-role.kubernetes.io/etcd
+      operator: Exists
+  <span class="token comment"># 是否启用 CSI 活性检测</span>
+  CSI_ENABLE_LIVENESS: <span class="token string">"false"</span>
+  <span class="token comment"># 是否监视 Operator 命名空间</span>
+  ROOK_OBC_WATCH_OPERATOR_NAMESPACE: <span class="token string">"true"</span>
+  <span class="token comment"># 是否启用发现守护进程</span>
+  ROOK_ENABLE_DISCOVERY_DAEMON: <span class="token string">"true"</span>
+  <span class="token comment"># Ceph 命令超时时间</span>
+  ROOK_CEPH_COMMANDS_TIMEOUT_SECONDS: <span class="token string">"15"</span>
+  <span class="token comment"># 是否启用 CSI 插件</span>
+  CSI_ENABLE_CSIADDONS: <span class="token string">"false"</span>
+  <span class="token comment"># 是否监视节点故障</span>
+  ROOK_WATCH_FOR_NODE_FAILURE: <span class="token string">"true"</span>
+  <span class="token comment"># CSI gRPC 超时时间</span>
+  CSI_GRPC_TIMEOUT_SECONDS: <span class="token string">"150"</span>
+  <span class="token comment"># 是否启用拓扑管理</span>
+  CSI_ENABLE_TOPOLOGY: <span class="token string">"false"</span>
+  <span class="token comment"># 是否需要 CephFS 附件</span>
+  CSI_CEPHFS_ATTACH_REQUIRED: <span class="token string">"true"</span>
+  <span class="token comment"># 是否需要 RBD 附件</span>
+  CSI_RBD_ATTACH_REQUIRED: <span class="token string">"true"</span>
+  <span class="token comment"># 是否需要 NFS 附件</span>
+  CSI_NFS_ATTACH_REQUIRED: <span class="token string">"true"</span>
+  <span class="token comment"># 是否禁用设备热插拔</span>
+  ROOK_DISABLE_DEVICE_HOTPLUG: <span class="token string">"false"</span>
+  <span class="token comment"># 设备发现间隔</span>
+  ROOK_DISCOVER_DEVICES_INTERVAL: <span class="token string">"60m"</span>
+
+<span class="token comment"># Deployment 定义了 Rook Ceph Operator 的部署设置</span>
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rook-ceph-operator <span class="token comment"># Deployment 的名称</span>
+  labels:
+    operator: rook <span class="token comment"># 标签，用于标识 Operator</span>
+    storage-backend: ceph <span class="token comment"># 存储后端类型</span>
+    app.kubernetes.io/name: rook-ceph <span class="token comment"># 应用名称</span>
+    app.kubernetes.io/instance: rook-ceph <span class="token comment"># 应用实例名称</span>
+    app.kubernetes.io/component: rook-ceph-operator <span class="token comment"># 组件名称</span>
+    app.kubernetes.io/part-of: rook-ceph-operator <span class="token comment"># 所属部分</span>
+spec:
+  selector:
+    matchLabels:
+      app: rook-ceph-operator <span class="token comment"># 选择器，用于匹配 Pod</span>
+  strategy:
+    type: Recreate <span class="token comment"># 更新策略类型</span>
+  replicas: <span class="token number">1</span> <span class="token comment"># 副本数</span>
+  template:
+    metadata:
+      labels:
+        app: rook-ceph-operator <span class="token comment"># Pod 的标签</span>
+    spec:
+      tolerations:
+        - effect: NoExecute
+          key: node.kubernetes.io/unreachable
+          operator: Exists
+          tolerationSeconds: <span class="token number">5</span>
+      serviceAccountName: rook-ceph-system <span class="token comment"># 使用的服务账户</span>
+      containers:
+        - name: rook-ceph-operator <span class="token comment"># 容器名称</span>
+          image: harbor.dujie.com/dujie/ceph:v1.14.7 <span class="token comment"># 使用的镜像</span>
+          args: <span class="token punctuation">[</span><span class="token string">"ceph"</span>, <span class="token string">"operator"</span><span class="token punctuation">]</span> <span class="token comment"># 启动参数</span>
+          securityContext:
+            runAsNonRoot: <span class="token boolean">true</span> <span class="token comment"># 非 root 用户运行</span>
+            runAsUser: <span class="token number">2016</span> <span class="token comment"># 运行用户 ID</span>
+            runAsGroup: <span class="token number">2016</span> <span class="token comment"># 运行用户组 ID</span>
+            capabilities:
+              drop: <span class="token punctuation">[</span><span class="token string">"ALL"</span><span class="token punctuation">]</span> <span class="token comment"># 丢弃所有能力</span>
+          volumeMounts:
+            - mountPath: /var/lib/rook <span class="token comment"># 挂载路径</span>
+              name: rook-config <span class="token comment"># 挂载的卷名称</span>
+            - mountPath: /etc/ceph <span class="token comment"># 挂载路径</span>
+              name: default-config-dir <span class="token comment"># 挂载的卷名称</span>
+          env:
+            - name: ROOK_CURRENT_NAMESPACE_ONLY
+              value: <span class="token string">"true"</span>
+            - name: ROOK_HOSTPATH_REQUIRES_PRIVILEGED
+              value: <span class="token string">"false"</span>
+            - name: DISCOVER_DAEMON_UDEV_BLACKLIST
+              value: <span class="token string">"(?i)dm-[0-9]+,(?i)rbd[0-9]+,(?i)nbd[0-9]+"</span>
+            - name: ROOK_UNREACHABLE_NODE_TOLERATION_SECONDS
+              value: <span class="token string">"5"</span>
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+      volumes:
+        - name: rook-config
+          emptyDir: <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> <span class="token comment"># 空目录卷</span>
+        - name: default-config-dir
+          emptyDir: <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> <span class="token comment"># 空目录卷</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上面所需镜像需要自行同步，并且新版本rook默认关闭了自动发现容器的部署，可以找到<code>ROOK_CURRENT_NAMESPACE_ONLY</code> 改成<code>true</code>即可</p>
+<p><img src="/images/ceph2.png" alt="image"></p>
+<h5 id="1-4-部署rook"><a href="#1-4-部署rook" class="headerlink" title="1.4 部署rook"></a>1.4 部署rook</h5><p>我这边部署的是v1.14版本，</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># cd /root/yaml/rook/rook/deploy/examples</span>
+<span class="token comment"># 执行这个命令（crds.yaml和common.yaml无需更改内容）</span>
+<span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl create -f crds.yaml -f common.yaml -f operator.yaml</span>
+<span class="token punctuation">[</span>root@k8s-master01 rook<span class="token punctuation">]</span><span class="token comment"># kubectl get pods -n rook-ceph </span>
+NAME                                                   READY   STATUS                  RESTARTS   AGE
+rook-ceph-operator-7c566fbc4f-64f89                    <span class="token number">1</span>/1     Running                 <span class="token number">0</span>          3m50s
+rook-discover-4cjmw                                    <span class="token number">1</span>/1     Running                 <span class="token number">0</span>          49m
+rook-discover-6skl9                                    <span class="token number">1</span>/1     Running                 <span class="token number">0</span>          45m
+rook-discover-pxj94                                    <span class="token number">1</span>/1     Running                 <span class="token number">0</span>          49m
+rook-discover-qwqkf                                    <span class="token number">1</span>/1     Running                 <span class="token number">0</span>          49m
+rook-discover-wl4tn                                    <span class="token number">1</span>/1     Running                 <span class="token number">0</span>          49m
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>全部变成1&#x2F;1， Running 才可以创建Ceph集群</p>
+<h3 id="二、创建ceph集群"><a href="#二、创建ceph集群" class="headerlink" title="二、创建ceph集群"></a>二、创建ceph集群</h3><h5 id="2-1-配置更改"><a href="#2-1-配置更改" class="headerlink" title="2.1 配置更改"></a>2.1 配置更改</h5><p>修改cluster.yaml文件，更改osd节点，新版必须采用裸盘，即未格式化的磁盘。我这里选了3个节点，可以通过lsblk查看</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-node01 ~<span class="token punctuation">]</span><span class="token comment"># lsblk</span>
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda      <span class="token number">8</span>:0    <span class="token number">0</span>  100G  <span class="token number">0</span> disk 
+├─sda1   <span class="token number">8</span>:1    <span class="token number">0</span>  300M  <span class="token number">0</span> part /boot
+├─sda2   <span class="token number">8</span>:2    <span class="token number">0</span>  <span class="token number">7</span>.9G  <span class="token number">0</span> part 
+└─sda3   <span class="token number">8</span>:3    <span class="token number">0</span> <span class="token number">91</span>.9G  <span class="token number">0</span> part /
+sdb      <span class="token number">8</span>:16   <span class="token number">0</span>  100G  <span class="token number">0</span> disk 
+sr0     <span class="token number">11</span>:0    <span class="token number">1</span> 1024M  <span class="token number">0</span> rom   <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">  storage: <span class="token comment"># cluster level storage configuration and selection</span>
+    useAllNodes: <span class="token boolean">false</span>
+    useAllDevices: <span class="token boolean">false</span>
+<span class="token punctuation">..</span>.
+    nodes:
+      - name: <span class="token string">"k8s-node01"</span>
+        devices:
+        - name: <span class="token string">"sdb"</span>
+      - name: <span class="token string">"k8s-node02"</span>
+        devices:
+        - name: <span class="token string">"sdb"</span>
+      - name: <span class="token string">"k8s-node03"</span>
+        devices:
+        - name: <span class="token string">"sdb"</span>
+<span class="token punctuation">..</span><span class="token punctuation">..</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="2-2-创建Ceph集群"><a href="#2-2-创建Ceph集群" class="headerlink" title="2.2 创建Ceph集群"></a>2.2 创建Ceph集群</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f cluster.yaml </span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>创建完成可以查看pod的状态</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 ~<span class="token punctuation">]</span><span class="token comment"># kubectl get pods -n rook-ceph </span>
+NAME                                                   READY   STATUS      RESTARTS   AGE
+csi-cephfsplugin-5g28z                                 <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+csi-cephfsplugin-6qdzp                                 <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+csi-cephfsplugin-7fkpb                                 <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+csi-cephfsplugin-h6jmn                                 <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+csi-cephfsplugin-provisioner-cc7987fb7-52mgq           <span class="token number">5</span>/5     Running     <span class="token number">0</span>          62m
+csi-cephfsplugin-provisioner-cc7987fb7-mhsjs           <span class="token number">5</span>/5     Running     <span class="token number">0</span>          62m
+csi-cephfsplugin-qv4cx                                 <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+csi-rbdplugin-552l5                                    <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+csi-rbdplugin-hs79b                                    <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+csi-rbdplugin-jrfd5                                    <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+csi-rbdplugin-n6kkx                                    <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+csi-rbdplugin-provisioner-85c667b47b-tjl5s             <span class="token number">5</span>/5     Running     <span class="token number">0</span>          62m
+csi-rbdplugin-provisioner-85c667b47b-xrbbz             <span class="token number">5</span>/5     Running     <span class="token number">0</span>          62m
+csi-rbdplugin-qk6ln                                    <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+rook-ceph-crashcollector-k8s-node02-7fcbff9677-qbghz   <span class="token number">1</span>/1     Running     <span class="token number">0</span>          61m
+rook-ceph-crashcollector-k8s-node03-849b95bd-b55pq     <span class="token number">1</span>/1     Running     <span class="token number">0</span>          61m
+rook-ceph-crashcollector-k8s-node04-6b759cd7dc-tlq2v   <span class="token number">1</span>/1     Running     <span class="token number">0</span>          61m
+rook-ceph-exporter-k8s-node02-6ddc75ddb8-7fm7d         <span class="token number">1</span>/1     Running     <span class="token number">0</span>          61m
+rook-ceph-exporter-k8s-node03-585c554f77-2ggt2         <span class="token number">1</span>/1     Running     <span class="token number">0</span>          61m
+rook-ceph-exporter-k8s-node04-6898d69454-lncs2         <span class="token number">1</span>/1     Running     <span class="token number">0</span>          61m
+rook-ceph-mgr-a-55bcdd48bd-zf8mr                       <span class="token number">3</span>/3     Running     <span class="token number">0</span>          61m
+rook-ceph-mgr-b-65444cc96f-bwsh5                       <span class="token number">3</span>/3     Running     <span class="token number">0</span>          61m
+rook-ceph-mon-a-66fcf4fdf7-242sp                       <span class="token number">2</span>/2     Running     <span class="token number">0</span>          62m
+rook-ceph-mon-b-55f9d8cf8-tcq7r                        <span class="token number">2</span>/2     Running     <span class="token number">0</span>          61m
+rook-ceph-mon-c-7d8c78b9dd-tq6c5                       <span class="token number">2</span>/2     Running     <span class="token number">0</span>          61m
+rook-ceph-operator-7c566fbc4f-vkn29                    <span class="token number">1</span>/1     Running     <span class="token number">0</span>          62m
+rook-ceph-osd-prepare-k8s-node01-dsnb9                 <span class="token number">0</span>/1     Completed   <span class="token number">0</span>          59m
+rook-ceph-osd-prepare-k8s-node02-jxpxv                 <span class="token number">0</span>/1     Completed   <span class="token number">0</span>          59m
+rook-ceph-osd-prepare-k8s-node03-mzgdd                 <span class="token number">0</span>/1     Completed   <span class="token number">0</span>          59m
+rook-discover-bgt9d                                    <span class="token number">1</span>/1     Running     <span class="token number">0</span>          62m
+rook-discover-gjxvl                                    <span class="token number">1</span>/1     Running     <span class="token number">0</span>          62m
+rook-discover-kvmff                                    <span class="token number">1</span>/1     Running     <span class="token number">0</span>          62m
+rook-discover-rjfh7                                    <span class="token number">1</span>/1     Running     <span class="token number">0</span>          62m
+rook-discover-t4z4s                                    <span class="token number">1</span>/1     Running     <span class="token number">0</span>          62m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>osd-x 的容器必须存在且状态正常则集群安装成功过</p>
+<p>更多配置：<a target="_blank" rel="noopener" href="https://rook.io/docs/rook/v1.6/ceph-cluster-crd.html">https://rook.io/docs/rook/v1.6/ceph-cluster-crd.html</a> </p>
+<h5 id="2-3-安装ceph-snapshot-控制器"><a href="#2-3-安装ceph-snapshot-控制器" class="headerlink" title="2.3 安装ceph snapshot 控制器"></a>2.3 安装ceph snapshot 控制器</h5><p>k8s 1.19 版本以上需要单独安装 snapshot 控制器，才能完成 pvc 的快照功能，所以在此提前安装下，如果是 1.19 以下版本，不需要单独安装</p>
+<p>snapshot 控制器的部署在集群安装时的 k8s-ha-install 项目中，</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 切换分支，根据自己k8s版本安装</span>
+<span class="token builtin class-name">cd</span> /root/k8s-ha-install/
+<span class="token function">git</span> checkout manual-installation-v1.20.x<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>创建snapshot controller</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 ~<span class="token punctuation">]</span><span class="token comment"># kubectl create -f snapshotter/ -n kube-system</span>
+<span class="token punctuation">[</span>root@k8s-master01 ~<span class="token punctuation">]</span><span class="token comment"># kubectl get pods -n kube-system -l app=snapshot-controller</span>
+NAME                    READY   STATUS    RESTARTS      AGE
+snapshot-controller-0   <span class="token number">1</span>/1     Running   <span class="token number">1</span> <span class="token punctuation">(</span>17h ago<span class="token punctuation">)</span>   21h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>具体文档：<a target="_blank" rel="noopener" href="https://rook.io/docs/rook/latest-release/Storage-Configuration/Ceph-CSI/ceph-csi-snapshot/#restore-the-rbd-snapshot-to-a-new-pvc">https://rook.io/docs/rook/latest-release/Storage-Configuration/Ceph-CSI/ceph-csi-snapshot/#restore-the-rbd-snapshot-to-a-new-pvc</a></p>
+<h3 id="三、安装ceph客户端工具"><a href="#三、安装ceph客户端工具" class="headerlink" title="三、安装ceph客户端工具"></a>三、安装ceph客户端工具</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># pwd </span>
+/root/yaml/rook/rook/deploy/examples
+<span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl create -f toolbox.yaml  -n rook-ceph </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>安装完成之后查看pod状态</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl get pods -n rook-ceph  -l app=rook-ceph-tools</span>
+NAME                               READY   STATUS    RESTARTS   AGE
+rook-ceph-tools-5b54d6cd97-nr9xt   <span class="token number">1</span>/1     Running   <span class="token number">0</span>          12s<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl exec -it rook-ceph-tools-5b54d6cd97-w84mm bash  -n rook-ceph </span>
+kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> is DEPRECATED and will be removed <span class="token keyword">in</span> a future version. Use kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> -- <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> instead.
+bash-4.4$ 
+bash-4.4$ ceph status 
+  cluster:
+    id:     cbe7a89d-8755-4c42-b1d0-89f2c8776845
+    health: HEALTH_WARN
+            clock skew detected on mon.b, mon.c
+ 
+  services:
+    mon: <span class="token number">3</span> daemons, quorum a,b,c <span class="token punctuation">(</span>age 3m<span class="token punctuation">)</span>
+    mgr: a<span class="token punctuation">(</span>active, since 74s<span class="token punctuation">)</span>, standbys: b
+    osd: <span class="token number">3</span> osds: <span class="token number">3</span> up <span class="token punctuation">(</span>since 2m<span class="token punctuation">)</span>, <span class="token number">3</span> <span class="token keyword">in</span> <span class="token punctuation">(</span>since 3m<span class="token punctuation">)</span>
+ 
+  data:
+    pools:   <span class="token number">1</span> pools, <span class="token number">1</span> pgs
+    objects: <span class="token number">2</span> objects, <span class="token number">449</span> KiB
+    usage:   <span class="token number">80</span> MiB used, <span class="token number">300</span> GiB / <span class="token number">300</span> GiB avail
+    pgs:     <span class="token number">1</span> active+clean
+ 
+bash-4.4$ 
+bash-4.4$ ceph osd status 
+ID  HOST         USED  AVAIL  WR OPS  WR DATA  RD OPS  RD DATA  STATE      
+ <span class="token number">0</span>  k8s-node02  <span class="token number">26</span>.7M  <span class="token number">99</span>.9G      <span class="token number">0</span>        <span class="token number">0</span>       <span class="token number">0</span>        <span class="token number">0</span>   exists,up  
+ <span class="token number">1</span>  k8s-node01  <span class="token number">26</span>.7M  <span class="token number">99</span>.9G      <span class="token number">0</span>        <span class="token number">0</span>       <span class="token number">0</span>        <span class="token number">0</span>   exists,up  
+ <span class="token number">2</span>  k8s-node03  <span class="token number">26</span>.7M  <span class="token number">99</span>.9G      <span class="token number">0</span>        <span class="token number">0</span>       <span class="token number">0</span>        <span class="token number">0</span>   exists,up  
+
+bash-4.4$ ceph <span class="token function">df</span> 
+--- RAW STORAGE ---
+CLASS     SIZE    AVAIL    USED  RAW USED  %RAW USED
+hdd    <span class="token number">300</span> GiB  <span class="token number">300</span> GiB  <span class="token number">80</span> MiB    <span class="token number">80</span> MiB       <span class="token number">0.03</span>
+TOTAL  <span class="token number">300</span> GiB  <span class="token number">300</span> GiB  <span class="token number">80</span> MiB    <span class="token number">80</span> MiB       <span class="token number">0.03</span>
+ 
+--- POOLS ---
+POOL  ID  PGS   STORED  OBJECTS     USED  %USED  MAX AVAIL
+.mgr   <span class="token number">1</span>    <span class="token number">1</span>  <span class="token number">449</span> KiB        <span class="token number">2</span>  <span class="token number">1.3</span> MiB      <span class="token number">0</span>     <span class="token number">95</span> GiB<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h3 id="四、Ceph-Dashboard"><a href="#四、Ceph-Dashboard" class="headerlink" title="四、Ceph Dashboard"></a>四、Ceph Dashboard</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl get svc  -n rook-ceph </span>
+NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class="token punctuation">(</span>S<span class="token punctuation">)</span>             AGE
+rook-ceph-exporter        ClusterIP   <span class="token number">10.96</span>.41.29     <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9926</span>/TCP            5m17s
+rook-ceph-mgr             ClusterIP   <span class="token number">10.96</span>.76.115    <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9283</span>/TCP            4m58s
+rook-ceph-mgr-dashboard   ClusterIP   <span class="token number">10.96</span>.163.161   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">8443</span>/TCP            4m58s
+rook-ceph-mon-a           ClusterIP   <span class="token number">10.96</span>.233.150   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">6789</span>/TCP,3300/TCP   6m10s
+rook-ceph-mon-b           ClusterIP   <span class="token number">10.96</span>.236.149   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">6789</span>/TCP,3300/TCP   5m43s
+rook-ceph-mon-c           ClusterIP   <span class="token number">10.96</span>.6.244     <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">6789</span>/TCP,3300/TCP   5m33s<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>默认ceph dashboard是打开的，但是类型是clusterIP，可以建一个nodeport类型的service暴露出来</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl get svc  -n rook-ceph  rook-ceph-mgr-dashboard  -o yaml  > dashboard-test.yaml</span>
+<span class="token comment"># 把导出的文件该删除的删除，更换service的名字和type </span>
+<span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># vim dashboard-test.yaml  </span>
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rook-ceph-mgr
+    rook_cluster: rook-ceph
+  name: rook-ceph-mgr-dashboard-np
+  namespace: rook-ceph
+spec:
+  ports:
+  - name: https-dashboard
+    port: <span class="token number">8443</span>
+    protocol: TCP
+    targetPort: <span class="token number">8443</span>
+  selector:
+    app: rook-ceph-mgr
+    mgr_role: active
+    rook_cluster: rook-ceph
+  type: NodePort
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建之后查看svc，就可以使用任意一台节点+nodeport端口号访问，如：<a target="_blank" rel="noopener" href="https://192.168.31.70:24210/#/login?returnUrl=%2Fdashboard">https://192.168.31.70:24210/#/login?returnUrl=%2Fdashboard</a></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl get svc -n rook-ceph </span>
+NAME                         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class="token punctuation">(</span>S<span class="token punctuation">)</span>             AGE
+rook-ceph-exporter           ClusterIP   <span class="token number">10.96</span>.41.29     <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9926</span>/TCP            8m56s
+rook-ceph-mgr                ClusterIP   <span class="token number">10.96</span>.76.115    <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9283</span>/TCP            8m37s
+rook-ceph-mgr-dashboard      ClusterIP   <span class="token number">10.96</span>.163.161   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">8443</span>/TCP            8m37s
+rook-ceph-mgr-dashboard-np   NodePort    <span class="token number">10.96</span>.164.239   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">8443</span>:24210/TCP      81s
+rook-ceph-mon-a              ClusterIP   <span class="token number">10.96</span>.233.150   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">6789</span>/TCP,3300/TCP   9m49s
+rook-ceph-mon-b              ClusterIP   <span class="token number">10.96</span>.236.149   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">6789</span>/TCP,3300/TCP   9m22s
+rook-ceph-mon-c              ClusterIP   <span class="token number">10.96</span>.6.244     <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">6789</span>/TCP,3300/TCP   9m12s
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>dashboard的密码存放在secret中</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl get secret -n rook-ceph  rook-ceph-dashboard-password  -o jsonpath=&#123;'.data.password'&#125; |base64 --decode </span>
++1vafV<span class="token string">"-w"</span><span class="token punctuation">(</span>,_BGvq<span class="token punctuation">]</span><span class="token punctuation">(</span>l<span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>登录到<code>dashboard</code> 后主页可能会显示<code>MON_CLOCK_SKEW: clock skew detected on mon.b, mon.c</code>时钟误差问题 ，解决办法：</p>
+<ol>
+<li>使用ntp同步时间</li>
+<li>修改<code>configmap</code>中的<code>mon clock drift allowed</code>默认参数</li>
+</ol>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl get configmaps -n rook-ceph  rook-config-override </span>
+NAME                   DATA   AGE
+rook-config-override   <span class="token number">1</span>      14m
+<span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl edit  configmaps -n rook-ceph  rook-config-override</span>
+<span class="token comment"># Please edit the object below. Lines beginning with a '#' will be ignored,</span>
+<span class="token comment"># and an empty file will abort the edit. If an error occurs while saving this file will be</span>
+<span class="token comment"># reopened with the relevant failures.</span>
+<span class="token comment">#</span>
+apiVersion: v1
+data:
+  config: <span class="token operator">|</span>
+    <span class="token punctuation">[</span>global<span class="token punctuation">]</span>
+    mon clock drift allowed <span class="token operator">=</span> <span class="token number">1</span>
+kind: ConfigMap
+metadata:
+  creationTimestamp: <span class="token string">"2024-06-26T03:09:36Z"</span>
+  name: rook-config-override
+  namespace: rook-ceph
+  ownerReferences:
+  - apiVersion: ceph.rook.io/v1
+    blockOwnerDeletion: <span class="token boolean">true</span>
+    controller: <span class="token boolean">true</span>
+    kind: CephCluster
+    name: rook-ceph
+    uid: 5ddfcfb5-48db-4fd9-92c3-ece3af796125
+  resourceVersion: <span class="token string">"2068535"</span>
+  uid: e9b35b14-108c-412a-b84b-3fec3529057c<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>添加了以下内容：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">config: <span class="token operator">|</span>
+    <span class="token punctuation">[</span>global<span class="token punctuation">]</span>
+    mon clock drift allowed <span class="token operator">=</span> <span class="token number">1</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>此处的时间可随自身的时间差设置，在0.5到1s之间，不建议设置过大的值，修改过后删除mon pod 使其载入新的配置</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl delete pods -n rook-ceph  rook-ceph-mon-a-6c6b5cdf78-wbv4r rook-ceph-mon-b-df4ffdc4c-hbf6t rook-ceph-mon-c-5c66c69c94-rw446 </span>
+pod <span class="token string">"rook-ceph-mon-a-6c6b5cdf78-wbv4r"</span> deleted
+pod <span class="token string">"rook-ceph-mon-b-df4ffdc4c-hbf6t"</span> deleted
+pod <span class="token string">"rook-ceph-mon-c-5c66c69c94-rw446"</span> deleted<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>查看状态已恢复健康值</p>
+<p><img src="/images/ceph3.png" alt="image"></p>
+<h3 id="五、ceph块存储的使用"><a href="#五、ceph块存储的使用" class="headerlink" title="五、ceph块存储的使用"></a>五、ceph块存储的使用</h3><h5 id="5-1-创建StorageClass和Ceph的存储池"><a href="#5-1-创建StorageClass和Ceph的存储池" class="headerlink" title="5.1 创建StorageClass和Ceph的存储池"></a>5.1 创建StorageClass和Ceph的存储池</h5><p>块存储一般用于一个pod挂载一块存储使用，相当于一个服务器新挂了一个盘，只给一个应用使用。</p>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://rook.io/docs/rook/latest-release/Storage-Configuration/Block-Storage-RBD/block-storage/#provision-storage">https://rook.io/docs/rook/latest-release/Storage-Configuration/Block-Storage-RBD/block-storage/#provision-storage</a></p>
+<p>size生产环境最少为3个，并且要小于等于osd的数量</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># pwd </span>
+/root/yaml/rook/rook/deploy/examples/csi/rbd
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># vim storageclass.yaml </span>
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: replicapool
+  namespace: rook-ceph <span class="token comment"># namespace:cluster</span>
+spec:
+  failureDomain: <span class="token function">host</span>
+  replicated:
+    size: <span class="token number">3</span>
+    <span class="token comment"># Disallow setting pool with replica 1, this could lead to data loss without recovery.</span>
+    <span class="token comment"># Make sure you're *ABSOLUTELY CERTAIN* that is what you want</span>
+    requireSafeReplicaSize: <span class="token boolean">true</span>
+    <span class="token comment"># gives a hint (%) to Ceph in terms of expected consumption of the total cluster capacity of a given pool</span>
+    <span class="token comment"># for more info: https://docs.ceph.com/docs/master/rados/operations/placement-groups/#specifying-expected-pool-size</span>
+    <span class="token comment">#targetSizeRatio: .5</span>
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-ceph-block
+provisioner: rook-ceph.rbd.csi.ceph.com <span class="token comment"># csi-provisioner-name</span>
+parameters:
+  <span class="token comment"># clusterID is the namespace where the rook cluster is running</span>
+  <span class="token comment"># If you change this namespace, also change the namespace below where the secret namespaces are defined</span>
+  clusterID: rook-ceph <span class="token comment"># namespace:cluster</span>
+
+  <span class="token comment"># If you want to use erasure coded pool with RBD, you need to create</span>
+  <span class="token comment"># two pools. one erasure coded and one replicated.</span>
+  <span class="token comment"># You need to specify the replicated pool here in the `pool` parameter, it is</span>
+  <span class="token comment"># used for the metadata of the images.</span>
+  <span class="token comment"># The erasure coded pool must be set as the `dataPool` parameter below.</span>
+  <span class="token comment">#dataPool: ec-data-pool</span>
+  pool: replicapool
+
+  <span class="token comment"># (optional) mapOptions is a comma-separated list of map options.</span>
+  <span class="token comment"># For krbd options refer</span>
+  <span class="token comment"># https://docs.ceph.com/docs/master/man/8/rbd/#kernel-rbd-krbd-options</span>
+  <span class="token comment"># For nbd options refer</span>
+  <span class="token comment"># https://docs.ceph.com/docs/master/man/8/rbd-nbd/#options</span>
+  <span class="token comment"># mapOptions: lock_on_read,queue_depth=1024</span>
+
+  <span class="token comment"># (optional) unmapOptions is a comma-separated list of unmap options.</span>
+  <span class="token comment"># For krbd options refer</span>
+  <span class="token comment"># https://docs.ceph.com/docs/master/man/8/rbd/#kernel-rbd-krbd-options</span>
+  <span class="token comment"># For nbd options refer</span>
+  <span class="token comment"># https://docs.ceph.com/docs/master/man/8/rbd-nbd/#options</span>
+  <span class="token comment"># unmapOptions: force</span>
+
+  <span class="token comment"># (optional) Set it to true to encrypt each volume with encryption keys</span>
+  <span class="token comment"># from a key management system (KMS)</span>
+  <span class="token comment"># encrypted: "true"</span>
+
+  <span class="token comment"># (optional) Use external key management system (KMS) for encryption key by</span>
+  <span class="token comment"># specifying a unique ID matching a KMS ConfigMap. The ID is only used for</span>
+  <span class="token comment"># correlation to configmap entry.</span>
+  <span class="token comment"># encryptionKMSID: &lt;kms-config-id></span>
+
+  <span class="token comment"># RBD image format. Defaults to "2".</span>
+  imageFormat: <span class="token string">"2"</span>
+
+  <span class="token comment"># RBD image features</span>
+  <span class="token comment"># Available for imageFormat: "2". Older releases of CSI RBD</span>
+  <span class="token comment"># support only the `layering` feature. The Linux kernel (KRBD) supports the</span>
+  <span class="token comment"># full complement of features as of 5.4</span>
+  <span class="token comment"># `layering` alone corresponds to Ceph's bitfield value of "2" ;</span>
+  <span class="token comment"># `layering` + `fast-diff` + `object-map` + `deep-flatten` + `exclusive-lock` together</span>
+  <span class="token comment"># correspond to Ceph's OR'd bitfield value of "63". Here we use</span>
+  <span class="token comment"># a symbolic, comma-separated format:</span>
+  <span class="token comment"># For 5.4 or later kernels:</span>
+  <span class="token comment">#imageFeatures: layering,fast-diff,object-map,deep-flatten,exclusive-lock</span>
+  <span class="token comment"># For 5.3 or earlier kernels:</span>
+  imageFeatures: layering
+
+  <span class="token comment"># The secrets contain Ceph admin credentials. These are generated automatically by the operator</span>
+  <span class="token comment"># in the same namespace as the cluster.</span>
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph <span class="token comment"># namespace:cluster</span>
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph <span class="token comment"># namespace:cluster</span>
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph <span class="token comment"># namespace:cluster</span>
+  <span class="token comment"># Specify the filesystem type of the volume. If not specified, csi-provisioner</span>
+  <span class="token comment"># will set default as `ext4`. Note that `xfs` is not recommended due to potential deadlock</span>
+  <span class="token comment"># in hyperconverged settings where the volume is mounted on the same node as the osds.</span>
+  csi.storage.k8s.io/fstype: ext4
+<span class="token comment"># uncomment the following to use rbd-nbd as mounter on supported nodes</span>
+<span class="token comment"># **IMPORTANT**: CephCSI v3.4.0 onwards a volume healer functionality is added to reattach</span>
+<span class="token comment"># the PVC to application pod if nodeplugin pod restart.</span>
+<span class="token comment"># Its still in Alpha support. Therefore, this option is not recommended for production use.</span>
+<span class="token comment">#mounter: rbd-nbd</span>
+allowVolumeExpansion: <span class="token boolean">true</span>  <span class="token comment"># 是否允许扩容</span>
+reclaimPolicy: Delete  <span class="token comment"># 回收策略</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建storageclass和存储池</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f  storageclass.yaml </span>
+cephblockpool.ceph.rook.io/replicapool created
+storageclass.storage.k8s.io/rook-ceph-block created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl get cephblockpool -n rook-ceph </span>
+NAME          PHASE   TYPE         FAILUREDOMAIN   AGE
+replicapool   Ready   Replicated   <span class="token function">host</span>            22s
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># </span>
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl get sc </span>
+NAME              PROVISIONER                  RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+rook-ceph-block   rook-ceph.rbd.csi.ceph.com   Delete          Immediate           <span class="token boolean">true</span>                   27s<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>此时可以在 ceph dashboard 查看到改 Pool，如果没有显示说明没有创建成功</p>
+<p><img src="/images/ceph4.png" alt="image"></p>
+<h5 id="5-2-挂载测试"><a href="#5-2-挂载测试" class="headerlink" title="5.2 挂载测试"></a>5.2 挂载测试</h5><p>创建一个mysql服务测试</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># pwd </span>
+/root/yaml/rook/rook/deploy/examples
+<span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f  mysql.yaml </span>
+service/wordpress-mysql created
+persistentvolumeclaim/mysql-pv-claim created
+deployment.apps/wordpress-mysql created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/images/ceph5.png" alt="image"></p>
+<p>这里会连接到刚才创建的storageclass，然后动态创建pv，然后连接到ceph创建对应的存储，之后创建pvc只需要指定storageClassName为刚才创建的storageclass名称就可以连接到rook的ceph。如果是statefulset，只需要将volumeTemplateClaim里面的Claim名称改为对应的storageClass名称就可以动态创建pod。</p>
+<p>mysql deployment的volumes挂载了该pvc</p>
+<p><img src="/images/ceph6.png" alt="image"></p>
+<p>因为mysql的数据不能多个实例连接一个存储，所以一般只能用块存储。相当于新加了一块盘给mysql使用</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl get pv </span>
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                    STORAGECLASS      REASON   AGE
+pvc-1a205d15-3d0b-441f-9811-31e974aff4aa   20Gi       RWO            Delete           Bound    default/mysql-pv-claim   rook-ceph-block            4m21s
+<span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># </span>
+<span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl get pvc </span>
+NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS      AGE
+mysql-pv-claim   Bound    pvc-1a205d15-3d0b-441f-9811-31e974aff4aa   20Gi       RWO            rook-ceph-block   4m24s<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以看到通过storageclass动态创建了对应的pv，此时在dashboard上可以看到对应的image</p>
+<p><img src="/images/ceph7.png" alt="image"></p>
+<p>此时每个副本的存储都是独立的</p>
+<p>下面是statefulset的演示</p>
+<p>只需要在statefulset中添加volumeClaimTemplates，并指定storageclass为刚才创建的名称就可以自动生成pv和pvc</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># cat statefu.yaml</span>
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: <span class="token number">80</span>
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web
+spec:
+  selector:
+    matchLabels:
+      app: nginx <span class="token comment"># has to match .spec.template.metadata.labels</span>
+  serviceName: <span class="token string">"nginx"</span>
+  replicas: <span class="token number">3</span> <span class="token comment"># by default is 1</span>
+  template:
+    metadata:
+      labels:
+        app: nginx <span class="token comment"># has to match .spec.selector.matchLabels</span>
+    spec:
+      terminationGracePeriodSeconds: <span class="token number">10</span>
+      containers:
+      - name: web
+        image: harbor.dujie.com/dujie/nginx:1.15.12
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: <span class="token number">80</span>
+          name: web
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: <span class="token punctuation">[</span> <span class="token string">"ReadWriteOnce"</span> <span class="token punctuation">]</span>
+      storageClassName: <span class="token string">"rook-ceph-block"</span>
+      resources:
+        requests:
+          storage: 20Gi<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="六、共享文件系统使用"><a href="#六、共享文件系统使用" class="headerlink" title="六、共享文件系统使用"></a>六、共享文件系统使用</h3><p>共享文件系统一般用于多个pod共享一个存储</p>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://rook.io/docs/rook/v1.14/Storage-Configuration/Shared-Filesystem-CephFS/filesystem-storage/#prerequisites">https://rook.io/docs/rook/v1.14/Storage-Configuration/Shared-Filesystem-CephFS/filesystem-storage/#prerequisites</a></p>
+<h5 id="6-1-创建共享类型的文件系统"><a href="#6-1-创建共享类型的文件系统" class="headerlink" title="6.1 创建共享类型的文件系统"></a>6.1 创建共享类型的文件系统</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># pwd </span>
+/root/yaml/rook/rook/deploy/examples
+<span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f filesystem.yaml</span>
+cephfilesystem.ceph.rook.io/myfs created
+cephfilesystemsubvolumegroup.ceph.rook.io/myfs-csi created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建完成会启动mds容器，需要等待启动后才可进行创建pv</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 examples<span class="token punctuation">]</span><span class="token comment"># kubectl get pod -n rook-ceph  -l app=rook-ceph-mds</span>
+NAME                                    READY   STATUS    RESTARTS   AGE
+rook-ceph-mds-myfs-a-5d4fb7bdd5-4n2tg   <span class="token number">2</span>/2     Running   <span class="token number">0</span>          59s
+rook-ceph-mds-myfs-b-6774796659-wn8qd   <span class="token number">2</span>/2     Running   <span class="token number">0</span>          57s<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/images/ceph8.png" alt="image"></p>
+<h5 id="6-2-创建共享类型文件系统的StorageClass"><a href="#6-2-创建共享类型文件系统的StorageClass" class="headerlink" title="6.2 创建共享类型文件系统的StorageClass"></a>6.2 创建共享类型文件系统的StorageClass</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># pwd </span>
+/root/yaml/rook/rook/deploy/examples/csi/cephfs
+<span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f  storageclass.yaml </span>
+storageclass.storage.k8s.io/rook-cephfs configured<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>之后将pvc的StorageClassName设置成root-cephfs 即可创建共享文件类型的存储，类似与NFS，可以给多个Pod共享数据。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># kubectl get sc </span>
+NAME              PROVISIONER                     RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+rook-ceph-block   rook-ceph.rbd.csi.ceph.com      Delete          Immediate           <span class="token boolean">true</span>                   99m
+rook-cephfs       rook-ceph.cephfs.csi.ceph.com   Delete          Immediate           <span class="token boolean">true</span>                   21m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="6-3-挂载测试"><a href="#6-3-挂载测试" class="headerlink" title="6.3 挂载测试"></a>6.3 挂载测试</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># cat fstest.yaml </span>
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cephfs-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 15Gi
+  storageClassName: rook-cephfs
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: <span class="token string">"2"</span>
+  labels:
+    app: fstest
+  name: fstest
+  namespace: default
+spec:
+  progressDeadlineSeconds: <span class="token number">600</span>
+  replicas: <span class="token number">5</span>
+  revisionHistoryLimit: <span class="token number">10</span>
+  selector:
+    matchLabels:
+      app: fstest
+  strategy:
+    rollingUpdate:
+      maxSurge: <span class="token number">25</span>%
+      maxUnavailable: <span class="token number">25</span>%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: fstest
+    spec:
+      containers:
+      - image: harbor.dujie.com/dujie/nginx:1.15.12
+        imagePullPolicy: IfNotPresent
+        name: nginx
+        resources: <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+          - name: fstest-volume
+            mountPath: /data/test
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: registry-secret
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+      terminationGracePeriodSeconds: <span class="token number">30</span>
+      volumes:
+      - name: fstest-volume
+        persistentVolumeClaim: 
+          claimName: cephfs-pvc
+          readOnly: <span class="token boolean">false</span>
+
+
+<span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f fstest.yaml </span>
+
+<span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># kubectl get pods </span>
+NAME                               READY   STATUS    RESTARTS   AGE
+fstest-544bbcb957-4dcfj            <span class="token number">1</span>/1     Running   <span class="token number">0</span>          2m26s
+fstest-544bbcb957-6fztb            <span class="token number">1</span>/1     Running   <span class="token number">0</span>          2m26s
+fstest-544bbcb957-l5b7l            <span class="token number">1</span>/1     Running   <span class="token number">0</span>          2m26s
+fstest-544bbcb957-tsjtb            <span class="token number">1</span>/1     Running   <span class="token number">0</span>          2m26s
+fstest-544bbcb957-wfqq4            <span class="token number">1</span>/1     Running   <span class="token number">0</span>          2m26s<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以进入第一个pod查看挂载目录是否存在，并在挂载目录中创建一个文件，然后再到另一个pod中看看能不能看到刚才创建的文件</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># kubectl exec -it fstest-544bbcb957-4dcfj bash </span>
+kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> is DEPRECATED and will be removed <span class="token keyword">in</span> a future version. Use kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> -- <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> instead.
+root@fstest-544bbcb957-4dcfj:/<span class="token comment"># </span>
+root@fstest-544bbcb957-4dcfj:/<span class="token comment"># ls /data/</span>
+<span class="token builtin class-name">test</span>
+root@fstest-544bbcb957-4dcfj:/<span class="token comment"># touch /data/test/hahah.txt </span>
+root@fstest-544bbcb957-4dcfj:/<span class="token comment"># ls /data/test/</span>
+hahah.txt
+root@fstest-544bbcb957-4dcfj:/<span class="token comment"># exit </span>
+<span class="token builtin class-name">exit</span>
+<span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># kubectl exec -it fstest-544bbcb957-wfqq4 bash </span>
+kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> is DEPRECATED and will be removed <span class="token keyword">in</span> a future version. Use kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> -- <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> instead.
+root@fstest-544bbcb957-wfqq4:/<span class="token comment"># ls /data/test/</span>
+hahah.txt
+root@fstest-544bbcb957-wfqq4:/<span class="token comment"># exit </span>
+<span class="token builtin class-name">exit</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意 <code>claimName</code> 为 pvc 的名称。</p>
+<p>此时一共创建了5个 Pod，这5个 Pod 共用了一个存储，挂载到了&#x2F;data&#x2F;test，该目录三个容器共享数据。</p>
+<h3 id="七、PVC扩容"><a href="#七、PVC扩容" class="headerlink" title="七、PVC扩容"></a>七、PVC扩容</h3><p>文件共享类型的 PVC 扩容需要 k8s 1.15+</p>
+<p>块存储类型的 PVC 扩容需要 k8s 1.16+</p>
+<p>PVC 扩容需要开启 <code>ExpandCSIVolumes</code>，新版本的 k8s 已经默认打开了这个功能，可以</p>
+<h5 id="7-1-扩容文件共享型PVC"><a href="#7-1-扩容文件共享型PVC" class="headerlink" title="7.1 扩容文件共享型PVC"></a>7.1 扩容文件共享型PVC</h5><p>找到刚才创建文件共享型<code>StorageClass</code>，将<code>allowVolumeExpansion</code>设置为true（新版默认为true，如果不为true更改后执行<code>kubectl apply</code>即可）</p>
+<p><img src="/images/ceph9.png" alt="image"></p>
+<p>修改一个已存在的pvc</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># kubectl get pvc </span>
+NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS      AGE
+cephfs-pvc       Bound    pvc-65327259-0add-4d22-a178-9021a4287442   15Gi       RWX            rook-cephfs       10m
+mysql-pv-claim   Bound    pvc-1a205d15-3d0b-441f-9811-31e974aff4aa   20Gi       RWO            rook-ceph-block   104m
+www-web-0        Bound    pvc-017ff95d-4c9b-4502-bfba-67c407a959c9   20Gi       RWO            rook-ceph-block   97m
+www-web-1        Bound    pvc-84edb236-2940-4297-86f9-b0a9ea9b9390   20Gi       RWO            rook-ceph-block   97m
+www-web-2        Bound    pvc-a2740af1-065d-44fa-b2e6-9f407c306b9b   20Gi       RWO            rook-ceph-block   92m
+<span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># </span>
+<span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># kubectl edit pvc cephfs-pvc </span>
+<span class="token comment"># Please edit the object below. Lines beginning with a '#' will be ignored,</span>
+<span class="token comment"># and an empty file will abort the edit. If an error occurs while saving this file will be</span>
+<span class="token comment"># reopened with the relevant failures.</span>
+<span class="token comment">#</span>
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: <span class="token operator">|</span>
+      <span class="token punctuation">&#123;</span><span class="token string">"apiVersion"</span><span class="token builtin class-name">:</span><span class="token string">"v1"</span>,<span class="token string">"kind"</span><span class="token builtin class-name">:</span><span class="token string">"PersistentVolumeClaim"</span>,<span class="token string">"metadata"</span>:<span class="token punctuation">&#123;</span><span class="token string">"annotations"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>,<span class="token string">"name"</span><span class="token builtin class-name">:</span><span class="token string">"cephfs-pvc"</span>,<span class="token string">"namespace"</span><span class="token builtin class-name">:</span><span class="token string">"default"</span><span class="token punctuation">&#125;</span>,<span class="token string">"spec"</span>:<span class="token punctuation">&#123;</span><span class="token string">"accessModes"</span>:<span class="token punctuation">[</span><span class="token string">"ReadWriteMany"</span><span class="token punctuation">]</span>,<span class="token string">"r
+esources"</span>:<span class="token punctuation">&#123;</span><span class="token string">"requests"</span>:<span class="token punctuation">&#123;</span><span class="token string">"storage"</span><span class="token builtin class-name">:</span><span class="token string">"15Gi"</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>,<span class="token string">"storageClassName"</span><span class="token builtin class-name">:</span><span class="token string">"rook-cephfs"</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+    pv.kubernetes.io/bind-completed: <span class="token string">"yes"</span>
+    pv.kubernetes.io/bound-by-controller: <span class="token string">"yes"</span>
+    volume.beta.kubernetes.io/storage-provisioner: rook-ceph.cephfs.csi.ceph.com
+    volume.kubernetes.io/storage-provisioner: rook-ceph.cephfs.csi.ceph.com
+  creationTimestamp: <span class="token string">"2024-06-26T05:12:23Z"</span>
+  finalizers:
+  - kubernetes.io/pvc-protection
+  name: cephfs-pvc
+  namespace: default
+  resourceVersion: <span class="token string">"2095326"</span>
+  uid: <span class="token number">65327259</span>-0add-4d22-a178-9021a4287442
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: rook-cephfs
+  volumeMode: Filesystem
+  volumeName: pvc-65327259-0add-4d22-a178-9021a4287442
+status:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 15Gi
+  phase: Bound                                                                                                                                                             
+<span class="token string">"/tmp/kubectl-edit-2357678919.yaml"</span> 36L, 1315C written
+
+persistentvolumeclaim/cephfs-pvc edited
+
+<span class="token punctuation">[</span>root@k8s-master01 cephfs<span class="token punctuation">]</span><span class="token comment"># kubectl get pvc </span>
+NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS      AGE
+cephfs-pvc       Bound    pvc-65327259-0add-4d22-a178-9021a4287442   25Gi       RWX            rook-cephfs       11m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h3 id="八、PVC快照"><a href="#八、PVC快照" class="headerlink" title="八、PVC快照"></a>八、PVC快照</h3><p>pvc快照功能需要k8s 1.17</p>
+<h5 id="8-1-块存储快照"><a href="#8-1-块存储快照" class="headerlink" title="8.1 块存储快照"></a>8.1 块存储快照</h5><h6 id="8-1-1-创建snapshotClass"><a href="#8-1-1-创建snapshotClass" class="headerlink" title="8.1.1 创建snapshotClass"></a>8.1.1 创建snapshotClass</h6><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># pwd </span>
+/root/yaml/rook/rook/deploy/examples/csi/rbd
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f  snapshotclass.yaml </span>
+volumesnapshotclass.snapshot.storage.k8s.io/csi-rbdplugin-snapclass created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h6 id="8-1-2-创建快照"><a href="#8-1-2-创建快照" class="headerlink" title="8.1.2 创建快照"></a>8.1.2 创建快照</h6><p>首先在之前创建的web容器中创建一个文件夹并创建一个文件</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl get pods </span>
+NAME                               READY   STATUS    RESTARTS   AGE
+web-0                              <span class="token number">1</span>/1     Running   <span class="token number">0</span>          101m
+web-1                              <span class="token number">1</span>/1     Running   <span class="token number">0</span>          101m
+web-2                              <span class="token number">1</span>/1     Running   <span class="token number">0</span>          101m
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl exec -it web-0 bash </span>
+kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> is DEPRECATED and will be removed <span class="token keyword">in</span> a future version. Use kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> -- <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> instead.
+root@web-0:/<span class="token comment"># </span>
+root@web-0:/<span class="token comment"># cd /usr/share/nginx/html</span>
+root@web-0:/usr/share/nginx/html<span class="token comment"># touch haha.txt</span>
+root@web-0:/usr/share/nginx/html<span class="token comment"># mkdir mltest</span>
+root@web-0:/usr/share/nginx/html<span class="token comment"># </span>
+root@web-0:/usr/share/nginx/html<span class="token comment"># ls </span>
+haha.txt  lost+found  mltest
+root@web-0:/usr/share/nginx/html<span class="token comment"># ls -l</span>
+total <span class="token number">20</span>
+-rw-r--r-- <span class="token number">1</span> root root     <span class="token number">0</span> Jun <span class="token number">26</span> 05:41 haha.txt
+drwx------ <span class="token number">2</span> root root <span class="token number">16384</span> Jun <span class="token number">26</span> 03:45 lost+found
+drwxr-xr-x <span class="token number">2</span> root root  <span class="token number">4096</span> Jun <span class="token number">26</span> 05:41 mltest<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>修改source，persistentVolumeClaimName 为需要做快照的pvc</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># pwd </span>
+/root/yaml/rook/rook/deploy/examples/csi/rbd
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># </span>
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># cat snapshot.yaml </span>
+---
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: rbd-pvc-snapshot
+spec:
+  volumeSnapshotClassName: csi-rbdplugin-snapclass
+  source:
+    persistentVolumeClaimName: www-web-0
+
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f snapshot.yaml</span>
+volumesnapshot.snapshot.storage.k8s.io/rbd-pvc-snapshot created
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl get volumesnapshot</span>
+NAME               READYTOUSE   SOURCEPVC   SOURCESNAPSHOTCONTENT   RESTORESIZE   SNAPSHOTCLASS             SNAPSHOTCONTENT                                    CREATIONTIME   AGE
+rbd-pvc-snapshot   <span class="token boolean">true</span>         www-web-0                           20Gi          csi-rbdplugin-snapclass   snapcontent-53ec9a13-354f-4dcd-9a5d-9dfa13ed4430   10s            10s
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl get volumesnapshotclasses.snapshot.storage.k8s.io </span>
+NAME                      DRIVER                       DELETIONPOLICY   AGE
+csi-rbdplugin-snapclass   rook-ceph.rbd.csi.ceph.com   Delete           14m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="8-1-3-指定快照创建pvc"><a href="#8-1-3-指定快照创建pvc" class="headerlink" title="8.1.3 指定快照创建pvc"></a>8.1.3 指定快照创建pvc</h5><p>如果想要创建一个具有某个数据的pvc，可以从某个快照恢复</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># pwd </span>
+/root/yaml/rook/rook/deploy/examples/csi/rbd
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># cat pvc-restore.yaml </span>
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rbd-pvc-restore
+spec:
+  storageClassName: rook-ceph-block
+  dataSource:
+    name: rbd-pvc-snapshot
+    kind: VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 21Gi<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><strong>注意：dataSource为快照名，storageClassName为新建的pvc的storageClass，storage的大小不能低于原pvc的大小</strong></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f pvc-restore.yaml</span>
+persistentvolumeclaim/rbd-pvc-restore created
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># </span>
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># </span>
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl get pvc </span>
+NAME              STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS      AGE
+cephfs-pvc        Bound    pvc-65327259-0add-4d22-a178-9021a4287442   25Gi       RWX            rook-cephfs       44m
+mysql-pv-claim    Bound    pvc-1a205d15-3d0b-441f-9811-31e974aff4aa   20Gi       RWO            rook-ceph-block   139m
+rbd-pvc-restore   Bound    pvc-38c4048f-b799-4e73-9678-73f261f5d882   21Gi       RWO            rook-ceph-block   6s
+www-web-0         Bound    pvc-017ff95d-4c9b-4502-bfba-67c407a959c9   20Gi       RWO            rook-ceph-block   131m
+www-web-1         Bound    pvc-84edb236-2940-4297-86f9-b0a9ea9b9390   20Gi       RWO            rook-ceph-block   131m
+www-web-2         Bound    pvc-a2740af1-065d-44fa-b2e6-9f407c306b9b   20Gi       RWO            rook-ceph-block   127m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="8-1-4-数据校验"><a href="#8-1-4-数据校验" class="headerlink" title="8.1.4 数据校验"></a>8.1.4 数据校验</h5><p>创建一个容器，挂载该pvc，查看是否含有创建的目录和文件</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># cat pod.yaml </span>
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: csirbd-demo-pod
+spec:
+  containers:
+    - name: web-server
+      image: registry.cn-hangzhou.aliyuncs.com/dyclouds/nginx:1.15.12
+      volumeMounts:
+        - name: mypvc
+          mountPath: /var/lib/www/html
+  volumes:
+    - name: mypvc
+      persistentVolumeClaim:
+        claimName: rbd-pvc-restore
+        readOnly: <span class="token boolean">false</span>
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f  pod.yaml</span>
+pod/csirbd-demo-pod created
+<span class="token comment"># 可以看到该容器有之前创建的目录和文件了</span>
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl get pods </span>
+NAME                               READY   STATUS    RESTARTS   AGE
+csirbd-demo-pod                    <span class="token number">1</span>/1     Running   <span class="token number">0</span>          9m10s
+fstest-544bbcb957-4dcfj            <span class="token number">1</span>/1     Running   <span class="token number">0</span>          56m
+fstest-544bbcb957-6fztb            <span class="token number">1</span>/1     Running   <span class="token number">0</span>          56m
+fstest-544bbcb957-l5b7l            <span class="token number">1</span>/1     Running   <span class="token number">0</span>          56m
+fstest-544bbcb957-tsjtb            <span class="token number">1</span>/1     Running   <span class="token number">0</span>          56m
+fstest-544bbcb957-wfqq4            <span class="token number">1</span>/1     Running   <span class="token number">0</span>          56m
+web-0                              <span class="token number">1</span>/1     Running   <span class="token number">0</span>          127m
+web-1                              <span class="token number">1</span>/1     Running   <span class="token number">0</span>          126m
+web-2                              <span class="token number">1</span>/1     Running   <span class="token number">0</span>          126m
+wordpress-mysql-59d6d7c875-s9n2g   <span class="token number">1</span>/1     Running   <span class="token number">0</span>          150m
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl exec -it csirbd-demo-pod bash </span>
+kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> is DEPRECATED and will be removed <span class="token keyword">in</span> a future version. Use kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> -- <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> instead.
+root@csirbd-demo-pod:/<span class="token comment"># ls /var/lib/www/html</span>
+haha.txt  lost+found  mltest<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="九、PVC克隆"><a href="#九、PVC克隆" class="headerlink" title="九、PVC克隆"></a>九、PVC克隆</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># pwd </span>
+/root/yaml/rook/rook/deploy/examples/csi/rbd
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># cat pvc-clone.yaml</span>
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rbd-pvc-clone
+spec:
+  storageClassName: rook-ceph-block
+  dataSource:
+    name: www-web-0
+    kind: PersistentVolumeClaim
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 21Gi
+<span class="token punctuation">[</span>root@k8s-master01 rbd<span class="token punctuation">]</span><span class="token comment"># kubectl get pvc </span>
+NAME              STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS      AGE
+cephfs-pvc        Bound    pvc-65327259-0add-4d22-a178-9021a4287442   25Gi       RWX            rook-cephfs       67m
+mysql-pv-claim    Bound    pvc-1a205d15-3d0b-441f-9811-31e974aff4aa   20Gi       RWO            rook-ceph-block   162m
+rbd-pvc-clone     Bound    pvc-c5f7d985-8582-41cc-94d6-3c9fc5c2987f   21Gi       RWO            rook-ceph-block   2s
+rbd-pvc-restore   Bound    pvc-38c4048f-b799-4e73-9678-73f261f5d882   21Gi       RWO            rook-ceph-block   23m
+www-web-0         Bound    pvc-017ff95d-4c9b-4502-bfba-67c407a959c9   20Gi       RWO            rook-ceph-block   155m
+www-web-1         Bound    pvc-84edb236-2940-4297-86f9-b0a9ea9b9390   20Gi       RWO            rook-ceph-block   155m
+www-web-2         Bound    pvc-a2740af1-065d-44fa-b2e6-9f407c306b9b   20Gi       RWO            rook-ceph-block   150m<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>需要注意的是 pvc-clone.yaml 的 dataSource 的 name 是被克隆的 pvc 名称，在此是 www-web-0，storageClassName 为新建 pvc 的 storageClass 名称，storage 不能小于之前 pvc 的大小。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloud.fun">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloud.fun/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/">http://dycloud.fun/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloud.fun" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ceph/">ceph</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2024/05/26/prometheus%20operator/"><img class="prev-cover" src="/img/prometheus.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">prometheus operator</div></div></a></div><div class="next-post pull-right"><a href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/"><img class="next-cover" src="/img/oracle.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">记录AWS Oracle实例数据迁移的艰辛过程</div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">132</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4"><span class="toc-number">1.</span> <span class="toc-text">使用rook-ceph部署高可用ceph集群</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81Rook%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E8%A3%85"><span class="toc-number">1.0.1.</span> <span class="toc-text">一、Rook介绍及安装</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-1-Rook%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.0.1.0.1.</span> <span class="toc-text">1.1 Rook介绍</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-2-%E4%B8%8B%E8%BD%BDRook%E5%AE%89%E8%A3%85%E6%96%87%E4%BB%B6"><span class="toc-number">1.0.1.0.2.</span> <span class="toc-text">1.2 下载Rook安装文件</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-3-%E9%85%8D%E7%BD%AE%E6%9B%B4%E6%94%B9"><span class="toc-number">1.0.1.0.3.</span> <span class="toc-text">1.3 配置更改</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-4-%E9%83%A8%E7%BD%B2rook"><span class="toc-number">1.0.1.0.4.</span> <span class="toc-text">1.4 部署rook</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%88%9B%E5%BB%BAceph%E9%9B%86%E7%BE%A4"><span class="toc-number">1.0.2.</span> <span class="toc-text">二、创建ceph集群</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#2-1-%E9%85%8D%E7%BD%AE%E6%9B%B4%E6%94%B9"><span class="toc-number">1.0.2.0.1.</span> <span class="toc-text">2.1 配置更改</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-%E5%88%9B%E5%BB%BACeph%E9%9B%86%E7%BE%A4"><span class="toc-number">1.0.2.0.2.</span> <span class="toc-text">2.2 创建Ceph集群</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-3-%E5%AE%89%E8%A3%85ceph-snapshot-%E6%8E%A7%E5%88%B6%E5%99%A8"><span class="toc-number">1.0.2.0.3.</span> <span class="toc-text">2.3 安装ceph snapshot 控制器</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%AE%89%E8%A3%85ceph%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%B7%A5%E5%85%B7"><span class="toc-number">1.0.3.</span> <span class="toc-text">三、安装ceph客户端工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Ceph-Dashboard"><span class="toc-number">1.0.4.</span> <span class="toc-text">四、Ceph Dashboard</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%94%E3%80%81ceph%E5%9D%97%E5%AD%98%E5%82%A8%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">1.0.5.</span> <span class="toc-text">五、ceph块存储的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#5-1-%E5%88%9B%E5%BB%BAStorageClass%E5%92%8CCeph%E7%9A%84%E5%AD%98%E5%82%A8%E6%B1%A0"><span class="toc-number">1.0.5.0.1.</span> <span class="toc-text">5.1 创建StorageClass和Ceph的存储池</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-2-%E6%8C%82%E8%BD%BD%E6%B5%8B%E8%AF%95"><span class="toc-number">1.0.5.0.2.</span> <span class="toc-text">5.2 挂载测试</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8"><span class="toc-number">1.0.6.</span> <span class="toc-text">六、共享文件系统使用</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#6-1-%E5%88%9B%E5%BB%BA%E5%85%B1%E4%BA%AB%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.0.6.0.1.</span> <span class="toc-text">6.1 创建共享类型的文件系统</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-2-%E5%88%9B%E5%BB%BA%E5%85%B1%E4%BA%AB%E7%B1%BB%E5%9E%8B%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84StorageClass"><span class="toc-number">1.0.6.0.2.</span> <span class="toc-text">6.2 创建共享类型文件系统的StorageClass</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-3-%E6%8C%82%E8%BD%BD%E6%B5%8B%E8%AF%95"><span class="toc-number">1.0.6.0.3.</span> <span class="toc-text">6.3 挂载测试</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%83%E3%80%81PVC%E6%89%A9%E5%AE%B9"><span class="toc-number">1.0.7.</span> <span class="toc-text">七、PVC扩容</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#7-1-%E6%89%A9%E5%AE%B9%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB%E5%9E%8BPVC"><span class="toc-number">1.0.7.0.1.</span> <span class="toc-text">7.1 扩容文件共享型PVC</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%AB%E3%80%81PVC%E5%BF%AB%E7%85%A7"><span class="toc-number">1.0.8.</span> <span class="toc-text">八、PVC快照</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#8-1-%E5%9D%97%E5%AD%98%E5%82%A8%E5%BF%AB%E7%85%A7"><span class="toc-number">1.0.8.0.1.</span> <span class="toc-text">8.1 块存储快照</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#8-1-1-%E5%88%9B%E5%BB%BAsnapshotClass"><span class="toc-number">1.0.8.0.1.1.</span> <span class="toc-text">8.1.1 创建snapshotClass</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#8-1-2-%E5%88%9B%E5%BB%BA%E5%BF%AB%E7%85%A7"><span class="toc-number">1.0.8.0.1.2.</span> <span class="toc-text">8.1.2 创建快照</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#8-1-3-%E6%8C%87%E5%AE%9A%E5%BF%AB%E7%85%A7%E5%88%9B%E5%BB%BApvc"><span class="toc-number">1.0.8.0.2.</span> <span class="toc-text">8.1.3 指定快照创建pvc</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#8-1-4-%E6%95%B0%E6%8D%AE%E6%A0%A1%E9%AA%8C"><span class="toc-number">1.0.8.0.3.</span> <span class="toc-text">8.1.4 数据校验</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B9%9D%E3%80%81PVC%E5%85%8B%E9%9A%86"><span class="toc-number">1.0.9.</span> <span class="toc-text">九、PVC克隆</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/05/26/prometheus%20operator/" title="prometheus operator"><img src="/img/prometheus.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="prometheus operator"/></a><div class="content"><a class="title" href="/2024/05/26/prometheus%20operator/" title="prometheus operator">prometheus operator</a><time datetime="2024-05-26T07:51:23.000Z" title="发表于 2024-05-26 15:51:23">2024-05-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/" title="使用rook-ceph部署高可用ceph集群"><img src="/img/ceph.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="使用rook-ceph部署高可用ceph集群"/></a><div class="content"><a class="title" href="/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/" title="使用rook-ceph部署高可用ceph集群">使用rook-ceph部署高可用ceph集群</a><time datetime="2024-05-23T07:51:23.000Z" title="发表于 2024-05-23 15:51:23">2024-05-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程"><img src="/img/oracle.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="记录AWS Oracle实例数据迁移的艰辛过程"/></a><div class="content"><a class="title" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程">记录AWS Oracle实例数据迁移的艰辛过程</a><time datetime="2024-03-12T04:12:23.000Z" title="发表于 2024-03-12 12:12:23">2024-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-cluster%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-cluster相关组件"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="kubernetes platform后端开发-cluster相关组件"/></a><div class="content"><a class="title" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-cluster%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-cluster相关组件">kubernetes platform后端开发-cluster相关组件</a><time datetime="2024-02-25T06:32:00.000Z" title="发表于 2024-02-25 14:32:00">2024-02-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-loadbalance%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-loadbalance相关组件"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="kubernetes platform后端开发-loadbalance相关组件"/></a><div class="content"><a class="title" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-loadbalance%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-loadbalance相关组件">kubernetes platform后端开发-loadbalance相关组件</a><time datetime="2024-02-25T06:32:00.000Z" title="发表于 2024-02-25 14:32:00">2024-02-25</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>

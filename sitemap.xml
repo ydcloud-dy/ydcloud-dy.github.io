@@ -2,6 +2,33 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://dycloud.fun/2024/05/26/prometheus%20operator/</loc>
+    
+    <lastmod>2024-07-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://dycloud.fun/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/</loc>
+    
+    <lastmod>2024-07-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://dycloud.fun/link/index.html</loc>
+    
+    <lastmod>2024-04-08</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://dycloud.fun/2024/01/12/k8s%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%E9%A1%B9%E7%9B%AE%E5%89%8D%E7%AB%AF-1/</loc>
     
     <lastmod>2024-04-07</lastmod>
@@ -1246,7 +1273,7 @@
 
   <url>
     <loc>http://dycloud.fun/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -1254,133 +1281,140 @@
   
   <url>
     <loc>http://dycloud.fun/tags/kubernetes/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/jenkins/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/mysql/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/SonarQube/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/linux/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/svn/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/centos/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/iptables/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/prometheus/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/grafana/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/%E9%98%BF%E9%87%8C%E4%BA%91/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/docker/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/Python/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/Django/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/golang/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/python/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/oracle/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/tags/%E5%89%8D%E7%AB%AF/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://dycloud.fun/tags/ceph/</loc>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -1389,91 +1423,98 @@
   
   <url>
     <loc>http://dycloud.fun/categories/kubernetes/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/jenkins/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/mysql/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/SonarQube/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/linux/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/svn/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/iptables/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/prometheus/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/Docker/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/golang/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/oracle/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/Python/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://dycloud.fun/categories/%E5%89%8D%E7%AB%AF/</loc>
-    <lastmod>2024-04-07</lastmod>
+    <lastmod>2024-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://dycloud.fun/categories/ceph/</loc>
+    <lastmod>2024-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>

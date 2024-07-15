@@ -1,0 +1,1796 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>prometheus operator | J.のblog</title><meta name="keywords" content="prometheus"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="prometheus operator此文包含prometheus-operator部署安装，收集相关指标、使用prometheusalert+alertmanager实现飞书、钉钉、邮箱等告警。 一、Prometheus介绍Prometheus 开源的系统监控和报警框架，本身也是一个时序数据库（TSDB） 1.1 prometheus特性 一个多维的数据模型，具有由指标名称和键值对标识的时序序列">
+<meta property="og:type" content="article">
+<meta property="og:title" content="prometheus operator">
+<meta property="og:url" content="http://dycloud.fun/2024/05/26/prometheus%20operator/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="prometheus operator此文包含prometheus-operator部署安装，收集相关指标、使用prometheusalert+alertmanager实现飞书、钉钉、邮箱等告警。 一、Prometheus介绍Prometheus 开源的系统监控和报警框架，本身也是一个时序数据库（TSDB） 1.1 prometheus特性 一个多维的数据模型，具有由指标名称和键值对标识的时序序列">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloud.fun/img/prometheus.png">
+<meta property="article:published_time" content="2024-05-26T07:51:23.000Z">
+<meta property="article:modified_time" content="2024-07-15T06:06:38.133Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="prometheus">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloud.fun/img/prometheus.png"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloud.fun/2024/05/26/prometheus%20operator/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'prometheus operator',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-07-15 14:06:38'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">132</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">prometheus operator</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-05-26T07:51:23.000Z" title="发表于 2024-05-26 15:51:23">2024-05-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-07-15T06:06:38.133Z" title="更新于 2024-07-15 14:06:38">2024-07-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/prometheus/">prometheus</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="prometheus operator"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="prometheus-operator"><a href="#prometheus-operator" class="headerlink" title="prometheus operator"></a>prometheus operator</h1><p>此文包含prometheus-operator部署安装，收集相关指标、使用prometheusalert+alertmanager实现飞书、钉钉、邮箱等告警。</p>
+<h3 id="一、Prometheus介绍"><a href="#一、Prometheus介绍" class="headerlink" title="一、Prometheus介绍"></a>一、Prometheus介绍</h3><p>Prometheus 开源的系统监控和报警框架，本身也是一个时序数据库（TSDB）</p>
+<h5 id="1-1-prometheus特性"><a href="#1-1-prometheus特性" class="headerlink" title="1.1 prometheus特性"></a>1.1 prometheus特性</h5><ul>
+<li>一个多维的数据模型，具有由指标名称和键值对标识的时序序列数据</li>
+<li>使用<code>PromQL</code>查询和聚合数据，可以非常灵活的对数据进行检索</li>
+<li>不依赖额外的数据存储，<code>Prometheus</code>本身就是一个时序数据库，提供本地存储和分布式存储，并且每个<code>Prometheus</code>都是自治的</li>
+<li>应用程序暴露<code>Metrics</code>接口，<code>Prometheus</code>通过基于HTTP的Pull模型采集数据，同时可以使用<code>PushGateway</code>进行Push数据</li>
+<li><code>Prometheus</code>同时支持动态服务发现和静态配置发现目标机器</li>
+<li>支持多种图形化和仪表盘，和Grafan绝配</li>
+</ul>
+<h5 id="1-2-prometheus架构"><a href="#1-2-prometheus架构" class="headerlink" title="1.2 prometheus架构"></a>1.2 prometheus架构</h5><ol>
+<li>Prometheus Server</li>
+</ol>
+<p>核心组件，主要负责一下功能：</p>
+<ul>
+<li>数据抓取(<code>Scraping</code>)：<code>Prometheus</code>通过HTTP定期从配置的目标（如应用程序、服务器、数据库等）抓取指标数据。这些目标称为”<code>Exporters</code>“，他们暴露出<code>Prometheus</code>格式的指标</li>
+<li>数据存储(<code>Storage</code>)：抓取到的指标数据被存储在本地磁盘上的时间序列数据库中。<code>Prometheus</code>使用了一种高效的存储格式，称为”<code>TSDB(Time Series Database)</code>“，他能够高效的处理大量时间序列数据。</li>
+<li>查询(<code>Querying</code>)：<code>Prometheus</code>提供了一个强大的查询语句，称为<code>PromQL(Prometheus Query Language)</code>，允许用户实时查询和分析存储的时间序列数据。</li>
+</ul>
+<ol start="2">
+<li><code>Exporters</code>：主要用来采集监控数据，比如主机的监控数据可以通过 node_exporter采集，MySQL 的监控数据可以通过mysql_exporter 采集，之后 Exporter 暴露一个接口，比如&#x2F;metrics，Prometheus 可以通过该接口采集到数据</li>
+</ol>
+<ul>
+<li><code>Node Exporter</code>：用于收集主机级别的指标，如CPU、内存、磁盘等。</li>
+<li><code>Blackbox Exporter</code>：用于探测网络服务的可用性，如HTTP、HTTPS、DNS等</li>
+<li><code>Mysql Exporter</code>：用于收集Mysql数据库的指标</li>
+<li>Redis、Mongo….</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://prometheus.io/docs/instrumenting/exporters/">https://prometheus.io/docs/instrumenting/exporters/</a></p>
+<ol start="3">
+<li><code>Pushgateway</code>：可选组件，用于接受短暂任务（如批量处理作业）推送的指标。由于这些任务的生命周期可能很短，无法被<code>Prometheus</code>直接抓取，所以可以将指标推送到<code>Pushgateway</code>，然后由<code>Prometheus</code>定期从<code>Pushgateway</code>抓取。</li>
+<li><code>Alertmanager</code>：独立组件，负责处理Prometheus发送的报警，支持以下功能：</li>
+</ol>
+<ul>
+<li>分组（<code>Grouping</code>）：将相似的告警分组，减少通知的数量。</li>
+<li>抑制（<code>Inhibition</code>）：将某些告警已经触发时，抑制其他告警的通知。</li>
+<li>静默（<code>Silencing</code>）：在特定的时间段内静默某些告警的通知。</li>
+<li>通知（<code>Notification</code>）：通过各种渠道（邮箱、微信、飞书等）发送告警通知。</li>
+</ul>
+<ol start="5">
+<li>WebUI：Prometheus 提供了一个简单的 Web UI，用于执行查询和查看指标数据。此外，Prometheus 还可以与 Grafana 等第三方可视化工具集成，以提供更强大的可视化和仪表板功能。</li>
+<li><code>Service Discovery</code>：Prometheus 支持多种服务发现机制，以便自动发现需要监控的目标。常见的服务发现机制包括：</li>
+</ol>
+<ul>
+<li><p><strong>静态配置</strong>：在 Prometheus 配置文件中手动指定目标。</p>
+</li>
+<li><p><strong>DNS 服务发现</strong>：通过 DNS 记录自动发现目标。</p>
+</li>
+<li><p>文件：通过配置文件发现</p>
+</li>
+<li><p>consul自动发现</p>
+</li>
+<li><p><strong>Kubernetes 服务发现</strong>：通过 Kubernetes API 自动发现 Pod 和 Service。</p>
+</li>
+</ul>
+<p>下面是他的架构图</p>
+<p><img src="/images/prometheus1.png" alt="image"></p>
+<h3 id="二、在k8s上部署prometheus"><a href="#二、在k8s上部署prometheus" class="headerlink" title="二、在k8s上部署prometheus"></a>二、在k8s上部署prometheus</h3><p><code>Prometheus Operator</code>基于k8s自定义资源定义(CRD)来编排<code>Prometheus</code>、<code>AlertManager</code>和其他监控资源，目前支持的CRD如下：</p>
+<ul>
+<li><code>Prometheus</code>：定义如何部署Prometheus</li>
+<li><code>AlertManager</code>：定义如何部署Alertmanager</li>
+<li><code>ServiceMonitor</code>：指定如何通过service实现服务发现</li>
+</ul>
+<p><code>./nodeExporter-serviceMonitor.yaml</code></p>
+<ul>
+<li><code>PodMonitor</code>：以声明方式指定如何监控kubernetes pod组</li>
+<li><code>Probe</code>：指定静态探针配置</li>
+</ul>
+<p><code>./setup/0alertmanagerCustomResourceDefinition.yaml</code></p>
+<ul>
+<li><code>ScrapeConfig</code>：指定要添加到Prometheus的抓取配置，此CRD有助于抓取kubernetes集群外部的资源</li>
+<li><code>PrometheusRule</code>：定义Prometheus报警规则</li>
+</ul>
+<p><code>./nodeExporter-prometheusRule.yaml</code></p>
+<ul>
+<li><code>AlertmanagerConfig</code>：指定Alertmanager配置，允许将告警路由到自定义接收器并设置禁止规则</li>
+</ul>
+<p><code>./alertmanager-prometheusRule.yaml</code> </p>
+<h5 id="2-1-安装"><a href="#2-1-安装" class="headerlink" title="2.1 安装"></a>2.1 安装</h5><p>kube-prometheus项目地址：<a target="_blank" rel="noopener" href="https://github.com/prometheus-operator/kube-prometheus/">https://github.com/prometheus-operator/kube-prometheus/</a> </p>
+<p>首先需要通过该项目地址，找到和自己 Kubernetes 版本对应的 Kube Prometheus Stack 的版本：</p>
+<p><img src="/images/prometheus2.png" alt="image"></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># git clone -b release-0.13 https://github.com/prometheus-operator/kubeprometheus.git</span>
+<span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cd kube-prometheus-main/manifests/</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>安装Prometheus Operator</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl create -f setup/</span>
+<span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl get pods -n monitoring </span>
+NAME                                   READY   STATUS    RESTARTS   AGE
+prometheus-operator-74cb44ccf7-t8m25   <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>Operator容器启动后，安装prometheus stack，这里需要修改相关镜像为本地镜像，否则拉取不到</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment">#  kubectl create -f .</span>
+<span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl get pods -n monitoring </span>
+NAME                                   READY   STATUS    RESTARTS   AGE
+alertmanager-main-0                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+alertmanager-main-1                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+alertmanager-main-2                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+blackbox-exporter-597d86cf5c-xd2m7     <span class="token number">3</span>/3     Running   <span class="token number">0</span>          25h
+grafana-674557f4bd-sgnbb               <span class="token number">1</span>/1     Running   <span class="token number">0</span>          24h
+kube-state-metrics-56f84757db-nn66j    <span class="token number">3</span>/3     Running   <span class="token number">0</span>          24h
+mysql-exporter-65bdf76bb9-klq8f        <span class="token number">1</span>/1     Running   <span class="token number">0</span>          16h
+node-exporter-4qbgp                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-bwqcs                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-bz9pk                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-cdzm4                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-ds4zd                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-j6kb8                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-vgdjw                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-zcfb6                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-zjjb9                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+prometheus-adapter-7786cd46-6cfhd      <span class="token number">1</span>/1     Running   <span class="token number">0</span>          25h
+prometheus-adapter-7786cd46-qwrmb      <span class="token number">1</span>/1     Running   <span class="token number">0</span>          25h
+prometheus-k8s-0                       <span class="token number">2</span>/2     Running   <span class="token number">0</span>          19h
+prometheus-k8s-1                       <span class="token number">2</span>/2     Running   <span class="token number">0</span>          19h
+prometheus-operator-74cb44ccf7-t8m25   <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>修改grafana和prometheus service为NodePort类型</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl get svc -n monitoring </span>
+NAME                    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class="token punctuation">(</span>S<span class="token punctuation">)</span>                         AGE
+alertmanager-main       ClusterIP   <span class="token number">10.96</span>.41.127    <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9093</span>/TCP,8080/TCP               25h
+alertmanager-operated   ClusterIP   None            <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9093</span>/TCP,9094/TCP,9094/UDP      25h
+blackbox-exporter       ClusterIP   <span class="token number">10.96</span>.145.255   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9115</span>/TCP,19115/TCP              25h
+grafana                 NodePort    <span class="token number">10.96</span>.20.246    <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">3000</span>:30336/TCP                  25h
+kube-state-metrics      ClusterIP   None            <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">8443</span>/TCP,9443/TCP               25h
+mysql-exporter          ClusterIP   <span class="token number">10.96</span>.74.237    <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9104</span>/TCP                        17h
+node-exporter           ClusterIP   None            <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9100</span>/TCP                        25h
+prometheus-adapter      ClusterIP   <span class="token number">10.96</span>.122.86    <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">443</span>/TCP                         25h
+prometheus-k8s          NodePort    <span class="token number">10.96</span>.206.87    <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9090</span>:32159/TCP,8080:32744/TCP   25h
+prometheus-operated     ClusterIP   None            <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9090</span>/TCP                        25h
+prometheus-operator     ClusterIP   None            <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">8443</span>/TCP                        25h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/images/prometheus3.png" alt="image"></p>
+<h5 id="2-2-监控数据来源"><a href="#2-2-监控数据来源" class="headerlink" title="2.2 监控数据来源"></a>2.2 监控数据来源</h5><p>在k8s中prometheus的监控流程是：</p>
+<p>创建<code>ServiceMonitor</code>注册监控目标，通过<code>selector</code>匹配<code>service</code>，然后<code>operator</code>就会自动发现<code>ServiceMonitor</code>，之后解析成prometheus配置</p>
+<p><img src="/images/prometheus4.png" alt="image"></p>
+<p>目前比较常用的Exporter 如下</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>Exporter</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据库</td>
+<td>MySQL Exporter, Redis Exporter, MongoDB Exporter, MSSQL Exporter</td>
+</tr>
+<tr>
+<td>硬件</td>
+<td>Apcupsd Exporter，IoT Edison Exporter， IPMI Exporter, Node Exporter</td>
+</tr>
+<tr>
+<td>消息队列</td>
+<td>Beanstalkd Exporter, Kafka Exporter, NSQ Exporter, RabbitMQ Exporter</td>
+</tr>
+<tr>
+<td>存储</td>
+<td>Ceph Exporter, Gluster Exporter, HDFS Exporter, ScaleIO Exporter</td>
+</tr>
+<tr>
+<td>HTTP服务</td>
+<td>Apache Exporter, HAProxy Exporter, Nginx Exporter</td>
+</tr>
+<tr>
+<td>API服务</td>
+<td>AWS ECS Exporter， Docker Cloud Exporter, Docker Hub Exporter, GitHub Exporter</td>
+</tr>
+<tr>
+<td>日志</td>
+<td>Fluentd Exporter, Grok Exporter</td>
+</tr>
+<tr>
+<td>监控系统</td>
+<td>Collectd Exporter, Graphite Exporter, InfluxDB Exporter, Nagios Exporter, SNMP Exporter</td>
+</tr>
+<tr>
+<td>其他</td>
+<td>Blackbox Exporter, JIRA Exporter, Jenkins Exporter， Confluence Exporter</td>
+</tr>
+</tbody></table>
+<h5 id="2-3-云原生应用Etcd监控"><a href="#2-3-云原生应用Etcd监控" class="headerlink" title="2.3 云原生应用Etcd监控"></a>2.3 云原生应用Etcd监控</h5><p>测试访问Etcd Metrics接口:</p>
+<p>这里要指定自己的etcd证书还有地址，我这里是用kubeadm安装的k8s集群，有3个master，这里随便找的一台master测试的，</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># curl -s  --cert /etc/kubernetes/pki/etcd/server.crt  --key /etc/kubernetes/pki/etcd/server.key  https://192.168.31.20:2379/metrics -l -k|tail -5</span>
+<span class="token comment"># HELP promhttp_metric_handler_requests_total Total number of scrapes by HTTP status code.</span>
+<span class="token comment"># TYPE promhttp_metric_handler_requests_total counter</span>
+promhttp_metric_handler_requests_total<span class="token punctuation">&#123;</span>code<span class="token operator">=</span><span class="token string">"200"</span><span class="token punctuation">&#125;</span> <span class="token number">4728</span>
+promhttp_metric_handler_requests_total<span class="token punctuation">&#123;</span>code<span class="token operator">=</span><span class="token string">"500"</span><span class="token punctuation">&#125;</span> <span class="token number">0</span>
+promhttp_metric_handler_requests_total<span class="token punctuation">&#123;</span>code<span class="token operator">=</span><span class="token string">"503"</span><span class="token punctuation">&#125;</span> <span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>证书的位置可以在 Etcd 配置文件中获得（注意配置文件的位置，不同的集群位置可能不同，Kubeadm 安装方式可能会在<code>/etc/kubernetes/manifests/etcd.yml </code>中，二进制可能在<code>/usr/lib/systemd/system/etcd.service</code>中）：</p>
+<p><img src="/images/prometheus5.png" alt="image"></p>
+<p>####### 2.3.1 Etcd Service 创建<br>首先要配置etcd的service和endpoint</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># vim etcd-svc.yaml </span>
+apiVersion: v1
+kind: Endpoints
+metadata:
+  labels:
+    app: etcd-prom
+  name: etcd-prom
+  namespace: kube-system
+subsets:
+- addresses:
+  - ip: <span class="token number">192.168</span>.31.20   
+  - ip: <span class="token number">192.168</span>.31.21
+  - ip: <span class="token number">192.168</span>.31.22
+  ports:
+  - name: https-metrics
+    port: <span class="token number">2379</span>
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: etcd-prom
+  name: etcd-prom
+  namespace: kube-system
+spec:
+  ports:
+  - name: https-metrics
+    port: <span class="token number">2379</span>
+    protocol: TCP
+    targetPort: <span class="token number">2379</span>
+  type: ClusterIP<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>需要修改<code>addresses</code>为自己<code>etcd</code>的集群，另外需要注意port的名称为<code>https-metrics</code>，需要和后面创建的<code>ServiceMonitor</code>中的保持一直。之后创建该资源并查看<code>service</code> 的<code>clusterIP</code></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># kubectl get svc -n kube-system etcd-prom </span>
+NAME        TYPE        CLUSTER-IP     EXTERNAL-IP   PORT<span class="token punctuation">(</span>S<span class="token punctuation">)</span>    AGE
+etcd-prom   ClusterIP   <span class="token number">10.96</span>.94.176   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">2379</span>/TCP   20h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>通过ClusterIP测试，可以看到通过<code>service</code> 的<code>Clusterip</code> 可以访问到etcd指标</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># curl -s  --cert /etc/kubernetes/pki/etcd/server.crt  --key /etc/kubernetes/pki/etcd/server.key  https://10.96.94.176:2379/metrics -l -k|tail -5</span>
+<span class="token comment"># HELP promhttp_metric_handler_requests_total Total number of scrapes by HTTP status code.</span>
+<span class="token comment"># TYPE promhttp_metric_handler_requests_total counter</span>
+promhttp_metric_handler_requests_total<span class="token punctuation">&#123;</span>code<span class="token operator">=</span><span class="token string">"200"</span><span class="token punctuation">&#125;</span> <span class="token number">4760</span>
+promhttp_metric_handler_requests_total<span class="token punctuation">&#123;</span>code<span class="token operator">=</span><span class="token string">"500"</span><span class="token punctuation">&#125;</span> <span class="token number">0</span>
+promhttp_metric_handler_requests_total<span class="token punctuation">&#123;</span>code<span class="token operator">=</span><span class="token string">"503"</span><span class="token punctuation">&#125;</span> <span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>因为etcd是需要通过<code>https</code>访问，所以需要把etcd证书文件挂载到<code>prometheus</code>容器（我这里是通过<code>operator</code>部署的，所以只需要修改<code>Promehteus</code>资源即可）</p>
+<p>创建Etcd证书的<code>Secret</code>（证书路径根据实际环境进行更改）</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl create secret generic  etcd-ssl --from-file=/etc/kubernetes/pki/etcd/ca.crt  --from-file=/etc/kubernetes/pki/etcd/server.crt  --from-file=/etc/kubernetes/pki/etcd/server.key  -n monitoring </span>
+
+<span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl get secret -n monitoring </span>
+NAME                             TYPE     DATA   AGE
+etcd-ssl                         Opaque   <span class="token number">3</span>      20h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>挂载secret，</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl edit  prometheus -n monitoring  k8s </span>
+<span class="token punctuation">..</span>.
+  secrets:
+  - etcd-ssl
+<span class="token punctuation">..</span>.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/images/prometheus6.png" alt="image"></p>
+<p>保存退出后，Prometheus 的 Pod 会自动重启，重启完成后，查看证书是否挂载（任意一个Prometheus 的 Pod 均可）：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl get pods -n monitoring </span>
+NAME                                   READY   STATUS    RESTARTS   AGE
+alertmanager-main-0                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+alertmanager-main-1                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+alertmanager-main-2                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+blackbox-exporter-597d86cf5c-xd2m7     <span class="token number">3</span>/3     Running   <span class="token number">0</span>          25h
+grafana-674557f4bd-sgnbb               <span class="token number">1</span>/1     Running   <span class="token number">0</span>          25h
+kube-state-metrics-56f84757db-nn66j    <span class="token number">3</span>/3     Running   <span class="token number">0</span>          24h
+mysql-exporter-65bdf76bb9-klq8f        <span class="token number">1</span>/1     Running   <span class="token number">0</span>          17h
+node-exporter-4qbgp                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-bwqcs                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-bz9pk                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-cdzm4                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-ds4zd                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-j6kb8                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-vgdjw                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-zcfb6                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+node-exporter-zjjb9                    <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h
+prometheus-adapter-7786cd46-6cfhd      <span class="token number">1</span>/1     Running   <span class="token number">0</span>          25h
+prometheus-adapter-7786cd46-qwrmb      <span class="token number">1</span>/1     Running   <span class="token number">0</span>          25h
+prometheus-k8s-0                       <span class="token number">2</span>/2     Running   <span class="token number">0</span>          20h
+prometheus-k8s-1                       <span class="token number">2</span>/2     Running   <span class="token number">0</span>          20h
+prometheus-operator-74cb44ccf7-t8m25   <span class="token number">2</span>/2     Running   <span class="token number">0</span>          25h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以通过describe 查看具体prometheus目录，是在<code>/etc/prometheus/</code> 下</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl describe pods -n monitoring  prometheus-k8s-0 </span>
+<span class="token punctuation">..</span>.
+    Args:
+      --watch-interval<span class="token operator">=</span><span class="token number">0</span>
+      --listen-address<span class="token operator">=</span>:8081
+      --config-file<span class="token operator">=</span>/etc/prometheus/config/prometheus.yaml.gz
+      --config-envsubst-file<span class="token operator">=</span>/etc/prometheus/config_out/prometheus.env.yaml
+      --watched-dir<span class="token operator">=</span>/etc/prometheus/rules/prometheus-k8s-rulefiles-0
+
+<span class="token punctuation">..</span>.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>所以进到prometheus容器查看，已经成功挂载了</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl exec -it prometheus-k8s-0 -n monitoring  sh </span>
+kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> is DEPRECATED and will be removed <span class="token keyword">in</span> a future version. Use kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> -- <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> instead.
+/prometheus $ 
+/prometheus $ <span class="token function">ls</span> /etc/prometheus/
+certs              config_out         console_libraries  consoles           prometheus.yml     rules              secrets            web_config
+/prometheus $ <span class="token function">ls</span> /etc/prometheus/secrets/
+etcd-ssl
+/prometheus $ <span class="token function">ls</span> /etc/prometheus/secrets/etcd-ssl/
+ca.crt      server.crt  server.key<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>####### 2.3.2 Etcd ServiceMonitor 创建<br>之后创建Etcd的<code>ServiceMonitor</code></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cat etcd-servicemonitors.yaml </span>
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+ name: etcd
+ namespace: monitoring
+ labels:
+   app: etcd
+spec:
+ jobLabel: k8s-app
+ endpoints:
+   - interval: 30s
+     port: https-metrics <span class="token comment"># 这个 port 对应 Service.spec.ports.name</span>
+     scheme: https
+     tlsConfig:
+       caFile: /etc/prometheus/secrets/etcd-ssl/ca.crt <span class="token comment"># 证书路径</span>
+       certFile: /etc/prometheus/secrets/etcd-ssl/server.crt
+       keyFile: /etc/prometheus/secrets/etcd-ssl/server.key
+       insecureSkipVerify: <span class="token boolean">true</span> <span class="token comment"># 关闭证书校验</span>
+ selector:
+   matchLabels:
+     app: etcd-prom <span class="token comment"># 跟 svc 的 lables 保持一致</span>
+ namespaceSelector:
+   matchNames:
+    - kube-system
+
+<span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># kubectl create -f etcd-servicemonitors.yaml </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建完成后，在prometheus的ui界面可以看到相关配置。</p>
+<p><img src="/images/prometheus7.png" alt="image"></p>
+<p>grafana配置就略过了，直接找到合适的模板然后指定数据源就可以展示了</p>
+<p>grafana模板：<a target="_blank" rel="noopener" href="https://grafana.com/grafana/dashboards/?dataSource=prometheus&search=schedu">https://grafana.com/grafana/dashboards/?dataSource=prometheus&search=schedu</a></p>
+<h5 id="2-4-非云原生应用Etcd监控"><a href="#2-4-非云原生应用Etcd监控" class="headerlink" title="2.4 非云原生应用Etcd监控"></a>2.4 非云原生应用Etcd监控</h5><p>我这里以mysql为例，大体流程分为k8s集群内和集群外两种方式：</p>
+<ul>
+<li>如果mysql部署在k8s集群内，需要创建mysql 的<code>service</code>，然后创建mysql的<code>exporter</code>，在exporter中指定mysql的信息，然后再创建<code>servicemonitor</code>指定<code>selector</code>为<code>exporter</code>相同，这样prometheus就可以自动发现<code>serviceMonitor</code>了</li>
+<li>如果mysql部署在k8s集群外，则创建mysql的<code>exporter</code>，在exporter中指定mysql的信息，然后再创建<code>servicemonitor</code>指定selector为<code>exporter</code>相同指定集群外部的mysql地址即可。</li>
+</ul>
+<p>我这里演示只以集群外</p>
+<h6 id="2-4-1-部署-mysql-exporter"><a href="#2-4-1-部署-mysql-exporter" class="headerlink" title="2.4.1 部署 mysql exporter"></a>2.4.1 部署 mysql exporter</h6><p>我这里使用prometheus官方的最新版exporter部署</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/prometheus/mysqld_exporter">https://github.com/prometheus/mysqld_exporter</a></p>
+<p><strong>使用0.15.0以后版本的exporter：</strong></p>
+<p><img src="/images/prometheus8.png" alt="image"></p>
+<p><strong>已经不支持**<strong>DATA_SOURCE_NAME</strong></strong> 变量了，如果使用最新版部署则需要挂载.my.cnf文件到exporter镜像中，否则会报错**</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">mysqld_exporter.go:225 <span class="token assign-left variable">level</span><span class="token operator">=</span>info <span class="token assign-left variable">msg</span><span class="token operator">=</span>“Error parsing <span class="token function">host</span> config“ <span class="token assign-left variable">file</span><span class="token operator">=</span>.my.cnf <span class="token assign-left variable">err</span><span class="token operator">=</span>“no configuration<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><img src="/images/prometheus9.png" alt="image"></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cat .my.cnf </span>
+<span class="token punctuation">[</span>client<span class="token punctuation">]</span>
+<span class="token assign-left variable">user</span><span class="token operator">=</span>exporter
+<span class="token assign-left variable">password</span><span class="token operator">=</span>exporter
+<span class="token assign-left variable">host</span><span class="token operator">=</span><span class="token number">192.168</span>.1.185
+<span class="token assign-left variable">port</span><span class="token operator">=</span><span class="token number">3306</span>
+<span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cat mysql-exporter.yaml</span>
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: mysql-exporter
+  name: mysql-exporter
+  namespace: monitoring
+spec:
+  replicas: <span class="token number">1</span>
+  selector:
+    matchLabels:
+      app: mysql-exporter
+  strategy: <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+  template:
+    metadata:
+      labels:
+        app: mysql-exporter
+    spec:
+      containers:
+      - image: harbor.dujie.com/dycloud/mysqld-exporter
+        name: mysqld-exporter
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: <span class="token number">9104</span>
+        volumeMounts:
+        - name: mysql
+          mountPath: <span class="token string">".my.cnf"</span>
+          subPath: <span class="token string">".my.cnf"</span>
+      volumes:
+      - name: mysql
+        configMap:
+          name: mysqlcnf
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: mysql-exporter
+ namespace: monitoring
+ labels:
+   app: mysql-exporter
+spec:
+ type: ClusterIP
+ selector:
+   app: mysql-exporter
+ ports:
+ - name: api
+   port: <span class="token number">9104</span>
+   protocol: TCP
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建完成之后可以验证svc是否可以成功访问mysql的metrics</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># kubectl get svc -n monitoring </span>
+NAME                    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class="token punctuation">(</span>S<span class="token punctuation">)</span>                         AGE
+mysql-exporter          ClusterIP   <span class="token number">10.96</span>.74.237    <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9104</span>/TCP                        17h
+
+<span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># curl -s  10.96.74.237:9104/metrics |tail -5</span>
+<span class="token comment"># HELP promhttp_metric_handler_requests_total Total number of scrapes by HTTP status code.</span>
+<span class="token comment"># TYPE promhttp_metric_handler_requests_total counter</span>
+promhttp_metric_handler_requests_total<span class="token punctuation">&#123;</span>code<span class="token operator">=</span><span class="token string">"200"</span><span class="token punctuation">&#125;</span> <span class="token number">4195</span>
+promhttp_metric_handler_requests_total<span class="token punctuation">&#123;</span>code<span class="token operator">=</span><span class="token string">"500"</span><span class="token punctuation">&#125;</span> <span class="token number">0</span>
+promhttp_metric_handler_requests_total<span class="token punctuation">&#123;</span>code<span class="token operator">=</span><span class="token string">"503"</span><span class="token punctuation">&#125;</span> <span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p><strong>使用0.15.0以前版本的exporter：</strong></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cat mysql-exporter.yaml</span>
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: mysql-exporter
+ namespace: monitoring
+spec:
+ replicas: <span class="token number">1</span>
+ selector:
+   matchLabels:
+     app: mysql-exporter
+ template:
+   metadata:
+     labels:
+       app: mysql-exporter
+   spec:
+     containers:
+     - name: mysql-exporter
+       image: registry.cn-beijing.aliyuncs.com/dotbalo/mysqld-exporter 
+       env:
+       - name: DATA_SOURCE_NAME
+         value: <span class="token string">"exporter:exporter@(192.168.1.185:3306)/"</span>
+       imagePullPolicy: IfNotPresent
+       ports:
+       - containerPort: <span class="token number">9104</span>
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: mysql-exporter
+ namespace: monitoring
+ labels:
+   app: mysql-exporter
+spec:
+ type: ClusterIP
+ selector:
+   app: mysql-exporter
+ ports:
+ - name: api
+   port: <span class="token number">9104</span>
+   protocol: TCP<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<h6 id="2-4-2-部署-myslq-serviceMonitor"><a href="#2-4-2-部署-myslq-serviceMonitor" class="headerlink" title="2.4.2 部署 myslq serviceMonitor"></a>2.4.2 部署 myslq serviceMonitor</h6><p>注意selector 要和上面的service一致</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># vim mysql-servicemonitor.yaml </span>
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+ name: mysql-exporter
+ namespace: monitoring
+ labels:
+   app: mysql-exporter
+spec:
+ jobLabel: k8s-app
+ endpoints:
+ - port: api
+   interval: 30s
+   scheme: http
+ selector:
+   matchLabels:
+     app: mysql-exporter   <span class="token comment">#</span>
+ namespaceSelector:
+   matchNames:
+   - monitoring<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建完成后稍等一会可以在prometheus 界面中看到了</p>
+<p><img src="/images/prometheus10.png" alt="image"></p>
+<p>ServiceMonitor 监控失败排查步骤</p>
+<ol>
+<li>确认ServiceMonitor是否成功创建</li>
+</ol>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># kubectl get servicemonitors.monitoring.coreos.com  -n monitoring </span>
+NAME                      AGE
+alertmanager-main         26h
+blackbox-exporter         26h
+coredns                   26h
+etcd                      20h
+grafana                   26h
+kube-apiserver            26h
+kube-controller-manager   145m
+kube-scheduler            96m
+kube-state-metrics        26h
+kubelet                   26h
+mysql-exporter            17h
+node-exporter             26h
+prometheus-adapter        26h
+prometheus-k8s            26h
+prometheus-operator       26h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol start="2">
+<li>确认ServiceMonitor标签是否配置正确</li>
+</ol>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># kubectl get servicemonitors.monitoring.coreos.com  -n monitoring  mysql-exporter  -o yaml </span>
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: <span class="token operator">|</span>
+      <span class="token punctuation">&#123;</span><span class="token string">"apiVersion"</span><span class="token builtin class-name">:</span><span class="token string">"monitoring.coreos.com/v1"</span>,<span class="token string">"kind"</span><span class="token builtin class-name">:</span><span class="token string">"ServiceMonitor"</span>,<span class="token string">"metadata"</span>:<span class="token punctuation">&#123;</span><span class="token string">"annotations"</span>:<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>,<span class="token string">"labels"</span>:<span class="token punctuation">&#123;</span><span class="token string">"app"</span><span class="token builtin class-name">:</span><span class="token string">"mysql-exporter"</span><span class="token punctuation">&#125;</span>,<span class="token string">"name"</span><span class="token builtin class-name">:</span><span class="token string">"mysql-exporter"</span>,<span class="token string">"namespace"</span><span class="token builtin class-name">:</span><span class="token string">"monitoring"</span><span class="token punctuation">&#125;</span>,<span class="token string">"spec"</span>:<span class="token punctuation">&#123;</span><span class="token string">"endpoints"</span>:<span class="token punctuation">[</span><span class="token punctuation">&#123;</span><span class="token string">"interval"</span><span class="token builtin class-name">:</span><span class="token string">"30s"</span>,<span class="token string">"port"</span><span class="token builtin class-name">:</span><span class="token string">"api"</span>,<span class="token string">"scheme"</span><span class="token builtin class-name">:</span><span class="token string">"http"</span><span class="token punctuation">&#125;</span><span class="token punctuation">]</span>,<span class="token string">"jobLabel"</span><span class="token builtin class-name">:</span><span class="token string">"k8s-app"</span>,<span class="token string">"namespaceSelector"</span>:<span class="token punctuation">&#123;</span><span class="token string">"matchNames"</span>:<span class="token punctuation">[</span><span class="token string">"monitoring"</span><span class="token punctuation">]</span><span class="token punctuation">&#125;</span>,<span class="token string">"selector"</span>:<span class="token punctuation">&#123;</span><span class="token string">"matchLabels"</span>:<span class="token punctuation">&#123;</span><span class="token string">"app"</span><span class="token builtin class-name">:</span><span class="token string">"mysql-exporter"</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+  creationTimestamp: <span class="token string">"2024-07-10T09:33:07Z"</span>
+  generation: <span class="token number">1</span>
+  labels:
+    app: mysql-exporter
+  name: mysql-exporter
+  namespace: monitoring
+  resourceVersion: <span class="token string">"323737"</span>
+  uid: bbfba7ef-a9f7-46ba-b60a-c3e2b1d31ebc
+spec:
+  endpoints:
+  - interval: 30s
+    port: api
+    scheme: http
+  jobLabel: k8s-app
+  namespaceSelector:
+    matchNames:
+    - monitoring
+  selector:
+    matchLabels:
+      app: mysql-exporter<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol start="3">
+<li>确认Prometheus是否生成了相关配置</li>
+</ol>
+<p><img src="/images/prometheus11.png" alt="image"></p>
+<ol start="4">
+<li>确认存在<code>ServiceMonitor</code>匹配的Service<br><code>serviceMonitor</code>和service的selector标签保持一致</li>
+</ol>
+<p><img src="/images/prometheus12.png" alt="image"></p>
+<ol start="5">
+<li>确认通过Service能够访问程序的Metrics接口</li>
+</ol>
+<p>使用serviceip可以成功获取到Metrics接口</p>
+<p><img src="/images/prometheus13.png" alt="image"></p>
+<ol start="6">
+<li>确认Service的端口和Scheme和ServiceMonitor一致</li>
+</ol>
+<p>这里需要保持一致，servicemonitor也可以直接指定端口，但是推荐使用name匹配，因为如果service端口更改，servicemonitor根据name匹配不需要修改了</p>
+<p><img src="/images/prometheus14.png" alt="image"></p>
+<h5 id="2-5-controller-manager-x2F-scheduler-监控"><a href="#2-5-controller-manager-x2F-scheduler-监控" class="headerlink" title="2.5 controller-manager&#x2F;scheduler 监控"></a>2.5 controller-manager&#x2F;scheduler 监控</h5><p>部署完operator之后可以看到<code>controller-manager</code>和<code>scheduler</code>是没有监控指标的，根据上面的排查步骤之后，可以看到他们两个组件默认并没有部署service，所以需要部署对应的service</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cat controller-manager-svc.yml </span>
+apiVersion: v1
+kind: Endpoints
+metadata:
+  labels:
+    app: controllermanager-prom
+  name: controllermanager-prom
+  namespace: kube-system
+subsets:
+- addresses:
+  - ip: <span class="token number">192.168</span>.31.20
+  - ip: <span class="token number">192.168</span>.31.21
+  - ip: <span class="token number">192.168</span>.31.22
+  ports:
+  - name: controllmanager-metrics
+    port: <span class="token number">10257</span>
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: controllermanager-prom
+  name: controllermanager-prom
+  namespace: kube-system
+spec:
+  ports:
+  - name: controllmanager-metrics
+    port: <span class="token number">10257</span>
+    protocol: TCP
+    targetPort: <span class="token number">10257</span>
+  type: ClusterIP<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cat scheduler-svc.yml </span>
+apiVersion: v1
+kind: Endpoints
+metadata:
+  labels:
+    app: scheduler-prom
+  name: scheduler-prom
+  namespace: kube-system
+subsets:
+- addresses:
+  - ip: <span class="token number">192.168</span>.31.20
+  - ip: <span class="token number">192.168</span>.31.21
+  - ip: <span class="token number">192.168</span>.31.22
+  ports:
+  - name: scheduler-metrics
+    port: <span class="token number">10259</span>
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: scheduler-prom
+  name: scheduler-prom
+  namespace: kube-system
+spec:
+  ports:
+  - name: scheduler-metrics
+    port: <span class="token number">10259</span>
+    protocol: TCP
+    targetPort: <span class="token number">10259</span>
+  type: ClusterIP<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建service后测试Metrics发现会报403</p>
+<p><img src="/images/prometheus15.png" alt="image"></p>
+<p>创建role和rolebind之后就可以访问到了</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cat role.yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metrics-reader
+rules:
+- nonResourceURLs: <span class="token punctuation">[</span><span class="token string">"/metrics"</span><span class="token punctuation">]</span>
+  verbs: <span class="token punctuation">[</span><span class="token string">"get"</span><span class="token punctuation">]</span>
+
+<span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cat rolebind.yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: metrics-reader-binding
+subjects:
+- kind: User
+  name: kubernetes
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: metrics-reader
+  apiGroup: rbac.authorization.k8s.io
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>然后需要修改他两个组件的绑定ip，kubeadm默认是127.0.0.1，prometheus访问不到，<strong>每台master都需要更改</strong></p>
+<p><img src="/images/prometheus16.png" alt="image"></p>
+<p><img src="/images/prometheus17.png" alt="image"></p>
+<p>然后修改他俩的servicemonitor的selector，让他们和刚才创建的service的selector对应</p>
+<p><img src="/images/prometheus18.png" alt="image"></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># kubectl edit servicemonitors.monitoring.coreos.com  -n monitoring kube-controller-manager </span>
+<span class="token punctuation">..</span>.
+  selector:
+    matchLabels:
+      app: controllermanager-prom
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>修改完成后prometheus就会自动发现他们的指标了</p>
+<p><img src="/images/prometheus19.png" alt="image"></p>
+<h5 id="2-5-blackbox-监控域名"><a href="#2-5-blackbox-监控域名" class="headerlink" title="2.5 blackbox 监控域名"></a>2.5 blackbox 监控域名</h5><p><a target="_blank" rel="noopener" href="https://github.com/prometheus/blackbox_exporter">https://github.com/prometheus/blackbox_exporter</a></p>
+<p>新版<code>PrometheusStack</code>已经默认安装了<code>BlackboxExoporter</code>，可以通过下面命令查看</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl get pods -n monitoring  -l app.kubernetes.io/name=blackbox-exporter</span>
+NAME                                 READY   STATUS    RESTARTS   AGE
+blackbox-exporter-597d86cf5c-xd2m7   <span class="token number">3</span>/3     Running   <span class="token number">0</span>          5d3h
+<span class="token comment"># 同时也会创建一个 Service，可以通过该 Service 访问 Blackbox Exporter 并传递一些参数：</span>
+<span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl get svc -n monitoring  -l app.kubernetes.io/name=blackbox-exporter</span>
+NAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class="token punctuation">(</span>S<span class="token punctuation">)</span>              AGE
+blackbox-exporter   ClusterIP   <span class="token number">10.96</span>.145.255   <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">9115</span>/TCP,19115/TCP   5d3h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>比如检测下 dycloud.fun（使用任何一个公网域名或者公司内的域名探测即可）网站的状态，可以通过如下命令进行检查：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># curl -s "http://10.96.145.255:19115/probe?target=dycloud.fun&amp;module=http_2xx" |tail -5</span>
+<span class="token comment"># TYPE probe_ip_protocol gauge</span>
+probe_ip_protocol <span class="token number">4</span>
+<span class="token comment"># HELP probe_success Displays whether or not the probe was a success</span>
+<span class="token comment"># TYPE probe_success gauge</span>
+probe_success <span class="token number">1</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>probe是接口地址，taget是检测的目标，module是使用哪个模块进行探测。如果集群中没有配置<code>BlackboxExporter</code>，可以参考：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/prometheus/blackbox_exporter">https://github.com/prometheus/blackbox_exporter</a>  进行安装</p>
+<h5 id="2-6-Prometheus-静态配置"><a href="#2-6-Prometheus-静态配置" class="headerlink" title="2.6 Prometheus 静态配置"></a>2.6 Prometheus 静态配置</h5><p>首先创建一个空文件，然后通过该文件创建一个Secret，那么这个Secret就可以作为Prometheus的静态配置：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># touch  prometheus-additional.yaml </span>
+<span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># kubectl create secret generic  additional-configs --from-file=prometheus-additional.yaml  -n monitoring </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>创建完，需要添加相关配置：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># kubectl edit prometheus -n monitoring  k8s </span>
+  additionalScrapeConfigs:
+    key: prometheus-additional.yaml
+    name: additional-configs
+    optional: <span class="token boolean">true</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="/images/prometheus20.png" alt="image"></p>
+<p>添加完之后不需要重启prometheus，然后再<code>prometheus-additional.yaml</code>文件内编辑一些静态配置，</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cat prometheus-additional.yaml </span>
+- job_name: <span class="token string">'blackbox'</span>
+  metrics_path: /probe
+  params:
+    module: <span class="token punctuation">[</span>http_2xx<span class="token punctuation">]</span> <span class="token comment"># Look for a HTTP 200 response.</span>
+  static_configs:
+    - targets:
+      - https://dycloud.fun <span class="token comment"># Target to probe with http.</span>
+  relabel_configs:
+    - source_labels: <span class="token punctuation">[</span>__address__<span class="token punctuation">]</span>
+      target_label: __param_target
+    - source_labels: <span class="token punctuation">[</span>__param_target<span class="token punctuation">]</span>
+      target_label: instance
+    - target_label: __address__
+      replacement: blackbox-exporter:19115 <span class="token comment"># The blackbox exporter's real hostname:port.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li><code>targets</code>：探测的目标</li>
+<li><code>params</code>：使用哪个模块进行探测</li>
+<li><code>replacement：</code>Blackbox Exporter的地址</li>
+</ul>
+<p>可以看到此处的内容，和传统配置的内容一致，只需要添加对应的 job 即可。之后通过该文件更新该 Secret。之后通过该文件更新secret</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># kubectl create secret generic  additional-configs --from-file=prometheus-additional.yaml  --dry-run=client -o yaml |kubectl  apply -f  - -nmonitoring </span>
+secret/additional-configs configured<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>更新完成后，稍等一分钟即可在 Prometheus Web UI 看到该配置：</p>
+<p><img src="/images/prometheus21.png" alt="image"></p>
+<p>然后就可以在grafana中导入黑盒监控的模板(模板id：13659)：</p>
+<p><img src="/images/prometheus22.png" alt="image"></p>
+<h5 id="2-7-Prometheus-监控windows（外部）主机"><a href="#2-7-Prometheus-监控windows（外部）主机" class="headerlink" title="2.7 Prometheus 监控windows（外部）主机"></a>2.7 Prometheus 监控windows（外部）主机</h5><p>监控 Linux 的 Exporter 是：<a target="_blank" rel="noopener" href="https://github.com/prometheus/node_exporter">https://github.com/prometheus/node_exporter</a> ，监控 Windows主机的 Exporter 是：<a target="_blank" rel="noopener" href="https://github.com/prometheus-community/windows_exporter">https://github.com/prometheus-community/windows_exporter</a></p>
+<p>首 先 下 载 对 应 的 Exporter 至 Windows 主 机 （ MSI 文 件 下 载 地 址 ：<a target="_blank" rel="noopener" href="https://github.com/prometheus-community/windows_exporter/releases">https://github.com/prometheus-community/windows_exporter&#x2F;releases</a> ）：</p>
+<p><img src="/images/prometheus23.png" alt="image"></p>
+<p>下载完成后，双击打开即可完成安装，之后可以在任务管理器上看到对应的进程：</p>
+<p><img src="/images/prometheus24.png" alt="image"></p>
+<p>Windows Exporter 会暴露一个 9182 端口，可以通过该端口访问到 Windows 的监控数据。</p>
+<p>接下来在静态配置文件中添加以下配置：</p>
+<pre class="line-numbers language-Plain" data-language="Plain"><div class="caption"><span>Text</span></div><code class="language-Plain">- job_name: &#39;WindowsServerMonitor&#39;
+  static_configs:
+    - targets:
+      - &quot;1.1.1.1:9182&quot;
+      labels:
+        server_type: &#39;windows&#39;
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: instance<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>Targets 配置的是监控主机，如果是多台 Windows 主机，配置多行即可，当然每台主机都需要配置 Exporter。之后可以在 Prometheus Web UI 看到监控数据</p>
+<p><img src="/images/prometheus25.png" alt="image"></p>
+<p>之后导入模板（地址：<a target="_blank" rel="noopener" href="https://grafana.com/grafana/dashboards/12566%EF%BC%89%E5%8D%B3%E5%8F%AF%EF%BC%9A">https://grafana.com/grafana/dashboards/12566）即可：</a></p>
+<p><img src="/images/prometheus26.png" alt="image"></p>
+<h3 id="三、使用PrometheusAlert实现钉钉告警"><a href="#三、使用PrometheusAlert实现钉钉告警" class="headerlink" title="三、使用PrometheusAlert实现钉钉告警"></a>三、使用PrometheusAlert实现钉钉告警</h3><p>官网：<a target="_blank" rel="noopener" href="https://github.com/feiyu563/PrometheusAlert">https://github.com/feiyu563/PrometheusAlert</a></p>
+<p>PrometheusAlert是开源的运维告警中心消息转发系统，支持主流的监控系统Prometheus、Zabbix，日志系统Graylog2，Graylog3、数据可视化系统Grafana、SonarQube。阿里云-云监控，以及所有支持WebHook接口的系统发出的预警消息，支持将收到的这些消息发送到钉钉，微信，email，飞书，腾讯短信，腾讯电话，阿里云短信，阿里云电话，华为短信，百度云短信，容联云电话，七陌短信，七陌语音，TeleGram，百度Hi(如流)，Kafka等。</p>
+<p><img src="/images/prometheus27.png" alt="image"></p>
+<p>项目架构：</p>
+<p>PrometheusAlert 后端使用了 <a target="_blank" rel="noopener" href="https://github.com/beego/beego">beego</a> 框架，前端使用了 <a target="_blank" rel="noopener" href="https://github.com/ColorlibHQ/AdminLTE">AdminLTE</a> （基于 Bootstrap 和 Jquery）模板。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">├── cmd: 脚本
+├── conf： 配置
+├── controllers：控制器
+├── db：默认的 sqlite 数据
+├── doc：文档
+├── docker-entrypoint.sh：容器运行入口文件
+├── Dockerfile
+├── example：示例文件
+├── go.mod
+├── go.sum
+├── LICENSE
+├── main.go
+├── Makefile
+├── models：模型
+├── PrometheusAlert：二进制文件
+├── PrometheusAlertVoicePlugin
+├── README.MD
+├── routers：路由
+├── static：静态资源
+├── swagger
+├── tests：测试
+├── views：前端模板
+└── zabbixclient<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>在k8s中安装</p>
+<pre class="line-numbers language-Plain" data-language="Plain"><div class="caption"><span>Text</span></div><code class="language-Plain">#Kubernetes中运行可以直接执行以下命令行即可(注意默认的部署模版中未挂载模版数据库文件 db&#x2F;PrometheusAlertDB.db，为防止模版数据丢失，请自行增加挂载配置 )
+kubectl apply -n monitoring -f https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;feiyu563&#x2F;PrometheusAlert&#x2F;master&#x2F;example&#x2F;kubernetes&#x2F;PrometheusAlert-Deployment.yaml
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">
+<span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># cat PrometheusAlert-Deployment.yaml </span>
+<span class="token comment"># apiVersion: v1</span>
+<span class="token comment"># kind: Namespace</span>
+<span class="token comment"># metadata:</span>
+<span class="token comment">#   name: monitoring</span>
+---  
+apiVersion: v1
+data:
+  app.conf: <span class="token operator">|</span>
+    <span class="token comment">#---------------------↓全局配置-----------------------</span>
+    appname <span class="token operator">=</span> PrometheusAlert
+    <span class="token comment">#登录用户名</span>
+    <span class="token assign-left variable">login_user</span><span class="token operator">=</span>prometheusalert
+    <span class="token comment">#登录密码</span>
+    <span class="token assign-left variable">login_password</span><span class="token operator">=</span>prometheusalert
+    <span class="token comment">#监听地址</span>
+    httpaddr <span class="token operator">=</span> <span class="token string">"0.0.0.0"</span>
+    <span class="token comment">#监听端口</span>
+    httpport <span class="token operator">=</span> <span class="token number">8080</span>
+    runmode <span class="token operator">=</span> dev
+    <span class="token comment">#设置代理 proxy = http://123.123.123.123:8080</span>
+    proxy <span class="token operator">=</span>
+    <span class="token comment">#开启JSON请求</span>
+    copyrequestbody <span class="token operator">=</span> <span class="token boolean">true</span>
+    <span class="token comment">#告警消息标题</span>
+    <span class="token assign-left variable">title</span><span class="token operator">=</span>PrometheusAlert
+    <span class="token comment">#链接到告警平台地址</span>
+    <span class="token assign-left variable">GraylogAlerturl</span><span class="token operator">=</span>http://graylog.org
+    <span class="token comment">#钉钉告警 告警logo图标地址</span>
+    <span class="token assign-left variable">logourl</span><span class="token operator">=</span>https://raw.githubusercontent.com/feiyu563/PrometheusAlert/master/doc/alert-center.png
+    <span class="token comment">#钉钉告警 恢复logo图标地址</span>
+    <span class="token assign-left variable">rlogourl</span><span class="token operator">=</span>https://raw.githubusercontent.com/feiyu563/PrometheusAlert/master/doc/alert-center.png
+    <span class="token comment">#短信告警级别(等于3就进行短信告警) 告警级别定义 0 信息,1 警告,2 一般严重,3 严重,4 灾难</span>
+    <span class="token assign-left variable">messagelevel</span><span class="token operator">=</span><span class="token number">3</span>
+    <span class="token comment">#电话告警级别(等于4就进行语音告警) 告警级别定义 0 信息,1 警告,2 一般严重,3 严重,4 灾难</span>
+    <span class="token assign-left variable">phonecalllevel</span><span class="token operator">=</span><span class="token number">4</span>
+    <span class="token comment">#默认拨打号码(页面测试短信和电话功能需要配置此项)</span>
+    <span class="token assign-left variable">defaultphone</span><span class="token operator">=</span>xxxxxxxx
+    <span class="token comment">#故障恢复是否启用电话通知0为关闭,1为开启</span>
+    <span class="token assign-left variable">phonecallresolved</span><span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#是否前台输出file or console</span>
+    <span class="token assign-left variable">logtype</span><span class="token operator">=</span>file
+    <span class="token comment">#日志文件路径</span>
+    <span class="token assign-left variable">logpath</span><span class="token operator">=</span>logs/prometheusalertcenter.log
+    <span class="token comment">#转换Prometheus,graylog告警消息的时区为CST时区(如默认已经是CST时区，请勿开启)</span>
+    <span class="token assign-left variable">prometheus_cst_time</span><span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#数据库驱动，支持sqlite3，mysql,postgres如使用mysql或postgres，请开启db_host,db_port,db_user,db_password,db_name的注释</span>
+    <span class="token assign-left variable">db_driver</span><span class="token operator">=</span>sqlite3
+    <span class="token comment">#db_host=127.0.0.1</span>
+    <span class="token comment">#db_port=3306</span>
+    <span class="token comment">#db_user=root</span>
+    <span class="token comment">#db_password=root</span>
+    <span class="token comment">#db_name=prometheusalert</span>
+    <span class="token comment">#是否开启告警记录 0为关闭,1为开启</span>
+    <span class="token assign-left variable">AlertRecord</span><span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#是否开启告警记录定时删除 0为关闭,1为开启</span>
+    <span class="token assign-left variable">RecordLive</span><span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#告警记录定时删除周期，单位天</span>
+    <span class="token assign-left variable">RecordLiveDay</span><span class="token operator">=</span><span class="token number">7</span>
+    <span class="token comment"># 是否将告警记录写入es7，0为关闭，1为开启</span>
+    <span class="token assign-left variable">alert_to_es</span><span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment"># es地址，是[]string</span>
+    <span class="token comment"># beego.Appconfig.Strings读取配置为[]string，使用";"而不是","</span>
+    <span class="token assign-left variable">to_es_url</span><span class="token operator">=</span>http://localhost:9200
+    <span class="token comment"># to_es_url=http://es1:9200;http://es2:9200;http://es3:9200</span>
+    <span class="token comment"># es用户和密码</span>
+    <span class="token comment"># to_es_user=username</span>
+    <span class="token comment"># to_es_pwd=password</span>
+    <span class="token comment"># 长连接最大空闲数</span>
+    <span class="token assign-left variable">maxIdleConns</span><span class="token operator">=</span><span class="token number">100</span>
+    <span class="token comment"># 热更新配置文件</span>
+    open-hotreload<span class="token operator">=</span><span class="token number">0</span>
+    
+    <span class="token comment">#---------------------↓webhook-----------------------</span>
+    <span class="token comment">#是否开启钉钉告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-dingding<span class="token operator">=</span><span class="token number">1</span>
+    <span class="token comment">#默认钉钉机器人地址</span>
+    <span class="token comment">#ddurl=https://oapi.dingtalk.com/robot/send?access_token=cf7a7becfb3889c1d75b31be7fa100e14576d6730a9634752692c098b81a93b1&amp;secret=SEC30cfb8f6cfc8565251a90ec14afbed005c3b84b1a75ccfa16cf1fcf736a4a48f&amp;at=15811047166</span>
+    <span class="token assign-left variable">ddurl</span><span class="token operator">=</span>https://oapi.dingtalk.com/robot/send?access_token<span class="token operator">=</span>cf7a7becfb3889c1d75b31be7fa100e14576d6730a9634752692c098b81a93b1
+    <span class="token comment">#是否开启 @所有人(0为关闭,1为开启)</span>
+    <span class="token assign-left variable">dd_isatall</span><span class="token operator">=</span><span class="token number">1</span>
+    <span class="token comment">#是否开启钉钉机器人加签，0为关闭,1为开启</span>
+    <span class="token comment"># 使用方法：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX&amp;secret=mysecret</span>
+    open-dingding-secret<span class="token operator">=</span><span class="token number">0</span>
+    
+    <span class="token comment">#是否开启微信告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-weixin<span class="token operator">=</span><span class="token number">1</span>
+    <span class="token comment">#默认企业微信机器人地址</span>
+    <span class="token assign-left variable">wxurl</span><span class="token operator">=</span>https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key<span class="token operator">=</span>xxxxx
+    
+    <span class="token comment">#是否开启飞书告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-feishu<span class="token operator">=</span><span class="token number">1</span>
+    <span class="token comment">#默认飞书机器人地址</span>
+    <span class="token assign-left variable">fsurl</span><span class="token operator">=</span>https://open.feishu.cn/open-apis/bot/v2/hook/61132219-e82a-4aae-9186-3664efa9d8c1
+    <span class="token comment"># webhook 发送 http 请求的 contentType, 如 application/json, application/x-www-form-urlencoded，不配置默认 application/json</span>
+    <span class="token assign-left variable">wh_contenttype</span><span class="token operator">=</span>application/json
+    
+    <span class="token comment">#---------------------↓腾讯云接口-----------------------</span>
+    <span class="token comment">#是否开启腾讯云短信告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-txdx<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#腾讯云短信接口key</span>
+    <span class="token assign-left variable">TXY_DX_appkey</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#腾讯云短信模版ID 腾讯云短信模版配置可参考 prometheus告警:&#123;1&#125;</span>
+    <span class="token assign-left variable">TXY_DX_tpl_id</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#腾讯云短信sdk app id</span>
+    <span class="token assign-left variable">TXY_DX_sdkappid</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#腾讯云短信签名 根据自己审核通过的签名来填写</span>
+    <span class="token assign-left variable">TXY_DX_sign</span><span class="token operator">=</span>腾讯云
+    
+    <span class="token comment">#是否开启腾讯云电话告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-txdh<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#腾讯云电话接口key</span>
+    <span class="token assign-left variable">TXY_DH_phonecallappkey</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#腾讯云电话模版ID</span>
+    <span class="token assign-left variable">TXY_DH_phonecalltpl_id</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#腾讯云电话sdk app id</span>
+    <span class="token assign-left variable">TXY_DH_phonecallsdkappid</span><span class="token operator">=</span>xxxxx
+    
+    <span class="token comment">#---------------------↓华为云接口-----------------------</span>
+    <span class="token comment">#是否开启华为云短信告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-hwdx<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#华为云短信接口key</span>
+    <span class="token assign-left variable">HWY_DX_APP_Key</span><span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxx
+    <span class="token comment">#华为云短信接口Secret</span>
+    <span class="token assign-left variable">HWY_DX_APP_Secret</span><span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxx
+    <span class="token comment">#华为云APP接入地址(端口接口地址)</span>
+    <span class="token assign-left variable">HWY_DX_APP_Url</span><span class="token operator">=</span>https://rtcsms.cn-north-1.myhuaweicloud.com:10743
+    <span class="token comment">#华为云短信模板ID</span>
+    <span class="token assign-left variable">HWY_DX_Templateid</span><span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxx
+    <span class="token comment">#华为云签名名称，必须是已审核通过的，与模板类型一致的签名名称,按照自己的实际签名填写</span>
+    <span class="token assign-left variable">HWY_DX_Signature</span><span class="token operator">=</span>华为云
+    <span class="token comment">#华为云签名通道号</span>
+    <span class="token assign-left variable">HWY_DX_Sender</span><span class="token operator">=</span>xxxxxxxxxx
+    
+    <span class="token comment">#---------------------↓阿里云接口-----------------------</span>
+    <span class="token comment">#是否开启阿里云短信告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-alydx<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#阿里云短信主账号AccessKey的ID</span>
+    <span class="token assign-left variable">ALY_DX_AccessKeyId</span><span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxx
+    <span class="token comment">#阿里云短信接口密钥</span>
+    <span class="token assign-left variable">ALY_DX_AccessSecret</span><span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxx
+    <span class="token comment">#阿里云短信签名名称</span>
+    <span class="token assign-left variable">ALY_DX_SignName</span><span class="token operator">=</span>阿里云
+    <span class="token comment">#阿里云短信模板ID</span>
+    <span class="token assign-left variable">ALY_DX_Template</span><span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxx
+    
+    <span class="token comment">#是否开启阿里云电话告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-alydh<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#阿里云电话主账号AccessKey的ID</span>
+    <span class="token assign-left variable">ALY_DH_AccessKeyId</span><span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxx
+    <span class="token comment">#阿里云电话接口密钥</span>
+    <span class="token assign-left variable">ALY_DH_AccessSecret</span><span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxx
+    <span class="token comment">#阿里云电话被叫显号，必须是已购买的号码</span>
+    <span class="token assign-left variable">ALY_DX_CalledShowNumber</span><span class="token operator">=</span>xxxxxxxxx
+    <span class="token comment">#阿里云电话文本转语音（TTS）模板ID</span>
+    <span class="token assign-left variable">ALY_DH_TtsCode</span><span class="token operator">=</span>xxxxxxxx
+    
+    <span class="token comment">#---------------------↓容联云接口-----------------------</span>
+    <span class="token comment">#是否开启容联云电话告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-rlydh<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#容联云基础接口地址</span>
+    <span class="token assign-left variable">RLY_URL</span><span class="token operator">=</span>https://app.cloopen.com:8883/2013-12-26/Accounts/
+    <span class="token comment">#容联云后台SID</span>
+    <span class="token assign-left variable">RLY_ACCOUNT_SID</span><span class="token operator">=</span>xxxxxxxxxxx
+    <span class="token comment">#容联云api-token</span>
+    <span class="token assign-left variable">RLY_ACCOUNT_TOKEN</span><span class="token operator">=</span>xxxxxxxxxx
+    <span class="token comment">#容联云app_id</span>
+    <span class="token assign-left variable">RLY_APP_ID</span><span class="token operator">=</span>xxxxxxxxxxxxx
+    
+    <span class="token comment">#---------------------↓邮件配置-----------------------</span>
+    <span class="token comment">#是否开启邮件</span>
+    open-email<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#邮件发件服务器地址</span>
+    <span class="token assign-left variable">Email_host</span><span class="token operator">=</span>smtp.qq.com
+    <span class="token comment">#邮件发件服务器端口</span>
+    <span class="token assign-left variable">Email_port</span><span class="token operator">=</span><span class="token number">465</span>
+    <span class="token comment">#邮件帐号</span>
+    <span class="token assign-left variable">Email_user</span><span class="token operator">=</span>xxxxxxx@qq.com
+    <span class="token comment">#邮件密码</span>
+    <span class="token assign-left variable">Email_password</span><span class="token operator">=</span>xxxxxx
+    <span class="token comment">#邮件标题</span>
+    <span class="token assign-left variable">Email_title</span><span class="token operator">=</span>运维告警
+    <span class="token comment">#默认发送邮箱</span>
+    <span class="token assign-left variable">Default_emails</span><span class="token operator">=</span>xxxxx@qq.com,xxxxx@qq.com
+    
+    <span class="token comment">#---------------------↓七陌云接口-----------------------</span>
+    <span class="token comment">#是否开启七陌短信告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-7moordx<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#七陌账户ID</span>
+    <span class="token assign-left variable">7MOOR_ACCOUNT_ID</span><span class="token operator">=</span>Nxxx
+    <span class="token comment">#七陌账户APISecret</span>
+    <span class="token assign-left variable">7MOOR_ACCOUNT_APISECRET</span><span class="token operator">=</span>xxx
+    <span class="token comment">#七陌账户短信模板编号</span>
+    <span class="token assign-left variable">7MOOR_DX_TEMPLATENUM</span><span class="token operator">=</span>n
+    <span class="token comment">#注意：七陌短信变量这里只用一个var1，在代码里写死了。</span>
+    <span class="token comment">#-----------</span>
+    <span class="token comment">#是否开启七陌webcall语音通知告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-7moordh<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#请在七陌平台添加虚拟服务号、文本节点</span>
+    <span class="token comment">#七陌账户webcall的虚拟服务号</span>
+    <span class="token assign-left variable">7MOOR_WEBCALL_SERVICENO</span><span class="token operator">=</span>xxx
+    <span class="token comment"># 文本节点里被替换的变量，我配置的是text。如果被替换的变量不是text，请修改此配置</span>
+    <span class="token assign-left variable">7MOOR_WEBCALL_VOICE_VAR</span><span class="token operator">=</span>text
+    
+    <span class="token comment">#---------------------↓telegram接口-----------------------</span>
+    <span class="token comment">#是否开启telegram告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-tg<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#tg机器人token</span>
+    <span class="token assign-left variable">TG_TOKEN</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#tg消息模式 个人消息或者频道消息 0为关闭(推送给个人)，1为开启(推送给频道)</span>
+    <span class="token assign-left variable">TG_MODE_CHAN</span><span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#tg用户ID</span>
+    <span class="token assign-left variable">TG_USERID</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#tg频道name或者id, 频道name需要以@开始</span>
+    <span class="token assign-left variable">TG_CHANNAME</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#tg api地址, 可以配置为代理地址</span>
+    <span class="token comment">#TG_API_PROXY="https://api.telegram.org/bot%s/%s"</span>
+    
+    <span class="token comment">#---------------------↓workwechat接口-----------------------</span>
+    <span class="token comment">#是否开启workwechat告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-workwechat<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment"># 企业ID</span>
+    <span class="token assign-left variable">WorkWechat_CropID</span><span class="token operator">=</span>xxxxx
+    <span class="token comment"># 应用ID</span>
+    <span class="token assign-left variable">WorkWechat_AgentID</span><span class="token operator">=</span>xxxx
+    <span class="token comment"># 应用secret</span>
+    <span class="token assign-left variable">WorkWechat_AgentSecret</span><span class="token operator">=</span>xxxx
+    <span class="token comment"># 接受用户</span>
+    <span class="token assign-left variable">WorkWechat_ToUser</span><span class="token operator">=</span><span class="token string">"zhangsan|lisi"</span>
+    <span class="token comment"># 接受部门</span>
+    <span class="token assign-left variable">WorkWechat_ToParty</span><span class="token operator">=</span><span class="token string">"ops|dev"</span>
+    <span class="token comment"># 接受标签</span>
+    <span class="token assign-left variable">WorkWechat_ToTag</span><span class="token operator">=</span><span class="token string">""</span>
+    <span class="token comment"># 消息类型, 暂时只支持markdown</span>
+    <span class="token comment"># WorkWechat_Msgtype = "markdown"</span>
+    
+    <span class="token comment">#---------------------↓百度云接口-----------------------</span>
+    <span class="token comment">#是否开启百度云短信告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-baidudx<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#百度云短信接口AK(ACCESS_KEY_ID)</span>
+    <span class="token assign-left variable">BDY_DX_AK</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#百度云短信接口SK(SECRET_ACCESS_KEY)</span>
+    <span class="token assign-left variable">BDY_DX_SK</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#百度云短信ENDPOINT（ENDPOINT参数需要用指定区域的域名来进行定义，如服务所在区域为北京，则为）</span>
+    <span class="token assign-left variable">BDY_DX_ENDPOINT</span><span class="token operator">=</span>http://smsv3.bj.baidubce.com
+    <span class="token comment">#百度云短信模版ID,根据自己审核通过的模版来填写(模版支持一个参数code：如prometheus告警:&#123;code&#125;)</span>
+    <span class="token assign-left variable">BDY_DX_TEMPLATE_ID</span><span class="token operator">=</span>xxxxx
+    <span class="token comment">#百度云短信签名ID，根据自己审核通过的签名来填写</span>
+    <span class="token assign-left variable">TXY_DX_SIGNATURE_ID</span><span class="token operator">=</span>xxxxx
+    
+    <span class="token comment">#---------------------↓百度Hi(如流)-----------------------</span>
+    <span class="token comment">#是否开启百度Hi(如流)告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-ruliu<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#默认百度Hi(如流)机器人地址</span>
+    <span class="token assign-left variable">BDRL_URL</span><span class="token operator">=</span>https://api.im.baidu.com/api/msg/groupmsgsend?access_token<span class="token operator">=</span>xxxxxxxxxxxxxx
+    <span class="token comment">#百度Hi(如流)群ID</span>
+    <span class="token assign-left variable">BDRL_ID</span><span class="token operator">=</span><span class="token number">123456</span>
+    <span class="token comment">#---------------------↓bark接口-----------------------</span>
+    <span class="token comment">#是否开启telegram告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-bark<span class="token operator">=</span><span class="token number">0</span>
+    <span class="token comment">#bark默认地址, 建议自行部署bark-server</span>
+    <span class="token assign-left variable">BARK_URL</span><span class="token operator">=</span>https://api.day.app
+    <span class="token comment">#bark key, 多个key使用分割</span>
+    <span class="token assign-left variable">BARK_KEYS</span><span class="token operator">=</span>xxxxx
+    <span class="token comment"># 复制, 推荐开启</span>
+    <span class="token assign-left variable">BARK_COPY</span><span class="token operator">=</span><span class="token number">1</span>
+    <span class="token comment"># 历史记录保存,推荐开启</span>
+    <span class="token assign-left variable">BARK_ARCHIVE</span><span class="token operator">=</span><span class="token number">1</span>
+    <span class="token comment"># 消息分组</span>
+    <span class="token assign-left variable">BARK_GROUP</span><span class="token operator">=</span>PrometheusAlert
+    
+    <span class="token comment">#---------------------↓语音播报-----------------------</span>
+    <span class="token comment">#语音播报需要配合语音播报插件才能使用</span>
+    <span class="token comment">#是否开启语音播报通道,0为关闭,1为开启</span>
+    open-voice<span class="token operator">=</span><span class="token number">1</span>
+    <span class="token assign-left variable">VOICE_IP</span><span class="token operator">=</span><span class="token number">127.0</span>.0.1
+    <span class="token assign-left variable">VOICE_PORT</span><span class="token operator">=</span><span class="token number">9999</span>
+    
+    <span class="token comment">#---------------------↓飞书机器人应用-----------------------</span>
+    <span class="token comment">#是否开启feishuapp告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-feishuapp<span class="token operator">=</span><span class="token number">1</span>
+    <span class="token comment"># APPID</span>
+    <span class="token assign-left variable">FEISHU_APPID</span><span class="token operator">=</span>cli_xxxxxxxxxxxxx
+    <span class="token comment"># APPSECRET</span>
+    <span class="token assign-left variable">FEISHU_APPSECRET</span><span class="token operator">=</span>xxxxxxxxxxxxxxxxxxxxxx
+    <span class="token comment"># 可填飞书 用户open_id、user_id、union_ids、部门open_department_id</span>
+    <span class="token assign-left variable">AT_USER_ID</span><span class="token operator">=</span><span class="token string">"xxxxxxxx"</span>
+    
+    
+    <span class="token comment">#---------------------↓告警组-----------------------</span>
+    <span class="token comment"># 有其他新增的配置段，请放在告警组的上面</span>
+    <span class="token comment"># 暂时仅针对 PrometheusContronller 中的 /prometheus/alert 路由</span>
+    <span class="token comment"># 告警组如果放在了 wx, dd... 那部分的上分，beego section 取 url 值不太对。</span>
+    <span class="token comment"># 所以这里使用 include 来包含另告警组配置</span>
+    
+    <span class="token comment"># 是否启用告警组功能</span>
+    open-alertgroup<span class="token operator">=</span><span class="token number">0</span>
+    
+    <span class="token comment"># 自定义的告警组既可以写在这里，也可以写在单独的文件里。</span>
+    <span class="token comment"># 写在单独的告警组配置里更便于修改。</span>
+    <span class="token comment"># include "alertgroup.conf"</span>
+    
+    <span class="token comment">#---------------------↓kafka地址-----------------------</span>
+    <span class="token comment"># kafka服务器的地址</span>
+    open-kafka<span class="token operator">=</span><span class="token number">1</span>
+    kafka_server <span class="token operator">=</span> <span class="token number">127.0</span>.0.1:9092
+    <span class="token comment"># 写入消息的kafka topic</span>
+    kafka_topic <span class="token operator">=</span> devops
+    <span class="token comment"># 用户标记该消息是来自PrometheusAlert,一般无需修改</span>
+    kafka_key <span class="token operator">=</span> PrometheusAlert
+  user.csv: <span class="token operator">|</span>
+    <span class="token number">2019</span>年4月10日,15888888881,小张,15999999999,备用联系人小陈,15999999998,备用联系人小赵
+    <span class="token number">2019</span>年4月11日,15888888882,小李,15999999999,备用联系人小陈,15999999998,备用联系人小赵
+    <span class="token number">2019</span>年4月12日,15888888883,小王,15999999999,备用联系人小陈,15999999998,备用联系人小赵
+    <span class="token number">2019</span>年4月13日,15888888884,小宋,15999999999,备用联系人小陈,15999999998,备用联系人小赵
+kind: ConfigMap
+metadata:
+  name: prometheus-alert-center-conf
+  namespace: monitoring
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: prometheus-alert-center
+    alertname: prometheus-alert-center
+  name: prometheus-alert-center
+  namespace: monitoring  
+spec:
+  replicas: <span class="token number">1</span>
+  selector:
+    matchLabels:
+      app: prometheus-alert-center
+      alertname: prometheus-alert-center
+  template:
+    metadata:
+      labels:
+        app: prometheus-alert-center
+        alertname: prometheus-alert-center
+    spec:
+      initContainers:
+      - name: init-time-sync
+        image: harbor.dujie.com/dycloud/ntpdate
+        command:
+        - <span class="token function">sh</span>
+        - -c
+        - <span class="token string">"ntpdate ntp.aliyun.com"</span>
+        securityContext:
+          privileged: <span class="token boolean">true</span>
+      containers:
+      - image: harbor.dujie.com/dycloud/prometheus-alert:v4.9.1
+        name: prometheus-alert-center
+        env:
+        - name: TZ
+          value: <span class="token string">"Asia/Shanghai"</span>
+        ports:
+        - containerPort: <span class="token number">8080</span>
+          name: http
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - name: prometheus-alert-center-conf-map
+          mountPath: /app/conf/app.conf
+          subPath: app.conf
+        - name: prometheus-alert-center-conf-map
+          mountPath: /app/user.csv
+          subPath: user.csv
+        - name: prometheus-alert-volume
+          mountPath: /app/db
+      volumes:
+      - name: prometheus-alert-volume
+        ephemeral:
+          volumeClaimTemplate:
+            spec:
+              accessModes: <span class="token punctuation">[</span><span class="token string">"ReadWriteOnce"</span><span class="token punctuation">]</span>
+              storageClassName: <span class="token string">"rook-ceph-block"</span>
+              resources:
+                requests:
+                  storage: 1Gi
+      - name: prometheus-alert-center-conf-map
+        configMap:
+          name: prometheus-alert-center-conf
+          items:
+          - key: app.conf
+            path: app.conf
+          - key: user.csv
+            path: user.csv
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    alertname: prometheus-alert-center
+  name: prometheus-alert-center
+  namespace: monitoring  
+  annotations:
+    prometheus.io/scrape: <span class="token string">'true'</span>
+    prometheus.io/port: <span class="token string">'8080'</span>  
+spec:
+  ports:
+  - name: http
+    port: <span class="token number">8080</span>
+    targetPort: http
+  selector:
+    app: prometheus-alert-center
+  type: NodePort
+---
+<span class="token comment"># apiVersion: networking.k8s.io/v1beta1</span>
+<span class="token comment"># kind: Ingress</span>
+<span class="token comment"># metadata:</span>
+<span class="token comment">#   annotations:</span>
+<span class="token comment">#     kubernetes.io/ingress.class: nginx</span>
+<span class="token comment">#   name: prometheus-alert-center</span>
+<span class="token comment">#   namespace: monitoring</span>
+<span class="token comment"># spec:</span>
+<span class="token comment">#   rules:</span>
+<span class="token comment">#     - host: alert-center.local</span>
+<span class="token comment">#       http:</span>
+<span class="token comment">#         paths:</span>
+<span class="token comment">#           - backend:</span>
+<span class="token comment">#               serviceName: prometheus-alert-center</span>
+<span class="token comment">#               servicePort: 8080</span>
+<span class="token comment">#             path: /    </span>
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-Plain" data-language="Plain"><div class="caption"><span>Text</span></div><code class="language-Plain">#启动后可使用浏览器打开以下地址查看：http:&#x2F;&#x2F;[YOUR-PrometheusAlert-URL]:8080
+#默认登录帐号和密码在app.conf中有配置<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>打开钉钉,进入钉钉群中,选择群设置–&gt;智能群助手–&gt;添加机器人–&gt;自定义，可参下图：</p>
+<p><img src="/images/prometheus28.png" alt="image"></p>
+<p><img src="/images/prometheus29.png" alt="image"></p>
+<p>新版本的钉钉加了安全设置,只需选择安全设置中的 自定义关键词 即可,并将关键词设置为 Prometheus或者app.conf中设置的title值均可,参考下图</p>
+<p><img src="/images/prometheus30.png" alt="image"></p>
+<p><img src="/images/prometheus31.png" alt="image"></p>
+<p>复制图中的Webhook地址，并填入PrometheusAlert配置文件app.conf中对应配置项即可。</p>
+<p><strong>PS: 钉钉机器人目前已经支持 <strong><strong>@某人</strong></strong> ,使用该功能需要取得对应用户的钉钉关联手机号码，如下图：</strong></p>
+<p><img src="/images/prometheus32.png" alt="image"></p>
+<p>钉钉相关配置</p>
+<p>** PrometheusAlert-Deployment.yaml**</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment">#---------------------↓全局配置-----------------------</span>
+<span class="token comment">#告警消息标题</span>
+<span class="token assign-left variable">title</span><span class="token operator">=</span>PrometheusAlert
+<span class="token comment">#钉钉告警 告警logo图标地址</span>
+<span class="token assign-left variable">logourl</span><span class="token operator">=</span>https://raw.githubusercontent.com/feiyu563/PrometheusAlert/master/doc/alert-center.png
+<span class="token comment">#钉钉告警 恢复logo图标地址</span>
+<span class="token assign-left variable">rlogourl</span><span class="token operator">=</span>https://raw.githubusercontent.com/feiyu563/PrometheusAlert/master/doc/alert-center.png
+
+<span class="token comment">#---------------------↓webhook-----------------------</span>
+<span class="token comment">#是否开启钉钉告警通道,可同时开始多个通道0为关闭,1为开启</span>
+open-dingding<span class="token operator">=</span><span class="token number">1</span>
+<span class="token comment">#默认钉钉机器人地址</span>
+<span class="token assign-left variable">ddurl</span><span class="token operator">=</span>https://oapi.dingtalk.com/robot/send?access_token<span class="token operator">=</span>xxxxx
+<span class="token comment">#是否开启 @所有人(0为关闭,1为开启)</span>
+<span class="token assign-left variable">dd_isatall</span><span class="token operator">=</span><span class="token number">1</span>
+<span class="token comment">#是否开启钉钉机器人加签，0为关闭,1为开启</span>
+<span class="token comment"># 使用方法：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX&amp;secret=mysecret</span>
+open-dingding-secret<span class="token operator">=</span><span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>修改完之后需要apply此文件，然后修改alertmanager-secret.yaml</p>
+<p>先查看下prometheusalert的svc地址和端口</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl get svc -n monitoring </span>
+NAME                          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT<span class="token punctuation">(</span>S<span class="token punctuation">)</span>                         AGE
+prometheus-alert-center       NodePort    <span class="token number">10.96</span>.167.90    <span class="token operator">&lt;</span>none<span class="token operator">></span>        <span class="token number">8080</span>:30621/TCP                  3d20h<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># cat alertmanager-secret.yaml</span>
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/component: alert-router
+    app.kubernetes.io/instance: main
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: <span class="token number">0.27</span>.0
+  name: alertmanager-main
+  namespace: monitoring
+stringData:
+  alertmanager.yaml: <span class="token operator">|</span>-
+    <span class="token string">"global"</span><span class="token builtin class-name">:</span>
+      <span class="token string">"resolve_timeout"</span><span class="token builtin class-name">:</span> <span class="token string">"5m"</span>
+      smtp_from: <span class="token string">"15811047166@163.com"</span>
+      smtp_smarthost: <span class="token string">"smtp.163.com:465"</span>
+      smtp_hello: <span class="token string">"163.com"</span>
+      smtp_auth_username: <span class="token string">"15811047166@163.com"</span>
+      smtp_auth_password: <span class="token string">"KWLDKEYTJSMWYDRV"</span>
+      smtp_require_tls: <span class="token boolean">false</span>   
+    <span class="token string">"inhibit_rules"</span><span class="token builtin class-name">:</span>
+    - <span class="token string">"equal"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"alertname"</span>
+      <span class="token string">"source_matchers"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"severity = critical"</span>
+      <span class="token string">"target_matchers"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"severity =~ warning|info"</span>
+    - <span class="token string">"equal"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"alertname"</span>
+      <span class="token string">"source_matchers"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"severity = warning"</span>
+      <span class="token string">"target_matchers"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"severity = info"</span>
+    - <span class="token string">"equal"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"namespace"</span>
+      <span class="token string">"source_matchers"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"alertname = InfoInhibitor"</span>
+      <span class="token string">"target_matchers"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"severity = info"</span>
+    <span class="token string">"receivers"</span><span class="token builtin class-name">:</span>
+    - <span class="token string">"name"</span><span class="token builtin class-name">:</span> <span class="token string">"Default"</span>
+      <span class="token string">"email_configs"</span><span class="token builtin class-name">:</span> 
+      - <span class="token string">"to"</span><span class="token builtin class-name">:</span> <span class="token string">"15811047166@163.com"</span>
+        <span class="token string">"send_resolved"</span><span class="token builtin class-name">:</span> <span class="token boolean">true</span>
+    - <span class="token string">"name"</span><span class="token builtin class-name">:</span> <span class="token string">"webhook"</span>
+      webhook_configs: <span class="token comment"># 此url填写prometheusalert svc地址和端口,后面是固定格式type是媒介类型，fs表示飞书，dd表示钉钉,tpl是模板名，后面的url是飞书机器人的webhook连接</span>
+      - url: <span class="token string">"http://10.96.167.90:8080/prometheusalert?type=fs&amp;tpl=prometheus-fs&amp;fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxx"</span>
+    - <span class="token string">"name"</span><span class="token builtin class-name">:</span> <span class="token string">"Watchdog"</span>
+    - <span class="token string">"name"</span><span class="token builtin class-name">:</span> <span class="token string">"dingding"</span>
+      webhook_configs: <span class="token comment"># 此url填写prometheusalert svc地址和端口,后面是固定格式type是媒介类型，fs表示飞书，dd表示钉钉,tpl是模板名，后面的url是钉钉机器人的webhook连接</span>
+      - url: <span class="token string">"http://10.96.167.90:8080/prometheusalert?type=dd&amp;tpl=prometheus-dd&amp;ddurl=https://oapi.dingtalk.com/robot/send?access_token=xxxxx"</span>
+    - <span class="token string">"name"</span><span class="token builtin class-name">:</span> <span class="token string">"Critical"</span>
+    - <span class="token string">"name"</span><span class="token builtin class-name">:</span> <span class="token string">"null"</span>
+    <span class="token string">"route"</span><span class="token builtin class-name">:</span>
+      <span class="token string">"group_by"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"alertname"</span>
+      <span class="token string">"group_interval"</span><span class="token builtin class-name">:</span> <span class="token string">"2m"</span>
+      <span class="token string">"group_wait"</span><span class="token builtin class-name">:</span> <span class="token string">"10s"</span>
+      <span class="token string">"receiver"</span><span class="token builtin class-name">:</span> <span class="token string">"Default"</span>
+      <span class="token string">"repeat_interval"</span><span class="token builtin class-name">:</span> <span class="token string">"2m"</span>
+      <span class="token string">"routes"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"matchers"</span><span class="token builtin class-name">:</span>
+        - <span class="token string">"alertname = Watchdog"</span>
+        <span class="token string">"receiver"</span><span class="token builtin class-name">:</span> <span class="token string">"Watchdog"</span>
+      - <span class="token string">"matchers"</span><span class="token builtin class-name">:</span>
+        - <span class="token string">"alertname = InfoInhibitor"</span>
+        <span class="token string">"receiver"</span><span class="token builtin class-name">:</span> <span class="token string">"null"</span>
+      - <span class="token string">"matchers"</span><span class="token builtin class-name">:</span>
+        - <span class="token string">"severity = critical"</span>
+        <span class="token string">"receiver"</span><span class="token builtin class-name">:</span> <span class="token string">"dingding"</span>
+      - <span class="token string">"matchers"</span><span class="token builtin class-name">:</span>
+        - <span class="token string">"severity = warning"</span>
+        <span class="token string">"receiver"</span><span class="token builtin class-name">:</span> <span class="token string">"dingding"</span>
+type: Opaque<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>修改完成后可以查看alertmanager和 prometheusalert的日志</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl logs -f -n monitoring  alertmanager-main-0</span>
+<span class="token assign-left variable">ts</span><span class="token operator">=</span><span class="token number">2024</span>-07-15T02:25:59.706Z <span class="token assign-left variable">caller</span><span class="token operator">=</span>coordinator.go:113 <span class="token assign-left variable">level</span><span class="token operator">=</span>info <span class="token assign-left variable">component</span><span class="token operator">=</span>configuration <span class="token assign-left variable">msg</span><span class="token operator">=</span><span class="token string">"Loading configuration file"</span> <span class="token assign-left variable">file</span><span class="token operator">=</span>/etc/alertmanager/config_out/alertmanager.env.yaml
+<span class="token assign-left variable">ts</span><span class="token operator">=</span><span class="token number">2024</span>-07-15T02:25:59.707Z <span class="token assign-left variable">caller</span><span class="token operator">=</span>coordinator.go:126 <span class="token assign-left variable">level</span><span class="token operator">=</span>info <span class="token assign-left variable">component</span><span class="token operator">=</span>configuration <span class="token assign-left variable">msg</span><span class="token operator">=</span><span class="token string">"Completed loading of configuration file"</span> <span class="token assign-left variable">file</span><span class="token operator">=</span>/etc/alertmanager/config_out/alertmanager.env.yaml
+出现此日志表示加载配置成功<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>可以到prometheusalert页面</p>
+<p>填写自定义模板，可以用下面的模板，很好看</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token variable">$var</span> :<span class="token operator">=</span> .externalURL<span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token variable">$status</span> :<span class="token operator">=</span> .status<span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> range <span class="token variable">$k</span>,<span class="token variable">$v</span>:<span class="token operator">=</span>.alerts <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span>if eq <span class="token variable">$status</span> <span class="token string">"resolved"</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token comment">## [告警恢复-通知](&#123;&#123;$var&#125;&#125;)</span>
+<span class="token comment">#### 监控指标: &#123;&#123;$v.labels.alertname&#125;&#125;</span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token keyword">if</span> eq <span class="token variable">$v</span>.labels.severity <span class="token string">"warning"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token comment">#### 告警级别: **&lt;font color="#E6A23C">&#123;&#123;$v.labels.severity&#125;&#125;&lt;/font>**</span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> eq <span class="token variable">$v</span>.labels.severity <span class="token string">"critical"</span>  <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token comment">#### 告警级别: **&lt;font color="#F56C6C">&#123;&#123;$v.labels.severity&#125;&#125;&lt;/font>**</span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> end <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token comment">#### 当前状态: **&lt;font color="#67C23A" size=4>已恢复&lt;/font>**</span>
+<span class="token comment">#### 故障主机: &#123;&#123;$v.labels.instance&#125;&#125;</span>
+* <span class="token comment">###### 告警阈值: &#123;&#123;$v.labels.threshold&#125;&#125;</span>
+* <span class="token comment">###### 开始时间: &#123;&#123;GetCSTtime $v.startsAt&#125;&#125;</span>
+* <span class="token comment">###### 恢复时间: &#123;&#123;GetCSTtime $v.endsAt&#125;&#125;</span>
+
+<span class="token comment">#### 告警恢复: &lt;font color="#67C23A">已恢复,&#123;&#123;$v.annotations.description&#125;&#125;&lt;/font></span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token keyword">else</span> <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token comment">## [监控告警-通知](&#123;&#123;$var&#125;&#125;)</span>
+<span class="token comment">#### 监控指标: &#123;&#123;$v.labels.alertname&#125;&#125;</span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token keyword">if</span> eq <span class="token variable">$v</span>.labels.severity <span class="token string">"warning"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token comment">#### 告警级别: **&lt;font color="#E6A23C" size=4>&#123;&#123;$v.labels.severity&#125;&#125;&lt;/font>**</span>
+<span class="token comment">#### 当前状态: **&lt;font color="#E6A23C">需要处理&lt;/font>**</span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> eq <span class="token variable">$v</span>.labels.severity <span class="token string">"critical"</span>  <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token comment">#### 告警级别: **&lt;font color="#F56C6C" size=4>&#123;&#123;$v.labels.severity&#125;&#125;&lt;/font>**</span>
+<span class="token comment">#### 当前状态: **&lt;font color="#F56C6C">需要处理&lt;/font>**</span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> end <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token comment">#### 故障主机: &#123;&#123;$v.labels.instance&#125;&#125;</span>
+* <span class="token comment">###### 告警阈值: &#123;&#123;$v.labels.threshold&#125;&#125;</span>
+* <span class="token comment">###### 持续时间: &#123;&#123;$v.labels.for_time&#125;&#125;</span>
+* <span class="token comment">###### 触发时间: &#123;&#123;GetCSTtime $v.startsAt&#125;&#125;</span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token keyword">if</span> eq <span class="token variable">$v</span>.labels.severity <span class="token string">"warning"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token comment">#### 告警触发: &lt;font color="#E6A23C">&#123;&#123;$v.annotations.description&#125;&#125;&lt;/font></span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> eq <span class="token variable">$v</span>.labels.severity <span class="token string">"critical"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token comment">#### 告警触发: &lt;font color="#F56C6C">&#123;&#123;$v.annotations.description&#125;&#125;&lt;/font></span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> end <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> end <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> end <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>填写钉钉机器人地址后点击保存模板，然后点击模板测试</p>
+<p><img src="/images/prometheus33.png" alt="image"></p>
+<p>查看日志</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token number">2024</span>/07/15 03:48:13.583 <span class="token punctuation">[</span>D<span class="token punctuation">]</span> <span class="token punctuation">[</span>value.go:586<span class="token punctuation">]</span>  <span class="token punctuation">[</span><span class="token number">1721015293583397817</span><span class="token punctuation">]</span> sss
+<span class="token number">2024</span>/07/15 03:48:13.583 <span class="token punctuation">[</span>D<span class="token punctuation">]</span> <span class="token punctuation">[</span>server.go:2936<span class="token punctuation">]</span>  <span class="token operator">|</span>  <span class="token number">172.16</span>.32.128<span class="token operator">|</span> <span class="token number">200</span> <span class="token operator">|</span>    <span class="token number">456.082</span>µs<span class="token operator">|</span>   match<span class="token operator">|</span> POST     /prometheusalert   r:/prometheusalert
+如果没有错误表示成功了<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>此时可以根据一个监控指标验证是否可以成功报警，我这里用kubelet来演示，首先查看所有Rule文件</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># pwd </span>
+/root/yaml/prometheus/kube-prometheus-main/manifests
+<span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># ll *Rule*</span>
+-rw-r--r-- <span class="token number">1</span> root root  <span class="token number">6979</span> <span class="token number">7</span>月   <span class="token number">9</span> 01:29 alertmanager-prometheusRule.yaml
+-rw-r--r-- <span class="token number">1</span> root root  <span class="token number">1418</span> <span class="token number">7</span>月   <span class="token number">9</span> 01:29 grafana-prometheusRule.yaml
+-rw-r--r-- <span class="token number">1</span> root root  <span class="token number">4301</span> <span class="token number">7</span>月   <span class="token number">9</span> 01:29 kubePrometheus-prometheusRule.yaml
+-rw-r--r-- <span class="token number">1</span> root root <span class="token number">73239</span> <span class="token number">7</span>月   <span class="token number">9</span> 01:29 kubernetesControlPlane-prometheusRule.yaml
+-rw-r--r-- <span class="token number">1</span> root root  <span class="token number">3830</span> <span class="token number">7</span>月  <span class="token number">12</span> <span class="token number">16</span>:39 kubeStateMetrics-prometheusRule.yaml
+-rw-r--r-- <span class="token number">1</span> root root <span class="token number">19720</span> <span class="token number">7</span>月   <span class="token number">9</span> 01:29 nodeExporter-prometheusRule.yaml
+-rw-r--r-- <span class="token number">1</span> root root  <span class="token number">6591</span> <span class="token number">7</span>月   <span class="token number">9</span> 01:29 prometheusOperator-prometheusRule.yaml
+-rw-r--r-- <span class="token number">1</span> root root <span class="token number">17256</span> <span class="token number">7</span>月   <span class="token number">9</span> 01:29 prometheus-prometheusRule.yaml
+<span class="token comment"># 或者通过这个方式查询</span>
+<span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># kubectl get prometheusrule -n monitoring </span>
+NAME                              AGE
+alertmanager-main-rules           5d3h
+grafana-rules                     5d3h
+kube-prometheus-rules             5d3h
+kube-state-metrics-rules          2d20h
+kubernetes-monitoring-rules       5d3h
+node-exporter-rules               5d3h
+prometheus-k8s-prometheus-rules   5d3h
+prometheus-operator-rules         5d3h
+labels：告警的标签，用于告警的路由<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>然后根据文件名，去添加你需要的指标，我这里在<code>kubeStateMetrics-prometheusRule.yaml </code>文件添加了（不固定，想在哪个文件添加都可以，前提你的监控指标要和文件名相对应最好），在文件最后面添加</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># vim kubeStateMetrics-prometheusRule.yaml</span>
+    - alert: K8S Node节点状态NotReady
+      expr: kube_node_status_condition<span class="token punctuation">&#123;</span>condition<span class="token operator">=</span><span class="token string">"Ready"</span>,status<span class="token operator">=</span><span class="token string">"true"</span><span class="token punctuation">&#125;</span> <span class="token operator">==</span> <span class="token number">0</span>
+      for: 1m
+      labels:
+        severity: critical
+        level: <span class="token string">"高"</span>
+      annotations:
+        summary: K8s节点状态异常 <span class="token punctuation">(</span>instance <span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token variable">$labels</span>.instance <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+        description: <span class="token string">"节点 &#123;&#123; <span class="token variable">$labels</span>.node &#125;&#125; NotReady，请尽快处理！ <span class="token entity" title="\n">\n</span> "</span>
+        owner: <span class="token string">"运维工程师-杜杰"</span>
+        panelURL: <span class="token string">"http://192.168.31.21:32159/alerts?search="</span>
+        alertURL: <span class="token string">"http://192.168.31.20:30336/d/3138fa155d5915769fbded898ac09fd9/kubernetes-kubelet?orgId=1&amp;refresh=10s&amp;var-datasource=default&amp;var-cluster=&amp;var-instance=Al
+l"</span>
+
+<span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl apply -f kubeStateMetrics-prometheusRule.yaml</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li><code>alert</code>：告警策略的名称</li>
+<li><code>annotations</code>：告警注释信息，一般写为告警信息</li>
+<li><code>expr</code>：告警表达式</li>
+<li><code>for</code>：评估等待时间，告警持续多久才会发送告警数据</li>
+</ul>
+<p>以上的值都可以在模板中进行调用。</p>
+<p>更新完成之后依然可以查看日志，等待更新之后就可以进行测试</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl logs -f -n monitoring  alertmanager-main-0</span>
+<span class="token assign-left variable">ts</span><span class="token operator">=</span><span class="token number">2024</span>-07-15T02:25:59.706Z <span class="token assign-left variable">caller</span><span class="token operator">=</span>coordinator.go:113 <span class="token assign-left variable">level</span><span class="token operator">=</span>info <span class="token assign-left variable">component</span><span class="token operator">=</span>configuration <span class="token assign-left variable">msg</span><span class="token operator">=</span><span class="token string">"Loading configuration file"</span> <span class="token assign-left variable">file</span><span class="token operator">=</span>/etc/alertmanager/config_out/alertmanager.env.yaml
+<span class="token assign-left variable">ts</span><span class="token operator">=</span><span class="token number">2024</span>-07-15T02:25:59.707Z <span class="token assign-left variable">caller</span><span class="token operator">=</span>coordinator.go:126 <span class="token assign-left variable">level</span><span class="token operator">=</span>info <span class="token assign-left variable">component</span><span class="token operator">=</span>configuration <span class="token assign-left variable">msg</span><span class="token operator">=</span><span class="token string">"Completed loading of configuration file"</span> <span class="token assign-left variable">file</span><span class="token operator">=</span>/etc/alertmanager/config_out/alertmanager.env.yaml
+出现此日志表示加载配置成功
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="告警测试"><a href="#告警测试" class="headerlink" title="告警测试"></a>告警测试</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 ~<span class="token punctuation">]</span><span class="token comment"># kubectl get nodes </span>
+NAME           STATUS   ROLES           AGE     VERSION
+k8s-master01   Ready    control-plane   5d23h   v1.30.2
+k8s-master02   Ready    control-plane   5d23h   v1.30.2
+k8s-master03   Ready    control-plane   5d23h   v1.30.2
+k8s-node01     Ready    <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+k8s-node02     Ready    <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+k8s-node03     Ready    <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+k8s-node04     Ready    <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+k8s-node05     Ready    <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+k8s-node06     Ready    <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+
+<span class="token comment"># 关掉其中一台节点的kubelet，我这里关掉node06节点，稍等一会后等待状态为Not_Ready</span>
+<span class="token punctuation">[</span>root@k8s-node06 ~<span class="token punctuation">]</span><span class="token comment"># systemctl stop kubelet </span>
+
+<span class="token punctuation">[</span>root@k8s-master01 ~<span class="token punctuation">]</span><span class="token comment"># kubectl get nodes </span>
+NAME           STATUS     ROLES           AGE     VERSION
+k8s-master01   Ready      control-plane   5d23h   v1.30.2
+k8s-master02   Ready      control-plane   5d23h   v1.30.2
+k8s-master03   Ready      control-plane   5d23h   v1.30.2
+k8s-node01     Ready      <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+k8s-node02     Ready      <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+k8s-node03     Ready      <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+k8s-node04     Ready      <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+k8s-node05     Ready      <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2
+k8s-node06     NotReady   <span class="token operator">&lt;</span>none<span class="token operator">></span>          5d23h   v1.30.2<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>稍等一会可以查看钉钉已经收到报警了，这个时间是根据你alertmanager 和Rule里面的for时间来报警的，我上面for的时间设置为1分钟，表示查询表达式的值必须持续1分钟都为真才会报警，目的是为了防止偶发的短暂问题而触发报警。</p>
+<p><img src="/images/prometheus34.png" alt="image"></p>
+<h3 id="四、使用prometheus-Alert实现飞书告警"><a href="#四、使用prometheus-Alert实现飞书告警" class="headerlink" title="四、使用prometheus Alert实现飞书告警"></a>四、使用prometheus Alert实现飞书告警</h3><p>和钉钉实现类似，这里只写修改的内容</p>
+<h5 id="4-1-修改PromethesuAlert配置"><a href="#4-1-修改PromethesuAlert配置" class="headerlink" title="4.1 修改PromethesuAlert配置"></a>4.1 修改PromethesuAlert配置</h5><p> fsurl请填自己飞书机器人的webhook地址</p>
+<p><img src="/images/prometheus35.png" alt="image"></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 prometheus<span class="token punctuation">]</span><span class="token comment"># vim PrometheusAlert-Deployment.yaml </span>
+    <span class="token comment">#是否开启飞书告警通道,可同时开始多个通道0为关闭,1为开启</span>
+    open-feishu<span class="token operator">=</span><span class="token number">1</span>
+    <span class="token comment">#默认飞书机器人地址</span>
+    <span class="token assign-left variable">fsurl</span><span class="token operator">=</span>https://open.feishu.cn/open-apis/bot/v2/hook/61xxxxx
+    <span class="token comment"># webhook 发送 http 请求的 contentType, 如 application/json, application/x-www-form-urlencoded，不配置默认 application/json</span>
+    <span class="token assign-left variable">wh_contenttype</span><span class="token operator">=</span>application/json<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="4-2-修改alertmanger配置"><a href="#4-2-修改alertmanger配置" class="headerlink" title="4.2 修改alertmanger配置"></a>4.2 修改alertmanger配置</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># vim alertmanager-secret.yaml</span>
+<span class="token punctuation">..</span>.
+    <span class="token string">"receivers"</span><span class="token builtin class-name">:</span>
+    - <span class="token string">"name"</span><span class="token builtin class-name">:</span> <span class="token string">"Default"</span>
+      <span class="token string">"email_configs"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"to"</span><span class="token builtin class-name">:</span> <span class="token string">"15811047166@163.com"</span>
+        <span class="token string">"send_resolved"</span><span class="token builtin class-name">:</span> <span class="token boolean">true</span>
+    - <span class="token string">"name"</span><span class="token builtin class-name">:</span> <span class="token string">"webhook"</span>
+      webhook_configs:
+      - url: <span class="token string">"http://10.96.167.90:8080/prometheusalert?type=fs&amp;tpl=prometheus-fs&amp;fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/61132219-e82a-4aae-9186-3664efa9d8c1"</span>
+<span class="token punctuation">..</span>.
+    <span class="token string">"route"</span><span class="token builtin class-name">:</span>
+      <span class="token string">"group_by"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"alertname"</span>
+      <span class="token string">"group_interval"</span><span class="token builtin class-name">:</span> <span class="token string">"2m"</span>
+      <span class="token string">"group_wait"</span><span class="token builtin class-name">:</span> <span class="token string">"10s"</span>
+      <span class="token string">"receiver"</span><span class="token builtin class-name">:</span> <span class="token string">"Default"</span>
+      <span class="token string">"repeat_interval"</span><span class="token builtin class-name">:</span> <span class="token string">"2m"</span>
+      <span class="token string">"routes"</span><span class="token builtin class-name">:</span>
+      - <span class="token string">"matchers"</span><span class="token builtin class-name">:</span>
+        - <span class="token string">"alertname = Watchdog"</span>
+        <span class="token string">"receiver"</span><span class="token builtin class-name">:</span> <span class="token string">"Watchdog"</span>
+      - <span class="token string">"matchers"</span><span class="token builtin class-name">:</span>
+        - <span class="token string">"alertname = InfoInhibitor"</span>
+        <span class="token string">"receiver"</span><span class="token builtin class-name">:</span> <span class="token string">"null"</span>
+      - <span class="token string">"matchers"</span><span class="token builtin class-name">:</span>
+        - <span class="token string">"severity = critical"</span>
+        <span class="token string">"receiver"</span><span class="token builtin class-name">:</span> <span class="token string">"webhook"</span>
+<span class="token punctuation">..</span>.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>重启他们之后即可发送</p>
+<h1 id="五、域名访问延迟告警"><a href="#五、域名访问延迟告警" class="headerlink" title="五、域名访问延迟告警"></a>五、域名访问延迟告警</h1><p>域名访问延迟告警：</p>
+<p>假设需要对域名访问延迟进行监控，访问延迟大于 0.01 秒进行告警（我这里是测试才用的0.01，生产环境需要按照各自业务设置），此时可以创建一个PrometheusRule 如下：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># cat blackbox.yaml </span>
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+ labels:
+   app.kubernetes.io/component: exporter
+   app.kubernetes.io/name: blackbox-exporter
+   prometheus: k8s
+   role: alert-rules
+ name: blackbox 
+ namespace: monitoring
+spec:
+ groups:
+ - name: blackbox-exporter
+   rules:
+   - alert: DomainAccessDelayExceeds1s
+     annotations:
+       description: 域名：<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token variable">$labels</span>.instance <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span> 探测延迟大于 <span class="token number">0.01</span> 秒，当前延迟为：<span class="token punctuation">&#123;</span><span class="token punctuation">&#123;</span> <span class="token variable">$value</span> <span class="token punctuation">&#125;</span><span class="token punctuation">&#125;</span>
+       summary: 域名探测，访问延迟超过 <span class="token number">0.01</span> 秒
+     expr: sum<span class="token punctuation">(</span>probe_http_duration_seconds<span class="token punctuation">&#123;</span>job<span class="token operator">=~</span><span class="token string">"blackbox"</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span> by <span class="token punctuation">(</span>instance<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0.01</span>
+     for: 1m
+     labels:
+       severity: warning
+       type: blackbox<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建并查看该 PrometheusRule：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl create -f blackbox.yaml </span>
+prometheusrule.monitoring.coreos.com/blackbox created
+<span class="token punctuation">[</span>root@k8s-master01 manifests<span class="token punctuation">]</span><span class="token comment"># kubectl get -f blackbox.yaml </span>
+NAME AGE
+blackbox 65s<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>之后也可以在 Prometheus 的 Web UI 看到此规则：</p>
+<p><img src="/images/prometheus36.png" alt="image"></p>
+<p>然后可以看到刚才配置的钉钉已经收到告警了</p>
+<p><img src="/images/prometheus37.png" alt="image"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloud.fun">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloud.fun/2024/05/26/prometheus%20operator/">http://dycloud.fun/2024/05/26/prometheus%20operator/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloud.fun" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/prometheus/">prometheus</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/"><img class="next-cover" src="/img/ceph.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">使用rook-ceph部署高可用ceph集群</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2020/02/14/promehteus+grafana/" title="promehteus+grafana"><img class="cover" src="/img/prometheus.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-02-14</div><div class="title">promehteus+grafana</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">132</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#prometheus-operator"><span class="toc-number">1.</span> <span class="toc-text">prometheus operator</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81Prometheus%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.0.1.</span> <span class="toc-text">一、Prometheus介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-1-prometheus%E7%89%B9%E6%80%A7"><span class="toc-number">1.0.1.0.1.</span> <span class="toc-text">1.1 prometheus特性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-2-prometheus%E6%9E%B6%E6%9E%84"><span class="toc-number">1.0.1.0.2.</span> <span class="toc-text">1.2 prometheus架构</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%9C%A8k8s%E4%B8%8A%E9%83%A8%E7%BD%B2prometheus"><span class="toc-number">1.0.2.</span> <span class="toc-text">二、在k8s上部署prometheus</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#2-1-%E5%AE%89%E8%A3%85"><span class="toc-number">1.0.2.0.1.</span> <span class="toc-text">2.1 安装</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-%E7%9B%91%E6%8E%A7%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90"><span class="toc-number">1.0.2.0.2.</span> <span class="toc-text">2.2 监控数据来源</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-3-%E4%BA%91%E5%8E%9F%E7%94%9F%E5%BA%94%E7%94%A8Etcd%E7%9B%91%E6%8E%A7"><span class="toc-number">1.0.2.0.3.</span> <span class="toc-text">2.3 云原生应用Etcd监控</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-4-%E9%9D%9E%E4%BA%91%E5%8E%9F%E7%94%9F%E5%BA%94%E7%94%A8Etcd%E7%9B%91%E6%8E%A7"><span class="toc-number">1.0.2.0.4.</span> <span class="toc-text">2.4 非云原生应用Etcd监控</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#2-4-1-%E9%83%A8%E7%BD%B2-mysql-exporter"><span class="toc-number">1.0.2.0.4.1.</span> <span class="toc-text">2.4.1 部署 mysql exporter</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#2-4-2-%E9%83%A8%E7%BD%B2-myslq-serviceMonitor"><span class="toc-number">1.0.2.0.4.2.</span> <span class="toc-text">2.4.2 部署 myslq serviceMonitor</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-5-controller-manager-x2F-scheduler-%E7%9B%91%E6%8E%A7"><span class="toc-number">1.0.2.0.5.</span> <span class="toc-text">2.5 controller-manager&#x2F;scheduler 监控</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-5-blackbox-%E7%9B%91%E6%8E%A7%E5%9F%9F%E5%90%8D"><span class="toc-number">1.0.2.0.6.</span> <span class="toc-text">2.5 blackbox 监控域名</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-6-Prometheus-%E9%9D%99%E6%80%81%E9%85%8D%E7%BD%AE"><span class="toc-number">1.0.2.0.7.</span> <span class="toc-text">2.6 Prometheus 静态配置</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-7-Prometheus-%E7%9B%91%E6%8E%A7windows%EF%BC%88%E5%A4%96%E9%83%A8%EF%BC%89%E4%B8%BB%E6%9C%BA"><span class="toc-number">1.0.2.0.8.</span> <span class="toc-text">2.7 Prometheus 监控windows（外部）主机</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BD%BF%E7%94%A8PrometheusAlert%E5%AE%9E%E7%8E%B0%E9%92%89%E9%92%89%E5%91%8A%E8%AD%A6"><span class="toc-number">1.0.3.</span> <span class="toc-text">三、使用PrometheusAlert实现钉钉告警</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%91%8A%E8%AD%A6%E6%B5%8B%E8%AF%95"><span class="toc-number">1.0.3.1.</span> <span class="toc-text">告警测试</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%BD%BF%E7%94%A8prometheus-Alert%E5%AE%9E%E7%8E%B0%E9%A3%9E%E4%B9%A6%E5%91%8A%E8%AD%A6"><span class="toc-number">1.0.4.</span> <span class="toc-text">四、使用prometheus Alert实现飞书告警</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#4-1-%E4%BF%AE%E6%94%B9PromethesuAlert%E9%85%8D%E7%BD%AE"><span class="toc-number">1.0.4.0.1.</span> <span class="toc-text">4.1 修改PromethesuAlert配置</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-2-%E4%BF%AE%E6%94%B9alertmanger%E9%85%8D%E7%BD%AE"><span class="toc-number">1.0.4.0.2.</span> <span class="toc-text">4.2 修改alertmanger配置</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%9F%9F%E5%90%8D%E8%AE%BF%E9%97%AE%E5%BB%B6%E8%BF%9F%E5%91%8A%E8%AD%A6"><span class="toc-number">2.</span> <span class="toc-text">五、域名访问延迟告警</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/05/26/prometheus%20operator/" title="prometheus operator"><img src="/img/prometheus.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="prometheus operator"/></a><div class="content"><a class="title" href="/2024/05/26/prometheus%20operator/" title="prometheus operator">prometheus operator</a><time datetime="2024-05-26T07:51:23.000Z" title="发表于 2024-05-26 15:51:23">2024-05-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/" title="使用rook-ceph部署高可用ceph集群"><img src="/img/ceph.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="使用rook-ceph部署高可用ceph集群"/></a><div class="content"><a class="title" href="/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/" title="使用rook-ceph部署高可用ceph集群">使用rook-ceph部署高可用ceph集群</a><time datetime="2024-05-23T07:51:23.000Z" title="发表于 2024-05-23 15:51:23">2024-05-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程"><img src="/img/oracle.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="记录AWS Oracle实例数据迁移的艰辛过程"/></a><div class="content"><a class="title" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程">记录AWS Oracle实例数据迁移的艰辛过程</a><time datetime="2024-03-12T04:12:23.000Z" title="发表于 2024-03-12 12:12:23">2024-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-cluster%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-cluster相关组件"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="kubernetes platform后端开发-cluster相关组件"/></a><div class="content"><a class="title" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-cluster%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-cluster相关组件">kubernetes platform后端开发-cluster相关组件</a><time datetime="2024-02-25T06:32:00.000Z" title="发表于 2024-02-25 14:32:00">2024-02-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-loadbalance%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-loadbalance相关组件"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="kubernetes platform后端开发-loadbalance相关组件"/></a><div class="content"><a class="title" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-loadbalance%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-loadbalance相关组件">kubernetes platform后端开发-loadbalance相关组件</a><time datetime="2024-02-25T06:32:00.000Z" title="发表于 2024-02-25 14:32:00">2024-02-25</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>
