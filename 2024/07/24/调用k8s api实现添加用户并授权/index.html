@@ -1,0 +1,991 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>调用k8s API实现添加用户并授权 | J.のblog</title><meta name="keywords" content="kubernetes,云原生"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="调用k8s api实现添加用户并授权一、k8s中根据用户名创建config文件在k8s中如果想给一个用户创建授权文件，并让用户可用通过该config文件操作k8s集群，流程如下 1、生成私钥和证书签名请求（CSR） # 生成私钥 [root@k8s-master01 config]# openssl genrsa -out dujie.key 2048 Generating RSA private">
+<meta property="og:type" content="article">
+<meta property="og:title" content="调用k8s API实现添加用户并授权">
+<meta property="og:url" content="http://dycloud.fun/2024/07/24/%E8%B0%83%E7%94%A8k8s%20api%E5%AE%9E%E7%8E%B0%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7%E5%B9%B6%E6%8E%88%E6%9D%83/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="调用k8s api实现添加用户并授权一、k8s中根据用户名创建config文件在k8s中如果想给一个用户创建授权文件，并让用户可用通过该config文件操作k8s集群，流程如下 1、生成私钥和证书签名请求（CSR） # 生成私钥 [root@k8s-master01 config]# openssl genrsa -out dujie.key 2048 Generating RSA private">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloud.fun/img/kubernetes.png">
+<meta property="article:published_time" content="2024-07-24T12:32:00.000Z">
+<meta property="article:modified_time" content="2024-07-25T03:03:24.694Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="kubernetes">
+<meta property="article:tag" content="云原生">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloud.fun/img/kubernetes.png"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloud.fun/2024/07/24/%E8%B0%83%E7%94%A8k8s%20api%E5%AE%9E%E7%8E%B0%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7%E5%B9%B6%E6%8E%88%E6%9D%83/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '调用k8s API实现添加用户并授权',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-07-25 11:03:24'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">133</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">调用k8s API实现添加用户并授权</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-07-24T12:32:00.000Z" title="发表于 2024-07-24 20:32:00">2024-07-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-07-25T03:03:24.694Z" title="更新于 2024-07-25 11:03:24">2024-07-25</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/kubernetes/">kubernetes</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="调用k8s API实现添加用户并授权"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="调用k8s-api实现添加用户并授权"><a href="#调用k8s-api实现添加用户并授权" class="headerlink" title="调用k8s api实现添加用户并授权"></a>调用k8s api实现添加用户并授权</h1><h3 id="一、k8s中根据用户名创建config文件"><a href="#一、k8s中根据用户名创建config文件" class="headerlink" title="一、k8s中根据用户名创建config文件"></a>一、k8s中根据用户名创建config文件</h3><p>在k8s中如果想给一个用户创建授权文件，并让用户可用通过该config文件操作k8s集群，流程如下</p>
+<p>1、生成私钥和证书签名请求（CSR）</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 生成私钥</span>
+<span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># openssl genrsa -out dujie.key 2048</span>
+Generating RSA private key, <span class="token number">2048</span> bit long modulus <span class="token punctuation">(</span><span class="token number">2</span> primes<span class="token punctuation">)</span>
+<span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span>+++++
+<span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span><span class="token punctuation">..</span>.+++++
+e is <span class="token number">65537</span> <span class="token punctuation">(</span>0x010001<span class="token punctuation">)</span>
+
+<span class="token comment"># 生成证书签名请求（CSR）</span>
+<span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># openssl req -new -key dujie.key -out dujie.csr -subj "/CN=username/O=organization"</span>
+<span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># ll</span>
+总用量 <span class="token number">8</span>
+-rw-r--r-- <span class="token number">1</span> root root  <span class="token number">920</span> <span class="token number">7</span>月  <span class="token number">25</span> 09:38 dujie.csr
+-rw------- <span class="token number">1</span> root root <span class="token number">1679</span> <span class="token number">7</span>月  <span class="token number">25</span> 09:38 dujie.key<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>2、创建<strong>CertificateSigningRequest</strong>资源</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># kubectl create -f - &lt;&lt;EOF</span>
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: dujie-csr
+spec:
+  signerName: kubernetes.io/kube-apiserver-client
+  groups:
+  - system:authenticated
+  request: <span class="token variable"><span class="token variable">$(</span><span class="token function">cat</span> dujie.csr <span class="token operator">|</span> base64 <span class="token operator">|</span> <span class="token function">tr</span> -d <span class="token string">'\n'</span><span class="token variable">)</span></span>
+  usages:
+  - client auth
+EOF
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>3、查看和审批CSR</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># kubectl get csr </span>
+NAME           AGE   SIGNERNAME                            REQUESTOR          REQUESTEDDURATION   CONDITION
+dujie-csr      16s   kubernetes.io/kube-apiserver-client   kubernetes-admin   <span class="token operator">&lt;</span>none<span class="token operator">></span>              Pending
+
+<span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># kubectl certificate approve dujie-csr</span>
+certificatesigningrequest.certificates.k8s.io/dujie-csr approved
+
+<span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># kubectl get csr </span>
+NAME           AGE   SIGNERNAME                            REQUESTOR          REQUESTEDDURATION   CONDITION
+dujie-csr      35s   kubernetes.io/kube-apiserver-client   kubernetes-admin   <span class="token operator">&lt;</span>none<span class="token operator">></span>              Approved,Issued<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>4、获取已颁发的证书</p>
+<p>你获取的是 Kubernetes 集群的 CA（Certificate Authority）证书的 Base64 编码数据。这些数据用于验证 Kubernetes API 服务器证书的根证书。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># kubectl get csr username-csr -o jsonpath='&#123;.status.certificate&#125;' | base64 --decode > dujie.crt</span>
+
+<span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># </span>
+<span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># ll</span>
+总用量 <span class="token number">12</span>
+-rw-r--r-- <span class="token number">1</span> root root <span class="token number">1123</span> <span class="token number">7</span>月  <span class="token number">25</span> 09:40 dujie.crt
+-rw-r--r-- <span class="token number">1</span> root root  <span class="token number">920</span> <span class="token number">7</span>月  <span class="token number">25</span> 09:38 dujie.csr
+-rw------- <span class="token number">1</span> root root <span class="token number">1679</span> <span class="token number">7</span>月  <span class="token number">25</span> 09:38 dujie.key
+<span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># cat dujie.crt </span>
+-----BEGIN CERTIFICATE-----
+MIIDEDCCAfigAwIBAgIRAKd4kXjh8llahVKABkuybNYwDQYJKoZIhvcNAQELBQAw
+FTETMBEGA1UEAxMKa3ViZXJuZXRlczAeFw0yNDA3MjUwMDU3MzVaFw0yNTA3MjUw
+MDU3MzVaMCoxFTATBgNVBAoTDG9yZ2FuaXphdGlvbjERMA8GA1UEAxMIdXNlcm5h
+bWUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDLckKDsUnp9ZMynLba
+yZ47S8eldOtQSYP8637WzHJ1q2XZsTmGFXTAkJS9riMkV8BuDzhrOLHjJ/hmXZuR
+QrCNGSLhXXsUfDlIa4iXtZNorv7kYzT7vkT0565wGnN1TPPQ9M18Z5PuaP/UpPtt
+6K65rRRvi/zyVET/aT+WDd4b7J2WwH93dDbVqONIy7+Q/9BCo1UOobI5fWAiixTA
+dZasKAQVaD8GD+ZMl8+kZrLA+TL8gdtapSYBrNbZplguTAWUDAcpXkvtMEoQiC4S
+bp8VistfQ3Oxy3aLdycrNbdRrgjW6HHjMLBidQ+efVliQ4MP3rjjwB2VnSgpYZ8q
+cPcbAgMBAAGjRjBEMBMGA1UdJQQMMAoGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAw
+HwYDVR0jBBgwFoAUDkfKuT1zeRu8QhIUBQWl6nwkCkAwDQYJKoZIhvcNAQELBQAD
+ggEBABN0tqHPZMpxge0HmbjWkzGxqbbhkqHXgZx/ltG1MHF4nb5FQvUUaTwrY3xD
+zYd7Wk6iBOQRS/Hh4bcDJd6iBVHfSk0vEfERYTO1GJRbJ8n4RWCJg89xVkuD6MBD
+4MfVRRD5IW3zG58ycbIPmw428HvIwMFIFpZ+JURFwRyIFqfwgQxl61Sgr9RyQze7
+H4Fd9xItRjFocwqrNXj6bbIctLC8XkhuT1teDQNhIiGvLxbaVsgaEdglkU0P2btZ
+0cbxoCCwPcIWsKGL8YZtyCEAmNGD0BXIPydX5GDIX3xVgrDUxh1RL9YmUWFpyZo7
+dRKpPWWwfWLFG/OWgToROVTfuSs<span class="token operator">=</span>
+-----END CERTIFICATE-----
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>5、配置kubernetes客户端</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># kubectl config set-credentials dujie --client-certificate=dujie.crt --client-key=dujie.key</span>
+<span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># kubectl config set-context --current --user=dujie</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>6、生成config文件</p>
+<p>获取集群的ca证书</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># kubectl config view --minify -o jsonpath='&#123;.clusters[0].cluster.certificate-authority-data&#125;'</span>
+DATA+OMITTED<span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># </span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@k8s-master01 config<span class="token punctuation">]</span><span class="token comment"># CA_CERT=$(kubectl config view --minify -o jsonpath='&#123;.clusters[0].cluster.certificate-authority-data&#125;')</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>使用以下命令创建一个新的 <code>kubeconfig</code> 文件，其中包含 <code>dujie</code> 用户的凭据信息。假设 API 服务器地址是 <code>https://&lt;api-server-address&gt;:6443</code>，并使用上述命令生成的 CA 证书数据：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">></span> dujie.kubeconfig</span>
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    certificate-authority-data: <span class="token variable">$&#123;CA_CERT&#125;</span>
+    server: https://&lt;api-server-address>:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: dujie
+  name: dujie-context
+current-context: dujie-context
+users:
+- name: dujie
+  user:
+    client-certificate: dujie.crt
+    client-key: dujie.key
+EOF</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上面的操作仅仅只是生成一个config文件，并没有对该用户授权。所以还无法操作k8s集群，授权操作自行查询，下面主要演示如何使用go对k8s集群生成授权文件、添加用户并授权等操作。</p>
+<h3 id="二、golang中如何创建用户授权文件"><a href="#二、golang中如何创建用户授权文件" class="headerlink" title="二、golang中如何创建用户授权文件"></a>二、golang中如何创建用户授权文件</h3><p>初衷：开发一个k8s多集群管理平台，且可以根据当前登录的平台用户对k8s集群资源进行授权操作。</p>
+<p>大体流程如下：</p>
+<ol>
+<li>获取k8s客户端：获取k8s客户端对象clientset，通过clientset对k8s Api进行交互，执行创建和管理资源的操作</li>
+<li>生成私钥：生成RSA私钥，用于生成证书请求，并在后续的链接中用于客户端认证</li>
+<li>生成证书请求（CSR）：根据传入的用户名和私钥，生成一个证书签名请求（CSR），该CSR中包含了请求证书和公钥和相关的身份信息，然后提交给ca请求签发证书</li>
+<li>创建CertificateSigningRequest资源：用于请求管理员和自动系统批准和签发证书</li>
+<li>审批CSR：为 <code>createResp.Status.Conditions</code> 添加批准条件，并更新 CSR 的审批状态</li>
+<li>等待证书颁发：在一个循环中不断检查 CSR 的状态，看是否已颁发证书</li>
+<li>删除已颁发证书的CSR：在证书颁发后，删除相应的 CSR 对象。</li>
+</ol>
+<p>第一步先看下我这里的系统表、集群表、还有集群用户表的结构</p>
+<p>集群表：</p>
+<p>Users 设置为[]Users 表示1个集群可以被多个用户访问和管理</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// k8sCluster表 结构体  K8sCluster</span>
+<span class="token keyword">type</span> K8sCluster <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+	ID                 <span class="token builtin">uint</span>      <span class="token string">`json:"id" gorm:"not null;unique;primary_key"`</span>
+	UUID               uuid<span class="token punctuation">.</span>UUID <span class="token string">`json:"uuid" gorm:"comment:集群UUID"`</span>
+	Name               <span class="token builtin">string</span>    <span class="token string">`json:"name" form:"name" gorm:"comment:集群名称"`</span>
+	KubeType           <span class="token builtin">uint</span>      <span class="token string">`json:"kube_type" form:"kube_type" gorm:"comment:凭据类型1:KubeConfig,2:Token"`</span>
+	KubeConfig         <span class="token builtin">string</span>    <span class="token string">`gorm:"type:longText" json:"kube_config" form:"kube_config" gorm:"comment:kube_config"`</span>
+	KubeCaCrt          <span class="token builtin">string</span>    <span class="token string">`gorm:"type:longText; comment:ca.crt" json:"kube_ca_crt" form:"kube_ca_crt"`</span>
+	ApiAddress         <span class="token builtin">string</span>    <span class="token string">`gorm:"type:longText" json:"api_address" form:"api_address" gorm:"comment:api_address"`</span>
+	PrometheusUrl      <span class="token builtin">string</span>    <span class="token string">`gorm:"type:longText" json:"prometheus_url" form:"prometheus_url" gorm:"comment:prometheus 地址"`</span>
+	PrometheusAuthType <span class="token builtin">uint</span>      <span class="token string">`json:"prometheus_auth_type" form:"prometheus_auth_type" gorm:"comment: 认证类型"`</span>
+	PrometheusUser     <span class="token builtin">string</span>    <span class="token string">`gorm:"type:longText" json:"prometheus_user" form:"prometheus_user" gorm:"comment:用户名"`</span>
+	PrometheusPwd      <span class="token builtin">string</span>    <span class="token string">`gorm:"type:longText" json:"prometheus_pwd" form:"prometheus_pwd" gorm:"comment:密码"`</span>
+	Users              <span class="token punctuation">[</span><span class="token punctuation">]</span>User    <span class="token string">`json:"users" gorm:"foreignKey:ClusterId;"`</span> # foreignKey指定外键，在Use表有个字段为ClusterId，关联到K8sCluster表的主键字段
+	CreatedBy          <span class="token builtin">uint</span>      <span class="token string">`gorm:"column:created_by;comment:创建者"`</span>
+	UpdatedBy          <span class="token builtin">uint</span>      <span class="token string">`gorm:"column:updated_by;comment:更新者"`</span>
+	DeletedBy          <span class="token builtin">uint</span>      <span class="token string">`gorm:"column:deleted_by;comment:删除者"`</span>
+	CreatedAt          time<span class="token punctuation">.</span>Time     
+	UpdatedAt          time<span class="token punctuation">.</span>Time      
+	DeletedAt          gorm<span class="token punctuation">.</span>DeletedAt <span class="token string">`gorm:"index" json:"-"`</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>k8s的User表</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> User <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+	ID             <span class="token builtin">uint</span>           <span class="token string">`json:"id" gorm:"not null;unique;primary_key"`</span>
+	UUID           uuid<span class="token punctuation">.</span>UUID      <span class="token string">`json:"uuid" gorm:"comment:用户UUID"`</span>
+	Username       <span class="token builtin">string</span>         <span class="token string">`json:"userName" gorm:"comment:用户登录名"`</span>
+	NickName       <span class="token builtin">string</span>         <span class="token string">`json:"nickName" gorm:"default:系统用户;comment:用户昵称"`</span>
+	KubeConfig     <span class="token builtin">string</span>         <span class="token string">`gorm:"type:longText" json:"kube_config" form:"kube_config" gorm:"comment:kube_config"`</span>
+	ClusterRoles   <span class="token builtin">string</span>         <span class="token string">`gorm:"type:longText" json:"cluster_roles"`</span>
+	NamespaceRoles <span class="token builtin">string</span>         <span class="token string">`json:"namespace_roles" gorm:"comment:命名空间权限"`</span>
+	ClusterId      <span class="token builtin">uint</span>           <span class="token string">`json:"cluster_id" gorm:"comment:集群ID"`</span>
+	CreatedAt      time<span class="token punctuation">.</span>Time      <span class="token string">`json:"created_at"`</span>
+	UpdatedAt      time<span class="token punctuation">.</span>Time      <span class="token string">`json:"updated_at"`</span>
+	DeletedAt      gorm<span class="token punctuation">.</span>DeletedAt <span class="token string">`gorm:"index" json:"-"`</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>平台用户表</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> SysUser <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+	ID        <span class="token builtin">uint</span>           <span class="token string">`gorm:"primarykey" json:"ID"`</span> 
+	CreatedAt time<span class="token punctuation">.</span>Time      
+	UpdatedAt time<span class="token punctuation">.</span>Time      
+	DeletedAt gorm<span class="token punctuation">.</span>DeletedAt <span class="token string">`gorm:"index" json:"-"`</span> 
+	UUID        uuid<span class="token punctuation">.</span>UUID      <span class="token string">`json:"uuid" gorm:"index;comment:用户UUID"`</span>  
+	Username    <span class="token builtin">string</span>         <span class="token string">`json:"userName" gorm:"index;comment:用户登录名"`</span>    
+	Password    <span class="token builtin">string</span>         <span class="token string">`json:"-"  gorm:"comment:用户登录密码"`</span>   
+	NickName    <span class="token builtin">string</span>         <span class="token string">`json:"nickName" gorm:"default:系统用户;comment:用户昵称"`</span>             
+	AuthorityId <span class="token builtin">uint</span>           <span class="token string">`json:"authorityId" gorm:"default:888;comment:用户角色ID"`</span>   
+	Authority   SysAuthority   <span class="token string">`json:"authority" gorm:"foreignKey:AuthorityId;references:AuthorityId;comment:用户角色"`</span>
+	Authorities <span class="token punctuation">[</span><span class="token punctuation">]</span>SysAuthority <span class="token string">`json:"authorities" gorm:"many2many:sys_user_authority;"`</span>
+	Phone       <span class="token builtin">string</span>         <span class="token string">`json:"phone"  gorm:"comment:用户手机号"`</span>                    
+	Email       <span class="token builtin">string</span>         <span class="token string">`json:"email"  gorm:"comment:用户邮箱"`</span>                    
+	Enable      <span class="token builtin">int</span>            <span class="token string">`json:"enable" gorm:"default:1;comment:用户是否被冻结 1正常 2冻结"`</span> 
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>创建凭据方法：</p>
+<p>clusterId：用户上传的集群id，区分对哪个集群进行创建凭据</p>
+<p>userId：当前平台登录的用户id</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token punctuation">(</span>K8sClusterService <span class="token operator">*</span>K8sClusterService<span class="token punctuation">)</span> <span class="token function">CreateCredential</span><span class="token punctuation">(</span>clusterId <span class="token builtin">int</span><span class="token punctuation">,</span> userId <span class="token builtin">uint</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+	<span class="token comment">// 根据当前平台登录的用户id获取用户信息</span>
+	<span class="token keyword">var</span> user system<span class="token punctuation">.</span>SysUser
+	<span class="token keyword">if</span> err <span class="token operator">:=</span> global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Where</span><span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> userId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">First</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>user<span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 根据当前平台登录的用户的uuid，和上传的集群id查询集群信息，同时预加载相关的用户信息</span>
+	<span class="token keyword">var</span> clusterIns cluster<span class="token punctuation">.</span>K8sCluster
+	<span class="token keyword">if</span> err <span class="token operator">:=</span> global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Where</span><span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> clusterId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Preload</span><span class="token punctuation">(</span><span class="token string">"Users"</span><span class="token punctuation">,</span> <span class="token string">"uuid = ?"</span><span class="token punctuation">,</span> user<span class="token punctuation">.</span>UUID<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">First</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>clusterIns<span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token keyword">if</span> <span class="token operator">!</span>errors<span class="token punctuation">.</span><span class="token function">Is</span><span class="token punctuation">(</span>global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Where</span><span class="token punctuation">(</span><span class="token string">"cluster_id = ? and uuid = ?"</span><span class="token punctuation">,</span> clusterId<span class="token punctuation">,</span> user<span class="token punctuation">.</span>UUID<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">First</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>cluster<span class="token punctuation">.</span>User<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">,</span> gorm<span class="token punctuation">.</span>ErrRecordNotFound<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> errors<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token string">"该账号集群凭据已存在"</span><span class="token punctuation">)</span>
+	<span class="token punctuation">&#125;</span>
+	fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>clusterIns<span class="token punctuation">)</span>
+	<span class="token comment">// CreateClientCertificate</span>
+	<span class="token comment">// 构建kubernetes 实例</span>
+	k <span class="token operator">:=</span> kubernetes<span class="token punctuation">.</span><span class="token function">NewKubernetes</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>clusterIns<span class="token punctuation">,</span> <span class="token operator">&amp;</span>cluster<span class="token punctuation">.</span>User<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+	<span class="token comment">// 生成对应的客户端证书，返回私钥和公钥</span>
+	privateKey<span class="token punctuation">,</span> publicCert<span class="token punctuation">,</span> err <span class="token operator">:=</span> k<span class="token punctuation">.</span><span class="token function">CreateClientCertificate</span><span class="token punctuation">(</span>user<span class="token punctuation">.</span>Username<span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> errors<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token string">"CreateClientCertificate, error:"</span> <span class="token operator">+</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token comment">// To JSON</span>
+	kubeConfig<span class="token punctuation">,</span> err <span class="token operator">:=</span> k<span class="token punctuation">.</span><span class="token function">KubeconfigJson</span><span class="token punctuation">(</span>clusterIns<span class="token punctuation">,</span> user<span class="token punctuation">.</span>Username<span class="token punctuation">,</span> privateKey<span class="token punctuation">,</span> publicCert<span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> errors<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token string">"To YAML, error:"</span> <span class="token operator">+</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token comment">// save User</span>
+	<span class="token keyword">if</span> err <span class="token operator">=</span> global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Save</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>cluster<span class="token punctuation">.</span>User<span class="token punctuation">&#123;</span>
+		UUID<span class="token punctuation">:</span>       user<span class="token punctuation">.</span>UUID<span class="token punctuation">,</span>
+		Username<span class="token punctuation">:</span>   user<span class="token punctuation">.</span>Username<span class="token punctuation">,</span>
+		NickName<span class="token punctuation">:</span>   user<span class="token punctuation">.</span>NickName<span class="token punctuation">,</span>
+		KubeConfig<span class="token punctuation">:</span> kubeConfig<span class="token punctuation">,</span>
+		ClusterId<span class="token punctuation">:</span>  <span class="token function">uint</span><span class="token punctuation">(</span>clusterId<span class="token punctuation">)</span><span class="token punctuation">,</span>
+	<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> err
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token keyword">return</span> err
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>CreateClientCertificate 方法创建集群证书，返回私钥和公钥</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">func <span class="token punctuation">(</span>k *Kubernetes<span class="token punctuation">)</span> CreateClientCertificate<span class="token punctuation">(</span>username string<span class="token punctuation">)</span> <span class="token punctuation">(</span>privateKey, publicCert string, err error<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	// 获取clientSet客户端
+	clientset, err :<span class="token operator">=</span> k.Client<span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> nil <span class="token punctuation">&#123;</span>
+		<span class="token builtin class-name">return</span> privateKey, publicCert, err
+	<span class="token punctuation">&#125;</span>
+
+	// 生成一个私钥
+	RandprivateKey, err :<span class="token operator">=</span> GeneratePrivateKey<span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> nil <span class="token punctuation">&#123;</span>
+		<span class="token builtin class-name">return</span> privateKey, publicCert, err
+	<span class="token punctuation">&#125;</span>
+
+	// 生成用户证书申请
+	cert, err :<span class="token operator">=</span> CreateClientCertificateRequest<span class="token punctuation">(</span>username, RandprivateKey<span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> nil <span class="token punctuation">&#123;</span>
+		<span class="token builtin class-name">return</span> privateKey, publicCert, err
+	<span class="token punctuation">&#125;</span>
+	// 创建k8s证书签名请求<span class="token punctuation">(</span>CSR<span class="token punctuation">)</span>
+	csr :<span class="token operator">=</span> certv1.CertificateSigningRequest<span class="token punctuation">&#123;</span>
+		ObjectMeta: metav1.ObjectMeta<span class="token punctuation">&#123;</span>
+			Name: username,
+		<span class="token punctuation">&#125;</span>,
+		Spec: certv1.CertificateSigningRequestSpec<span class="token punctuation">&#123;</span>
+			SignerName: <span class="token string">"kubernetes.io/kube-apiserver-client"</span>, // 指定签名者
+			Request:    cert,                                  // 设置CSR 请求的证书
+			Groups: <span class="token punctuation">[</span><span class="token punctuation">]</span>string<span class="token punctuation">&#123;</span>
+				<span class="token string">"system:authenticated"</span>, // 指定用户组
+			<span class="token punctuation">&#125;</span>,
+			Usages: <span class="token punctuation">[</span><span class="token punctuation">]</span>certv1.KeyUsage<span class="token punctuation">&#123;</span>
+				<span class="token string">"client auth"</span>, // 指定证书用途为客户端认证
+			<span class="token punctuation">&#125;</span>,
+		<span class="token punctuation">&#125;</span>,
+	<span class="token punctuation">&#125;</span>
+	// 在k8s集群中创建CSR
+	createResp, err :<span class="token operator">=</span> clientset.CertificatesV1<span class="token punctuation">(</span><span class="token punctuation">)</span>.CertificateSigningRequests<span class="token punctuation">(</span><span class="token punctuation">)</span>.Create<span class="token punctuation">(</span>context.TODO<span class="token punctuation">(</span><span class="token punctuation">)</span>, <span class="token operator">&amp;</span>csr, metav1.CreateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> nil <span class="token punctuation">&#123;</span>
+		<span class="token builtin class-name">return</span> privateKey, publicCert, err
+	<span class="token punctuation">&#125;</span>
+
+	// 审批CSR证书
+	createResp.Status.Conditions <span class="token operator">=</span> append<span class="token punctuation">(</span>createResp.Status.Conditions, certv1.CertificateSigningRequestCondition<span class="token punctuation">&#123;</span>
+		Reason:         <span class="token string">"Approved by Devops"</span>,
+		Type:           certv1.CertificateApproved,
+		LastUpdateTime: metav1.Now<span class="token punctuation">(</span><span class="token punctuation">)</span>,
+		Status:         <span class="token string">"True"</span>,
+	<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+	// 更新CSR的审批状态
+	updateResp, err :<span class="token operator">=</span> clientset.CertificatesV1<span class="token punctuation">(</span><span class="token punctuation">)</span>.CertificateSigningRequests<span class="token punctuation">(</span><span class="token punctuation">)</span>.UpdateApproval<span class="token punctuation">(</span>context.TODO<span class="token punctuation">(</span><span class="token punctuation">)</span>, createResp.Name, createResp, metav1.UpdateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> nil <span class="token punctuation">&#123;</span>
+		<span class="token builtin class-name">return</span> privateKey, publicCert, err
+	<span class="token punctuation">&#125;</span>
+	// 循环等待证书颁发
+	<span class="token keyword">for</span> <span class="token punctuation">&#123;</span>
+		max_num :<span class="token operator">=</span> <span class="token number">0</span>
+		<span class="token keyword">for</span> <span class="token punctuation">&#123;</span>
+			// 每次循环等待3秒
+			time.Sleep<span class="token punctuation">(</span><span class="token number">3</span> * time.Second<span class="token punctuation">)</span>
+			<span class="token keyword">if</span> max_num <span class="token operator">></span> <span class="token number">150</span> <span class="token punctuation">&#123;</span>
+				<span class="token builtin class-name">break</span>
+			<span class="token punctuation">&#125;</span>
+			// 获取CSR的状态
+			getResp, err :<span class="token operator">=</span> clientset.CertificatesV1<span class="token punctuation">(</span><span class="token punctuation">)</span>.CertificateSigningRequests<span class="token punctuation">(</span><span class="token punctuation">)</span>.Get<span class="token punctuation">(</span>context.TODO<span class="token punctuation">(</span><span class="token punctuation">)</span>, updateResp.Name, metav1.GetOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+			<span class="token keyword">if</span> err <span class="token operator">!=</span> nil <span class="token punctuation">&#123;</span>
+				max_num <span class="token operator">+=</span> <span class="token number">1</span>
+				global.DY_LOG.Warn<span class="token punctuation">(</span><span class="token string">"CertificateSigningRequests Get failed: "</span> + err.Error<span class="token punctuation">(</span><span class="token punctuation">))</span>
+				<span class="token builtin class-name">continue</span>
+			<span class="token punctuation">&#125;</span>
+			// 检查CSR是否已经颁发证书
+			<span class="token keyword">if</span> getResp.Status.Certificate <span class="token operator">!=</span> nil <span class="token punctuation">&#123;</span>
+				// 删除已经颁发证书的CSR
+				<span class="token keyword">if</span> err <span class="token operator">=</span> clientset.CertificatesV1<span class="token punctuation">(</span><span class="token punctuation">)</span>.CertificateSigningRequests<span class="token punctuation">(</span><span class="token punctuation">)</span>.Delete<span class="token punctuation">(</span>context.TODO<span class="token punctuation">(</span><span class="token punctuation">)</span>, username, metav1.DeleteOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> nil <span class="token punctuation">&#123;</span>
+					max_num <span class="token operator">+=</span> <span class="token number">1</span>
+					global.DY_LOG.Warn<span class="token punctuation">(</span><span class="token string">"CertificateSigningRequests Get failed: "</span> + err.Error<span class="token punctuation">(</span><span class="token punctuation">))</span>
+					<span class="token builtin class-name">continue</span>
+				<span class="token punctuation">&#125;</span>
+				// 返回私钥和公钥证书<span class="token punctuation">(</span>编码为Base64<span class="token punctuation">)</span>
+				<span class="token builtin class-name">return</span> base64.StdEncoding.EncodeToString<span class="token punctuation">(</span>
+					pem.EncodeToMemory<span class="token punctuation">(</span><span class="token operator">&amp;</span>pem.Block<span class="token punctuation">&#123;</span>Type: <span class="token string">"RSA PRIVATE KEY"</span>, Bytes: RandprivateKey<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>,
+				<span class="token punctuation">)</span>, base64.StdEncoding.EncodeToString<span class="token punctuation">(</span>getResp.Status.Certificate<span class="token punctuation">)</span>, err
+			<span class="token punctuation">&#125;</span>
+
+			max_num <span class="token operator">+=</span> <span class="token number">1</span>
+			<span class="token builtin class-name">continue</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>GeneratePrivateKey：生成私钥文件</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// GeneratePrivateKey</span>
+<span class="token comment">//</span>
+<span class="token comment">//	@Description: 生成私钥</span>
+<span class="token comment">//	@return []byte</span>
+<span class="token comment">//	@return error</span>
+<span class="token keyword">func</span> <span class="token function">GeneratePrivateKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">byte</span><span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	privateKey<span class="token punctuation">,</span> err <span class="token operator">:=</span> rsa<span class="token punctuation">.</span><span class="token function">GenerateKey</span><span class="token punctuation">(</span>rand<span class="token punctuation">.</span>Reader<span class="token punctuation">,</span> <span class="token number">2048</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token keyword">return</span> x509<span class="token punctuation">.</span><span class="token function">MarshalPKCS1PrivateKey</span><span class="token punctuation">(</span>privateKey<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>CreateClientCertificateRequest：根据私钥文件，生成客户端证书CSR</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token function">CreateClientCertificateRequest</span><span class="token punctuation">(</span>userName <span class="token builtin">string</span><span class="token punctuation">,</span> key <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">byte</span><span class="token punctuation">,</span> org <span class="token operator">...</span><span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">byte</span><span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	<span class="token comment">// 解析PEM 编码的RSA私钥</span>
+	privateKey<span class="token punctuation">,</span> err <span class="token operator">:=</span> x509<span class="token punctuation">.</span><span class="token function">ParsePKCS1PrivateKey</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 构建证书请求的主题信息，包括用户名等</span>
+	subj <span class="token operator">:=</span> pkix<span class="token punctuation">.</span>Name<span class="token punctuation">&#123;</span>
+		CommonName<span class="token punctuation">:</span> userName<span class="token punctuation">,</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token keyword">range</span> org <span class="token punctuation">&#123;</span>
+		subj<span class="token punctuation">.</span>Organization <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>subj<span class="token punctuation">.</span>Organization<span class="token punctuation">,</span> org<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 将主题信息转换为RDN序列</span>
+	rawSubj <span class="token operator">:=</span> subj<span class="token punctuation">.</span><span class="token function">ToRDNSequence</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token comment">// 使用ASN.1 编码主题</span>
+	asn1Subj<span class="token punctuation">,</span> err <span class="token operator">:=</span> asn1<span class="token punctuation">.</span><span class="token function">Marshal</span><span class="token punctuation">(</span>rawSubj<span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 创建x509的证书请求对象</span>
+	csr <span class="token operator">:=</span> <span class="token operator">&amp;</span>x509<span class="token punctuation">.</span>CertificateRequest<span class="token punctuation">&#123;</span>
+		RawSubject<span class="token punctuation">:</span>         asn1Subj<span class="token punctuation">,</span>
+		SignatureAlgorithm<span class="token punctuation">:</span> x509<span class="token punctuation">.</span>SHA256WithRSA<span class="token punctuation">,</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 生成证书CSR</span>
+	csrBytes<span class="token punctuation">,</span> err <span class="token operator">:=</span> x509<span class="token punctuation">.</span><span class="token function">CreateCertificateRequest</span><span class="token punctuation">(</span>rand<span class="token punctuation">.</span>Reader<span class="token punctuation">,</span> csr<span class="token punctuation">,</span> privateKey<span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 将CSR转为PEM格式</span>
+	<span class="token keyword">return</span> pem<span class="token punctuation">.</span><span class="token function">EncodeToMemory</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pem<span class="token punctuation">.</span>Block<span class="token punctuation">&#123;</span>Type<span class="token punctuation">:</span> <span class="token string">"CERTIFICATE REQUEST"</span><span class="token punctuation">,</span> Bytes<span class="token punctuation">:</span> csrBytes<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>调用创建授权方法之后，k8s_users表就会多出一条记录，该记录就是一个集群用户，其中的kube_config字段就是对应的k8sconfig文件，创建的用户权限根据k8s_cluster表的kubeconfig文件权限一致</p>
+<p><img src="/images/client1.png" alt="image"></p>
+<p><img src="/images/client2.png" alt="image"></p>
+<p><img src="/images/client3.png" alt="image"></p>
+<p>上面的方法可以给当前登录的平台用户申请授权文件，而想给平台的其他用户授权呢，如下图，给wangwu用户授权k8s集群的操作权限，需要：</p>
+<ul>
+<li>配置默认的集群角色</li>
+<li>创建集群角色</li>
+<li>根据角色创建对应用户（用户授权）</li>
+</ul>
+<p><img src="/images/client4.png" alt="image"></p>
+<p>配置默认集群角色</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// CreateDefaultClusterRoles 创建或更新默认的 Kubernetes ClusterRoles</span>
+<span class="token comment">// 返回值：</span>
+<span class="token comment">// - error: 如果创建或更新过程中出现问题，则返回相应的错误信息</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>k <span class="token operator">*</span>Kubernetes<span class="token punctuation">)</span> <span class="token function">CreateDefaultClusterRoles</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 获取 Kubernetes 客户端</span>
+    clientset<span class="token punctuation">,</span> err <span class="token operator">:=</span> k<span class="token punctuation">.</span><span class="token function">Client</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        global<span class="token punctuation">.</span>GVA_LOG<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token string">"clientset init failed: "</span> <span class="token operator">+</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> err
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 遍历初始化的 ClusterRoles 列表</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token keyword">range</span> InitClusterRoles <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 尝试获取现有的 ClusterRole</span>
+        instance<span class="token punctuation">,</span> err <span class="token operator">:=</span> clientset<span class="token punctuation">.</span><span class="token function">RbacV1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">ClusterRoles</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> InitClusterRoles<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>Name<span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>GetOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// 如果错误不是 "not found"，则返回错误</span>
+            <span class="token keyword">if</span> <span class="token operator">!</span>strings<span class="token punctuation">.</span><span class="token function">Contains</span><span class="token punctuation">(</span>strings<span class="token punctuation">.</span><span class="token function">ToLower</span><span class="token punctuation">(</span>err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"not found"</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">return</span> err
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token comment">// 如果 ClusterRole 不存在，则创建新的 ClusterRole</span>
+        <span class="token keyword">if</span> instance <span class="token operator">==</span> <span class="token boolean">nil</span> <span class="token operator">||</span> instance<span class="token punctuation">.</span>Name <span class="token operator">==</span> <span class="token string">""</span> <span class="token punctuation">&#123;</span>
+            <span class="token boolean">_</span><span class="token punctuation">,</span> err <span class="token operator">=</span> clientset<span class="token punctuation">.</span><span class="token function">RbacV1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">ClusterRoles</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>InitClusterRoles<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>CreateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+            <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">return</span> err
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// 如果 ClusterRole 存在，则更新现有的 ClusterRole</span>
+            <span class="token boolean">_</span><span class="token punctuation">,</span> err <span class="token operator">=</span> clientset<span class="token punctuation">.</span><span class="token function">RbacV1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">ClusterRoles</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Update</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>InitClusterRoles<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>UpdateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+            <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">return</span> err
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 返回 nil 表示操作成功</span>
+    <span class="token keyword">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建集群角色：</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">type</span> NamespaceRoles <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+	Namespace <span class="token builtin">string</span>   <span class="token string">`json:"namespace"`</span>
+	Roles     <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span> <span class="token string">`json:"roles"`</span>
+<span class="token punctuation">&#125;</span>
+<span class="token keyword">type</span> CreateClusterRole <span class="token keyword">struct</span> <span class="token punctuation">&#123;</span>
+	ClusterRoles   <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span>         <span class="token string">`json:"cluster_roles"`</span>
+	NamespaceRoles <span class="token punctuation">[</span><span class="token punctuation">]</span>NamespaceRoles <span class="token string">`json:"namespace_roles"`</span>
+	UserUuids      <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span>         <span class="token string">`json:"user_uuids"`</span>
+	cluster<span class="token punctuation">.</span>User
+	ClusterId <span class="token builtin">int</span> <span class="token string">`json:"cluster_id"`</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// CreateClusterRole</span>
+<span class="token comment">//</span>
+<span class="token comment">//	@Description: 创建k8s集群角色</span>
+<span class="token comment">//	@receiver k8sClusterService</span>
+<span class="token comment">//	@param role  包含要创建的角色数据的结构体</span>
+<span class="token comment">//	@return err</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>k8sClusterService <span class="token operator">*</span>K8sClusterService<span class="token punctuation">)</span> <span class="token function">CreateClusterRole</span><span class="token punctuation">(</span>role cluster<span class="token punctuation">.</span>RoleData<span class="token punctuation">)</span> <span class="token punctuation">(</span>err <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	<span class="token comment">// 根据角色中的 ClusterId 查找对应的 Kubernetes 集群实例</span>
+	<span class="token keyword">var</span> clusterIns cluster<span class="token punctuation">.</span>K8sCluster
+	<span class="token keyword">if</span> err <span class="token operator">:=</span> global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Where</span><span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> role<span class="token punctuation">.</span>ClusterId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">First</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>clusterIns<span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 遍历角色规则中的 API 组，将 "core" 替换为空字符串</span>
+	<span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token keyword">range</span> role<span class="token punctuation">.</span>Rules <span class="token punctuation">&#123;</span>
+		<span class="token keyword">for</span> j <span class="token operator">:=</span> <span class="token keyword">range</span> role<span class="token punctuation">.</span>Rules<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>APIGroups <span class="token punctuation">&#123;</span>
+			<span class="token keyword">if</span> role<span class="token punctuation">.</span>Rules<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>APIGroups<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">"core"</span> <span class="token punctuation">&#123;</span>
+				role<span class="token punctuation">.</span>Rules<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>APIGroups<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">""</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 创建 Kubernetes 客户端实例</span>
+	k <span class="token operator">:=</span> kubernetes<span class="token punctuation">.</span><span class="token function">NewKubernetes</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>clusterIns<span class="token punctuation">,</span> <span class="token operator">&amp;</span>cluster<span class="token punctuation">.</span>User<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+	client<span class="token punctuation">,</span> err <span class="token operator">:=</span> k<span class="token punctuation">.</span><span class="token function">Client</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 设置角色的注解和标签</span>
+	role<span class="token punctuation">.</span>Annotations<span class="token punctuation">[</span><span class="token string">"builtin"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"false"</span>
+	role<span class="token punctuation">.</span>Annotations<span class="token punctuation">[</span><span class="token string">"created-at"</span><span class="token punctuation">]</span> <span class="token operator">=</span> time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Format</span><span class="token punctuation">(</span><span class="token string">"2006-01-02 15:04:05"</span><span class="token punctuation">)</span>
+	role<span class="token punctuation">.</span>Labels<span class="token punctuation">[</span>kubernetes<span class="token punctuation">.</span>LabelManageKey<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"devops"</span>
+	role<span class="token punctuation">.</span>Labels<span class="token punctuation">[</span>kubernetes<span class="token punctuation">.</span>LabelClusterId<span class="token punctuation">]</span> <span class="token operator">=</span> clusterIns<span class="token punctuation">.</span>UUID<span class="token punctuation">.</span><span class="token function">String</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token comment">// 使用 Kubernetes 客户端创建集群角色</span>
+	<span class="token boolean">_</span><span class="token punctuation">,</span> err <span class="token operator">=</span> client<span class="token punctuation">.</span><span class="token function">RbacV1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">ClusterRoles</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>role<span class="token punctuation">.</span>ClusterRole<span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>CreateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> err
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token keyword">return</span> err
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+<p>创建集群用户并授权</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// CreateUser</span>
+<span class="token comment">//</span>
+<span class="token comment">//	@Description: 在k8s中为给定的角色创建用户</span>
+<span class="token comment">//	@receiver k8sClusterService</span>
+<span class="token comment">//	@param role</span>
+<span class="token comment">//	@return err</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>k8sClusterService <span class="token operator">*</span>K8sClusterService<span class="token punctuation">)</span> <span class="token function">CreateUser</span><span class="token punctuation">(</span>role clusterReq<span class="token punctuation">.</span>CreateClusterRole<span class="token punctuation">)</span> <span class="token punctuation">(</span>err <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	<span class="token comment">// 遍历 role.UserUuids 列表，处理每个用户的创建操作</span>
+	<span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> userUuid <span class="token operator">:=</span> <span class="token keyword">range</span> role<span class="token punctuation">.</span>UserUuids <span class="token punctuation">&#123;</span>
+		<span class="token comment">// 启动一个新的 goroutine 来并行处理每个用户的创建</span>
+		<span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span>u <span class="token builtin">string</span><span class="token punctuation">,</span> r clusterReq<span class="token punctuation">.</span>CreateClusterRole<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">var</span> user system<span class="token punctuation">.</span>SysUser
+			<span class="token comment">// 根据用户的 UUID 从数据库中查找对应的用户记录</span>
+			<span class="token keyword">if</span> err <span class="token operator">=</span> global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Where</span><span class="token punctuation">(</span><span class="token string">"uuid = ?"</span><span class="token punctuation">,</span> u<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">First</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>user<span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+				global<span class="token punctuation">.</span>DY_LOG<span class="token punctuation">.</span><span class="token function">Warn</span><span class="token punctuation">(</span><span class="token string">"User Not Found failed:"</span> <span class="token operator">+</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+				<span class="token keyword">return</span>
+			<span class="token punctuation">&#125;</span>
+			<span class="token comment">// 检查该用户是否已经存在于指定的集群中</span>
+			<span class="token keyword">if</span> <span class="token operator">!</span>errors<span class="token punctuation">.</span><span class="token function">Is</span><span class="token punctuation">(</span>global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Where</span><span class="token punctuation">(</span><span class="token string">"cluster_id = ? and uuid = ?"</span><span class="token punctuation">,</span> r<span class="token punctuation">.</span>ClusterId<span class="token punctuation">,</span> user<span class="token punctuation">.</span>UUID<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">First</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>cluster<span class="token punctuation">.</span>User<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">,</span> gorm<span class="token punctuation">.</span>ErrRecordNotFound<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+				global<span class="token punctuation">.</span>DY_LOG<span class="token punctuation">.</span><span class="token function">Warn</span><span class="token punctuation">(</span>fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">"The User: %s cluster credentials for this account already exist"</span><span class="token punctuation">,</span> user<span class="token punctuation">.</span>NickName<span class="token punctuation">)</span><span class="token punctuation">)</span>
+				<span class="token keyword">return</span>
+			<span class="token punctuation">&#125;</span>
+			<span class="token comment">// 调用 CreateClusterUser 方法来为用户创建集群凭证</span>
+			<span class="token keyword">if</span> err <span class="token operator">=</span> k8sClusterService<span class="token punctuation">.</span><span class="token function">CreateClusterUser</span><span class="token punctuation">(</span>r<span class="token punctuation">,</span> user<span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+				global<span class="token punctuation">.</span>DY_LOG<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token string">"CreateClusterUser failed: "</span> <span class="token operator">+</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+				<span class="token keyword">return</span>
+			<span class="token punctuation">&#125;</span>
+
+			<span class="token keyword">return</span>
+		<span class="token punctuation">&#125;</span><span class="token punctuation">(</span>userUuid<span class="token punctuation">,</span> role<span class="token punctuation">)</span>
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token keyword">return</span> err
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// CreateClusterUser</span>
+<span class="token comment">//</span>
+<span class="token comment">//	@Description: 为给定角色和平台用户在k8s中创建集群用户</span>
+<span class="token comment">//	@receiver k8sClusterService</span>
+<span class="token comment">//	@param role</span>
+<span class="token comment">//	@param user</span>
+<span class="token comment">//	@return err</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>k8sClusterService <span class="token operator">*</span>K8sClusterService<span class="token punctuation">)</span> <span class="token function">CreateClusterUser</span><span class="token punctuation">(</span>role clusterReq<span class="token punctuation">.</span>CreateClusterRole<span class="token punctuation">,</span> user system<span class="token punctuation">.</span>SysUser<span class="token punctuation">)</span> <span class="token punctuation">(</span>err <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	<span class="token comment">// 根据角色中的 ClusterId 查找对应的 Kubernetes 集群实例</span>
+	<span class="token keyword">var</span> clusterIns cluster<span class="token punctuation">.</span>K8sCluster
+	<span class="token keyword">if</span> err <span class="token operator">:=</span> global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Where</span><span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> role<span class="token punctuation">.</span>ClusterId<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">First</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>clusterIns<span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 为用户创建集群凭据</span>
+	<span class="token keyword">if</span> err <span class="token operator">=</span> k8sClusterService<span class="token punctuation">.</span><span class="token function">CreateCredential</span><span class="token punctuation">(</span>role<span class="token punctuation">.</span>ClusterId<span class="token punctuation">,</span> user<span class="token punctuation">.</span>ID<span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> errors<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token string">"为用户创建集群凭据失败"</span> <span class="token operator">+</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 创建 Kubernetes 客户端实例</span>
+	k <span class="token operator">:=</span> kubernetes<span class="token punctuation">.</span><span class="token function">NewKubernetes</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>clusterIns<span class="token punctuation">,</span> <span class="token operator">&amp;</span>cluster<span class="token punctuation">.</span>User<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+	<span class="token comment">// 查找用户在集群中的数据</span>
+	<span class="token keyword">var</span> userData cluster<span class="token punctuation">.</span>User
+	<span class="token keyword">if</span> err <span class="token operator">=</span> global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Where</span><span class="token punctuation">(</span><span class="token string">"cluster_id = ? and uuid = ?"</span><span class="token punctuation">,</span> role<span class="token punctuation">.</span>ClusterId<span class="token punctuation">,</span> user<span class="token punctuation">.</span>UUID<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">First</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>userData<span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 如果角色包含 ClusterRoles，则进行相应处理</span>
+	<span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>role<span class="token punctuation">.</span>ClusterRoles<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token punctuation">&#123;</span>
+		<span class="token comment">// 将 ClusterRoles 转换为 JSON 字符串</span>
+		clusterRolesString<span class="token punctuation">,</span> err <span class="token operator">:=</span> json<span class="token punctuation">.</span><span class="token function">Marshal</span><span class="token punctuation">(</span>role<span class="token punctuation">.</span>ClusterRoles<span class="token punctuation">)</span>
+		<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">return</span> err
+		<span class="token punctuation">&#125;</span>
+		<span class="token comment">// 启动一个新的 goroutine 处理 ClusterRoleBinding 的创建和更新</span>
+		<span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span>id <span class="token builtin">uint</span><span class="token punctuation">,</span> clusterRolesString <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+			<span class="token comment">// 创建或更新 ClusterRoleBinding</span>
+			<span class="token keyword">for</span> r <span class="token operator">:=</span> <span class="token keyword">range</span> role<span class="token punctuation">.</span>ClusterRoles <span class="token punctuation">&#123;</span>
+				<span class="token keyword">if</span> err <span class="token operator">=</span> k<span class="token punctuation">.</span><span class="token function">CreateOrUpdateClusterRoleBinding</span><span class="token punctuation">(</span>role<span class="token punctuation">.</span>ClusterRoles<span class="token punctuation">[</span>r<span class="token punctuation">]</span><span class="token punctuation">,</span> user<span class="token punctuation">.</span>Username<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+					global<span class="token punctuation">.</span>DY_LOG<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token string">"CreateOrUpdateClusterRoleBinding failed:"</span> <span class="token operator">+</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+				<span class="token punctuation">&#125;</span>
+			<span class="token punctuation">&#125;</span>
+
+			<span class="token comment">// 更新集群授权</span>
+			<span class="token keyword">if</span> err <span class="token operator">=</span> global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Model</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>cluster<span class="token punctuation">.</span>User<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Where</span><span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> id<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Update</span><span class="token punctuation">(</span><span class="token string">"cluster_roles"</span><span class="token punctuation">,</span> clusterRolesString<span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+				global<span class="token punctuation">.</span>DY_LOG<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token string">"CreateOrUpdateClusterRoleBinding Cluster Role failed:"</span> <span class="token operator">+</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span><span class="token punctuation">(</span>userData<span class="token punctuation">.</span>ID<span class="token punctuation">,</span> <span class="token function">string</span><span class="token punctuation">(</span>clusterRolesString<span class="token punctuation">)</span><span class="token punctuation">)</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 如果角色包含 NamespaceRoles，则进行相应处理</span>
+	<span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>role<span class="token punctuation">.</span>NamespaceRoles<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token punctuation">&#123;</span>
+		<span class="token comment">// 将 NamespaceRoles 转换为 JSON 字符串</span>
+		namespaceRolesString<span class="token punctuation">,</span> err <span class="token operator">:=</span> json<span class="token punctuation">.</span><span class="token function">Marshal</span><span class="token punctuation">(</span>role<span class="token punctuation">.</span>NamespaceRoles<span class="token punctuation">)</span>
+		<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">return</span> err
+		<span class="token punctuation">&#125;</span>
+		<span class="token comment">// 启动一个新的 goroutine 处理 Rolebinding 的创建和更新</span>
+		<span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span>id <span class="token builtin">uint</span><span class="token punctuation">,</span> namespaceRolesString <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+			<span class="token comment">// 创建或更新 Rolebinding</span>
+			<span class="token keyword">for</span> r <span class="token operator">:=</span> <span class="token keyword">range</span> role<span class="token punctuation">.</span>NamespaceRoles <span class="token punctuation">&#123;</span>
+				<span class="token keyword">for</span> j <span class="token operator">:=</span> <span class="token keyword">range</span> role<span class="token punctuation">.</span>NamespaceRoles<span class="token punctuation">[</span>r<span class="token punctuation">]</span><span class="token punctuation">.</span>Roles <span class="token punctuation">&#123;</span>
+					<span class="token keyword">if</span> err <span class="token operator">:=</span> k<span class="token punctuation">.</span><span class="token function">CreateOrUpdateRolebinding</span><span class="token punctuation">(</span>role<span class="token punctuation">.</span>NamespaceRoles<span class="token punctuation">[</span>r<span class="token punctuation">]</span><span class="token punctuation">.</span>Namespace<span class="token punctuation">,</span> role<span class="token punctuation">.</span>NamespaceRoles<span class="token punctuation">[</span>r<span class="token punctuation">]</span><span class="token punctuation">.</span>Roles<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">,</span> user<span class="token punctuation">.</span>Username<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+						global<span class="token punctuation">.</span>DY_LOG<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token string">"CreateOrUpdateRolebinding Namespace role failed:"</span> <span class="token operator">+</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+					<span class="token punctuation">&#125;</span>
+
+				<span class="token punctuation">&#125;</span>
+			<span class="token punctuation">&#125;</span>
+
+			<span class="token comment">// 更新命名空间授权</span>
+			<span class="token keyword">if</span> err <span class="token operator">=</span> global<span class="token punctuation">.</span>DY_DB<span class="token punctuation">.</span><span class="token function">Model</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>cluster<span class="token punctuation">.</span>User<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Where</span><span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> id<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Update</span><span class="token punctuation">(</span><span class="token string">"cluster_roles"</span><span class="token punctuation">,</span> namespaceRolesString<span class="token punctuation">)</span><span class="token punctuation">.</span>Error<span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+				global<span class="token punctuation">.</span>DY_LOG<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token string">"CreateOrUpdateClusterRoleBinding Cluster Role failed:"</span> <span class="token operator">+</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span><span class="token punctuation">(</span>userData<span class="token punctuation">.</span>ID<span class="token punctuation">,</span> <span class="token function">string</span><span class="token punctuation">(</span>namespaceRolesString<span class="token punctuation">)</span><span class="token punctuation">)</span>
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token keyword">return</span> err
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建或更新k8s clusterRoleBinding</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// CreateOrUpdateClusterRoleBinding</span>
+<span class="token comment">//</span>
+<span class="token comment">//	@Description: 创建或更新k8s ClusterRoleBinding</span>
+<span class="token comment">//	@receiver k</span>
+<span class="token comment">//	@param clusterRoleName</span>
+<span class="token comment">//	@param username  用户名</span>
+<span class="token comment">//	@param builtIn 是否内置</span>
+<span class="token comment">//	@return error</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>k <span class="token operator">*</span>Kubernetes<span class="token punctuation">)</span> <span class="token function">CreateOrUpdateClusterRoleBinding</span><span class="token punctuation">(</span>clusterRoleName <span class="token builtin">string</span><span class="token punctuation">,</span> username <span class="token builtin">string</span><span class="token punctuation">,</span> builtIn <span class="token builtin">bool</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+	client<span class="token punctuation">,</span> err <span class="token operator">:=</span> k<span class="token punctuation">.</span><span class="token function">Client</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 生成 ClusterRoleBinding 的名称</span>
+	name <span class="token operator">:=</span> fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">"%s:%s:%s"</span><span class="token punctuation">,</span> username<span class="token punctuation">,</span> clusterRoleName<span class="token punctuation">,</span> k<span class="token punctuation">.</span>K8sCluster<span class="token punctuation">.</span>UUID<span class="token punctuation">.</span><span class="token function">String</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	labels <span class="token operator">:=</span> <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">&#123;</span>
+		LabelManageKey<span class="token punctuation">:</span> <span class="token string">"devops"</span><span class="token punctuation">,</span>
+		LabelClusterId<span class="token punctuation">:</span> k<span class="token punctuation">.</span>K8sCluster<span class="token punctuation">.</span>UUID<span class="token punctuation">.</span><span class="token function">String</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+		LabelUsername<span class="token punctuation">:</span>  username<span class="token punctuation">,</span>
+	<span class="token punctuation">&#125;</span>
+	annotations <span class="token operator">:=</span> <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">&#123;</span>
+		<span class="token string">"built-in"</span><span class="token punctuation">:</span>   strconv<span class="token punctuation">.</span><span class="token function">FormatBool</span><span class="token punctuation">(</span>builtIn<span class="token punctuation">)</span><span class="token punctuation">,</span>
+		<span class="token string">"created-at"</span><span class="token punctuation">:</span> time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Format</span><span class="token punctuation">(</span><span class="token string">"2006-01-02 15:04:05"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 创建 ClusterRoleBinding 对象</span>
+	item <span class="token operator">:=</span> rbacV1<span class="token punctuation">.</span>ClusterRoleBinding<span class="token punctuation">&#123;</span>
+		ObjectMeta<span class="token punctuation">:</span> metav1<span class="token punctuation">.</span>ObjectMeta<span class="token punctuation">&#123;</span>
+			Name<span class="token punctuation">:</span>        name<span class="token punctuation">,</span>
+			Labels<span class="token punctuation">:</span>      labels<span class="token punctuation">,</span>
+			Annotations<span class="token punctuation">:</span> annotations<span class="token punctuation">,</span>
+		<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+		Subjects<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>rbacV1<span class="token punctuation">.</span>Subject<span class="token punctuation">&#123;</span>
+			<span class="token punctuation">&#123;</span>
+				Kind<span class="token punctuation">:</span> <span class="token string">"User"</span><span class="token punctuation">,</span>
+				Name<span class="token punctuation">:</span> username<span class="token punctuation">,</span>
+			<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+		<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+		RoleRef<span class="token punctuation">:</span> rbacV1<span class="token punctuation">.</span>RoleRef<span class="token punctuation">&#123;</span>
+			Kind<span class="token punctuation">:</span> <span class="token string">"ClusterRole"</span><span class="token punctuation">,</span>
+			Name<span class="token punctuation">:</span> clusterRoleName<span class="token punctuation">,</span>
+		<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 获取现有的 ClusterRoleBinding</span>
+	baseItem<span class="token punctuation">,</span> err <span class="token operator">:=</span> client<span class="token punctuation">.</span><span class="token function">RbacV1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">ClusterRoleBindings</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> name<span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>GetOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">if</span> <span class="token operator">!</span>strings<span class="token punctuation">.</span><span class="token function">Contains</span><span class="token punctuation">(</span>err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"not found"</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">return</span> err
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+
+	<span class="token keyword">if</span> baseItem <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token operator">&amp;&amp;</span> baseItem<span class="token punctuation">.</span>Name <span class="token operator">!=</span> <span class="token string">""</span> <span class="token punctuation">&#123;</span>
+		<span class="token boolean">_</span><span class="token punctuation">,</span> err <span class="token operator">:=</span> client<span class="token punctuation">.</span><span class="token function">RbacV1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">ClusterRoleBindings</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>item<span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>CreateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+		<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">return</span> err
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+		<span class="token boolean">_</span><span class="token punctuation">,</span> err <span class="token operator">:=</span> client<span class="token punctuation">.</span><span class="token function">RbacV1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">ClusterRoleBindings</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Update</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>item<span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>UpdateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+		<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">return</span> err
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token keyword">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建或更新k8s RoleBinding</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// CreateOrUpdateRolebinding</span>
+<span class="token comment">//</span>
+<span class="token comment">//	@Description: 创建或更新k8s RoleBinding</span>
+<span class="token comment">//	@receiver k</span>
+<span class="token comment">//	@param namespace</span>
+<span class="token comment">//	@param clusterRoleName</span>
+<span class="token comment">//	@param username</span>
+<span class="token comment">//	@param builtIn</span>
+<span class="token comment">//	@return error</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>k <span class="token operator">*</span>Kubernetes<span class="token punctuation">)</span> <span class="token function">CreateOrUpdateRolebinding</span><span class="token punctuation">(</span>namespace <span class="token builtin">string</span><span class="token punctuation">,</span> clusterRoleName <span class="token builtin">string</span><span class="token punctuation">,</span> username <span class="token builtin">string</span><span class="token punctuation">,</span> builtIn <span class="token builtin">bool</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+	client<span class="token punctuation">,</span> err <span class="token operator">:=</span> k<span class="token punctuation">.</span><span class="token function">Client</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">return</span> err
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 设置标签</span>
+	labels <span class="token operator">:=</span> <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">&#123;</span>
+		LabelManageKey<span class="token punctuation">:</span> <span class="token string">"devops"</span><span class="token punctuation">,</span>
+		LabelClusterId<span class="token punctuation">:</span> k<span class="token punctuation">.</span>K8sCluster<span class="token punctuation">.</span>UUID<span class="token punctuation">.</span><span class="token function">String</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+		LabelUsername<span class="token punctuation">:</span>  username<span class="token punctuation">,</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 设置注解</span>
+	annotations <span class="token operator">:=</span> <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">&#123;</span>
+		<span class="token string">"built-in"</span><span class="token punctuation">:</span>   strconv<span class="token punctuation">.</span><span class="token function">FormatBool</span><span class="token punctuation">(</span>builtIn<span class="token punctuation">)</span><span class="token punctuation">,</span>
+		<span class="token string">"created-at"</span><span class="token punctuation">:</span> time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Format</span><span class="token punctuation">(</span><span class="token string">"2006-01-02 15:04:05"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 生成RoleBinding的名称</span>
+	name <span class="token operator">:=</span> fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">"%s:%s:%s:%s"</span><span class="token punctuation">,</span> namespace<span class="token punctuation">,</span> username<span class="token punctuation">,</span> clusterRoleName<span class="token punctuation">,</span> k<span class="token punctuation">.</span>K8sCluster<span class="token punctuation">.</span>UUID<span class="token punctuation">)</span>
+	<span class="token comment">// 创建RoleBinding对象</span>
+	item <span class="token operator">:=</span> rbacV1<span class="token punctuation">.</span>RoleBinding<span class="token punctuation">&#123;</span>
+		ObjectMeta<span class="token punctuation">:</span> metav1<span class="token punctuation">.</span>ObjectMeta<span class="token punctuation">&#123;</span>
+			Name<span class="token punctuation">:</span>        name<span class="token punctuation">,</span>
+			Labels<span class="token punctuation">:</span>      labels<span class="token punctuation">,</span>
+			Annotations<span class="token punctuation">:</span> annotations<span class="token punctuation">,</span>
+			Namespace<span class="token punctuation">:</span>   namespace<span class="token punctuation">,</span>
+		<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+		Subjects<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>rbacV1<span class="token punctuation">.</span>Subject<span class="token punctuation">&#123;</span>
+			<span class="token punctuation">&#123;</span>
+				Kind<span class="token punctuation">:</span> <span class="token string">"User"</span><span class="token punctuation">,</span>
+				Name<span class="token punctuation">:</span> username<span class="token punctuation">,</span>
+			<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+		<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+		RoleRef<span class="token punctuation">:</span> rbacV1<span class="token punctuation">.</span>RoleRef<span class="token punctuation">&#123;</span>
+			Kind<span class="token punctuation">:</span> <span class="token string">"ClusterRole"</span><span class="token punctuation">,</span>
+			Name<span class="token punctuation">:</span> clusterRoleName<span class="token punctuation">,</span>
+		<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 获取现有的 RoleBinding</span>
+	baseItem<span class="token punctuation">,</span> err <span class="token operator">:=</span> client<span class="token punctuation">.</span><span class="token function">RbacV1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">RoleBindings</span><span class="token punctuation">(</span>namespace<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Get</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> name<span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>GetOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+		<span class="token keyword">if</span> <span class="token operator">!</span>strings<span class="token punctuation">.</span><span class="token function">Contains</span><span class="token punctuation">(</span>err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"not found"</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">return</span> err
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token comment">// 如果 RoleBinding 不存在，则创建新的 RoleBinding</span>
+	<span class="token keyword">if</span> baseItem <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token operator">&amp;&amp;</span> baseItem<span class="token punctuation">.</span>Name <span class="token operator">!=</span> <span class="token string">""</span> <span class="token punctuation">&#123;</span>
+		<span class="token boolean">_</span><span class="token punctuation">,</span> err <span class="token operator">:=</span> client<span class="token punctuation">.</span><span class="token function">RbacV1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">RoleBindings</span><span class="token punctuation">(</span>namespace<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>item<span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>CreateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+		<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">return</span> err
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+		<span class="token comment">// 如果 RoleBinding 存在，则更新现有的 RoleBinding</span>
+		<span class="token boolean">_</span><span class="token punctuation">,</span> err <span class="token operator">:=</span> client<span class="token punctuation">.</span><span class="token function">RbacV1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">RoleBindings</span><span class="token punctuation">(</span>namespace<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Update</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>item<span class="token punctuation">,</span> metav1<span class="token punctuation">.</span>UpdateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+		<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">return</span> err
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span>
+	<span class="token keyword">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这样就可以根据平台用户名添加集群用户，指定集群用户的集群权限、命名空间权限了</p>
+<p><img src="/images/client5.png" alt="image"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloud.fun">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloud.fun/2024/07/24/%E8%B0%83%E7%94%A8k8s%20api%E5%AE%9E%E7%8E%B0%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7%E5%B9%B6%E6%8E%88%E6%9D%83/">http://dycloud.fun/2024/07/24/%E8%B0%83%E7%94%A8k8s%20api%E5%AE%9E%E7%8E%B0%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7%E5%B9%B6%E6%8E%88%E6%9D%83/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloud.fun" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/kubernetes/">kubernetes</a><a class="post-meta__tags" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/">云原生</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/05/26/prometheus%20operator/"><img class="next-cover" src="/img/prometheus.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">prometheus operator</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/07/02/Configmap/" title="kubernetes常用资源——configMap"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-02</div><div class="title">kubernetes常用资源——configMap</div></div></a></div><div><a href="/2022/07/01/Deployment%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——deployment"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-01</div><div class="title">kubernetes常用资源——deployment</div></div></a></div><div><a href="/2022/07/02/PV%20PVC/" title="kubernetes常用资源——PV&#x2F;PVC"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-02</div><div class="title">kubernetes常用资源——PV&#x2F;PVC</div></div></a></div><div><a href="/2022/08/15/Pod%E5%BC%82%E5%B8%B8%E7%8A%B6%E6%80%81%E6%8E%92%E9%94%99/" title="Pod异常状态排错"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-15</div><div class="title">Pod异常状态排错</div></div></a></div><div><a href="/2022/07/01/RC%20RS%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——RC&#x2F;RS"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-01</div><div class="title">kubernetes常用资源——RC&#x2F;RS</div></div></a></div><div><a href="/2022/07/03/Service%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——Service"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-03</div><div class="title">kubernetes常用资源——Service</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">133</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%B0%83%E7%94%A8k8s-api%E5%AE%9E%E7%8E%B0%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7%E5%B9%B6%E6%8E%88%E6%9D%83"><span class="toc-number">1.</span> <span class="toc-text">调用k8s api实现添加用户并授权</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81k8s%E4%B8%AD%E6%A0%B9%E6%8D%AE%E7%94%A8%E6%88%B7%E5%90%8D%E5%88%9B%E5%BB%BAconfig%E6%96%87%E4%BB%B6"><span class="toc-number">1.0.1.</span> <span class="toc-text">一、k8s中根据用户名创建config文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81golang%E4%B8%AD%E5%A6%82%E4%BD%95%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E6%8E%88%E6%9D%83%E6%96%87%E4%BB%B6"><span class="toc-number">1.0.2.</span> <span class="toc-text">二、golang中如何创建用户授权文件</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/07/24/%E8%B0%83%E7%94%A8k8s%20api%E5%AE%9E%E7%8E%B0%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7%E5%B9%B6%E6%8E%88%E6%9D%83/" title="调用k8s API实现添加用户并授权"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="调用k8s API实现添加用户并授权"/></a><div class="content"><a class="title" href="/2024/07/24/%E8%B0%83%E7%94%A8k8s%20api%E5%AE%9E%E7%8E%B0%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7%E5%B9%B6%E6%8E%88%E6%9D%83/" title="调用k8s API实现添加用户并授权">调用k8s API实现添加用户并授权</a><time datetime="2024-07-24T12:32:00.000Z" title="发表于 2024-07-24 20:32:00">2024-07-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/26/prometheus%20operator/" title="prometheus operator"><img src="/img/prometheus.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="prometheus operator"/></a><div class="content"><a class="title" href="/2024/05/26/prometheus%20operator/" title="prometheus operator">prometheus operator</a><time datetime="2024-05-26T07:51:23.000Z" title="发表于 2024-05-26 15:51:23">2024-05-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/" title="使用rook-ceph部署高可用ceph集群"><img src="/img/ceph.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="使用rook-ceph部署高可用ceph集群"/></a><div class="content"><a class="title" href="/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/" title="使用rook-ceph部署高可用ceph集群">使用rook-ceph部署高可用ceph集群</a><time datetime="2024-05-23T07:51:23.000Z" title="发表于 2024-05-23 15:51:23">2024-05-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程"><img src="/img/oracle.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="记录AWS Oracle实例数据迁移的艰辛过程"/></a><div class="content"><a class="title" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程">记录AWS Oracle实例数据迁移的艰辛过程</a><time datetime="2024-03-12T04:12:23.000Z" title="发表于 2024-03-12 12:12:23">2024-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-cluster%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-cluster相关组件"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="kubernetes platform后端开发-cluster相关组件"/></a><div class="content"><a class="title" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-cluster%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-cluster相关组件">kubernetes platform后端开发-cluster相关组件</a><time datetime="2024-02-25T06:32:00.000Z" title="发表于 2024-02-25 14:32:00">2024-02-25</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>
