@@ -1,0 +1,843 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>K8S权限管理及生产使用 | J.のblog</title><meta name="keywords" content="kubernetes,云原生"><meta name="author" content="J."><meta name="copyright" content="J."><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="K8S权限管理一、RBAC的架构与核心组件1.1 RBAC的授权流程当用户或服务账户发起API请求时，RBAC的授权流程如下：  身份认证(Authentication)：通过证书、Token或外部IdP（如OIDC）验证请求者身份。 授权决策（Authorization）： API Server提取请求的操作(Verb)、资源类型(Resource)和命名空间（Namespace） 遍历所有与主">
+<meta property="og:type" content="article">
+<meta property="og:title" content="K8S权限管理及生产使用">
+<meta property="og:url" content="http://dycloud.fun/2022/08/20/K8S%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="J.のblog">
+<meta property="og:description" content="K8S权限管理一、RBAC的架构与核心组件1.1 RBAC的授权流程当用户或服务账户发起API请求时，RBAC的授权流程如下：  身份认证(Authentication)：通过证书、Token或外部IdP（如OIDC）验证请求者身份。 授权决策（Authorization）： API Server提取请求的操作(Verb)、资源类型(Resource)和命名空间（Namespace） 遍历所有与主">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dycloud.fun/img/kubernetes.png">
+<meta property="article:published_time" content="2022-08-20T08:21:00.000Z">
+<meta property="article:modified_time" content="2025-03-28T08:26:10.329Z">
+<meta property="article:author" content="J.">
+<meta property="article:tag" content="kubernetes">
+<meta property="article:tag" content="云原生">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dycloud.fun/img/kubernetes.png"><link rel="shortcut icon" href="/img/touxiang.png"><link rel="canonical" href="http://dycloud.fun/2022/08/20/K8S%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"9GWB2VV7GN","apiKey":"dac56ec5b0b1f45281251ee59db4d637","indexName":"blog","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'K8S权限管理及生产使用',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-03-28 16:26:10'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/xxx.css"><link rel="stylesheet" href="/css/universe.css"><link rel="stylesheet" href="/css/custom.css"><style type="text/css">#toggle-sidebar {bottom: 80px}</style><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/tzy13755126023/BLOG_SOURCE/css/function.min.css"><link rel="stylesheet" href="/css/rightMenu.css"><style type="text/css">#toggle-sidebar {left:100px}</style><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="J.のblog" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/touxiang.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">139</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/longzhu.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">J.のblog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">K8S权限管理及生产使用</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-08-20T08:21:00.000Z" title="发表于 2022-08-20 16:21:00">2022-08-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-28T08:26:10.329Z" title="更新于 2025-03-28 16:26:10">2025-03-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/kubernetes/">kubernetes</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="K8S权限管理及生产使用"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="K8S权限管理"><a href="#K8S权限管理" class="headerlink" title="K8S权限管理"></a>K8S权限管理</h1><h1 id="一、RBAC的架构与核心组件"><a href="#一、RBAC的架构与核心组件" class="headerlink" title="一、RBAC的架构与核心组件"></a>一、RBAC的架构与核心组件</h1><h3 id="1-1-RBAC的授权流程"><a href="#1-1-RBAC的授权流程" class="headerlink" title="1.1 RBAC的授权流程"></a>1.1 RBAC的授权流程</h3><p>当用户或服务账户发起API请求时，RBAC的授权流程如下：</p>
+<ol>
+<li>身份认证(Authentication)：通过证书、Token或外部IdP（如OIDC）验证请求者身份。</li>
+<li>授权决策（Authorization）：<ol>
+<li>API Server提取请求的操作(Verb)、资源类型(Resource)和命名空间（Namespace）</li>
+<li>遍历所有与主题关联的RoleBinding和ClusterRoleBinding，检查是否存在匹配的权限规则。</li>
+</ol>
+</li>
+<li>准入控制（Admission Control）：执行后续校验（如资源配额、Pod安全策略）</li>
+</ol>
+<h3 id="2-2-RBAC-的四层模型"><a href="#2-2-RBAC-的四层模型" class="headerlink" title="2.2 RBAC 的四层模型"></a>2.2 RBAC 的四层模型</h3><p>RBAC 通过四类 API 对象实现权限控制：</p>
+<ol>
+<li><strong>角色（Role 和 ClusterRole）</strong>：<ul>
+<li><strong>Role</strong>：定义命名空间内的资源操作权限（如 Pod 的读写）。</li>
+<li><strong>ClusterRole</strong>：定义集群级资源（如 Node、PersistentVolume）或跨命名空间的聚合权限。</li>
+</ul>
+</li>
+<li><strong>绑定（RoleBinding 和 ClusterRoleBinding）</strong>：<ul>
+<li><strong>RoleBinding</strong>：将 Role 或 ClusterRole 绑定到主体，作用域为单个命名空间。</li>
+<li><strong>ClusterRoleBinding</strong>：将 ClusterRole 绑定到主体，权限全局生效。</li>
+</ul>
+</li>
+</ol>
+<h3 id="2-3-权限规则的组成要素"><a href="#2-3-权限规则的组成要素" class="headerlink" title="2.3 权限规则的组成要素"></a>2.3 权限规则的组成要素</h3><p>每个 Role 或 ClusterRole 包含一组规则（Rules），每条规则由以下要素构成：</p>
+<ul>
+<li><strong>API 组（apiGroups）</strong>：指定目标资源所属的 API 组（如 <code>apps</code> 对应 Deployment，空字符串代表核心组）。</li>
+<li><strong>资源（resources）</strong>：资源类型（如 <code>pods</code>、<code>secrets</code>）。</li>
+<li><strong>操作（verbs）</strong>：允许的 HTTP 方法（如 <code>get</code>、<code>list</code>、<code>create</code>）。</li>
+<li><strong>资源名称（resourceNames）</strong>（可选）：限制规则仅适用于特定名称的资源。</li>
+<li><strong>非资源端点（nonResourceURLs）</strong>（仅 ClusterRole）：控制对 <code>/healthz</code> 等非资源 API 的访问。</li>
+</ul>
+<h1 id="二、RBAC的配置与操作实践"><a href="#二、RBAC的配置与操作实践" class="headerlink" title="二、RBAC的配置与操作实践"></a>二、RBAC的配置与操作实践</h1><h3 id="2-1-服务账户ServiceAccount"><a href="#2-1-服务账户ServiceAccount" class="headerlink" title="2.1 服务账户ServiceAccount"></a>2.1 服务账户ServiceAccount</h3><h6 id="2-1-1-ServiceAccount增删改查"><a href="#2-1-1-ServiceAccount增删改查" class="headerlink" title="2.1.1 ServiceAccount增删改查"></a>2.1.1 ServiceAccount增删改查</h6><p>创建ServiceAccount</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># kubectl create sa dujie </span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>查看ServiceAccount，在k8s 1.24之前，创建serviceaccount会自动创建对应的secret，包含token和ca文件</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># kubectl get sa </span>
+NAME      SECRETS   AGE
+default   <span class="token number">1</span>         10d
+dujie     <span class="token number">1</span>         61m
+root@VM-26-130-ubuntu:~<span class="token comment"># kubectl get secrets  dujie-token-6gcv7  -o yaml </span>
+apiVersion: v1
+data:
+  ca.crt: <span class="token assign-left variable">LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJMU1ETXhPREEwTWpNME9Gb1hEVE0xTURNeE5qQTBNak0wT0Zvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTjM5CjBTMmd2ZU1ISlJHWFV0ZmJEaW43ZlRjSjB4ZWFVbDgvZnAxRnBxaVdOVENVZmdCZVFUSkdxWXBYQmMvM3hzT3AKWjByWDkyTXEzSmRGTDQ5djBXUm81bU85bzB0YWJHTzk4YlM3ZXpkNFllSWhBZjJZUVgxaHRNSVZPTzdvSzY1NwpTcVZhbk1GcWphRERMRmZSMVFkVndlZ2JRbkp2UWJIbFQ1RytpMWNYdk9Hd1NlTUFCNzljUW0vOHpJcG5FNGpyCmpYNjZEbnhMb04wMUU3aHNkWWNEalJEeE9RY0hXVW5NUFlIa2pJTk9GelVIY0pBYWJqNjAwanZNaERWNGNiVkkKeG93Z1Q0U1lHVWxPT2d5d0U1aEJWSTJBSVVRdkp6VlRNUVR6MlFWZys4Vy9FNnI3bFQ2L3VvY0VlNUtFWFBZbwpJVHQxVHpRZW9EL0xINk9mQkxNQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFOdVVwdWhzdlRzSnNEZlpkRUNOcWNJTmhGRHgKTDBMdDhXcTRRQmZFUUNjRFA2cVhLRlY2aVArTWZLWlNWVktSVkhSbmJXYjVDYjZ6SEhOK1d2UGdxWUo3WXZjTQoraUVUSnc2VXM4K3NrNldGYVVwZnY4R1R5VjNpb2gwN2tacGxtekM2YlVzRlRVZXhmeHo2YWhNM2Q5UTJnalJpCjM4OVRoU2N0OFphVXlVbS9XbUpEcFFZdVFpeDdtRGJqVDZOZVQyNFZzN0hRYUFyLzZiWXNvNmxjR1prTGsyMjcKRHpTMGpRUjR6QjRVK1g3d3RKaXZvZll0aXorRmN1azJ6ZDJ1MjVBekhoeVpKY3UvdWJzRmhqQU5leUFMUGZJcQpyak43bTdmaWlGWnJsVnNJSXlqZnVFajBMUXhiT3ZWN1JTVWhrb2E0QXNwQjBFb1lCSlo2bE5zZkxydz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo</span><span class="token operator">=</span>
+  namespace: <span class="token assign-left variable">ZGVmYXVsdA</span><span class="token operator">==</span>
+  token: <span class="token assign-left variable">ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNkluVnVRbTFPVlZOME1ETXpMVTVtTTNOb01WcFVRWFpEZUhacVVHbHJSMnBxVURWQlZEY3paM0Z5V0ZVaWZRLmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUprWldaaGRXeDBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpXTnlaWFF1Ym1GdFpTSTZJbVIxYW1sbExYUnZhMlZ1TFRablkzWTNJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpYSjJhV05sTFdGalkyOTFiblF1Ym1GdFpTSTZJbVIxYW1sbElpd2lhM1ZpWlhKdVpYUmxjeTVwYnk5elpYSjJhV05sWVdOamIzVnVkQzl6WlhKMmFXTmxMV0ZqWTI5MWJuUXVkV2xrSWpvaVkyVm1NR1kwTnpRdE1tRTFZaTAwWW1GaExXSmlOMkV0WkdRM09UZGlNRE13TWpOaUlpd2ljM1ZpSWpvaWMzbHpkR1Z0T25ObGNuWnBZMlZoWTJOdmRXNTBPbVJsWm1GMWJIUTZaSFZxYVdVaWZRLkVhTHRzWXB1dlNQeDJXVFM1NGxKVy1oY0U2alFhT2gyVzRwUXkyOXZOMXJ5dVVlWUM2T1ZGRVp6LW5vUTlDSFQtdFU1Vkp6TmxWVDhlZzZmMW80eFN0ZlZzOHRyaldBUm4xTU1vMW9QcXFjUjh5Y1RhVUgtcUpTSnlPb0FGd2VCaDdSbTVPVGdyZ0U0UW5VY0pUT0p4Wkw2MWNxbkVmcU9hdXlNQWRodE5sTUpXMWhPd1dlNFdkMXlHOTRPM0ZybDNsY1pRUGNJVTVHa0tCSDBQQVVKSGxYb1pIV0g2Vk50RGlTckhOSHY1YnN5MlRwUWRZOG4yakJBcW5TMzNmZVNLajViYXpCLVBaekdGLXM0STJFcnlER0k4cG91eHZRTUR5Z2k4T3VvYUM5Y0dRT3RMLWF4bUNCcG43UHZkMHQtT0J5dU0xSjhCR0xOR1pHcnFzQ0Rzdw</span><span class="token operator">==</span>
+kind: Secret
+metadata:
+  annotations:
+    kubernetes.io/service-account.name: dujie
+    kubernetes.io/service-account.uid: cef0f474-2a5b-4baa-bb7a-dd797b03023b
+  creationTimestamp: <span class="token string">"2025-03-28T06:08:04Z"</span>
+  name: dujie-token-6gcv7
+  namespace: default
+  resourceVersion: <span class="token string">"5758518"</span>
+  selfLink: /api/v1/namespaces/default/secrets/dujie-token-6gcv7
+  uid: ba717d58-dea4-444d-823a-197dcffbc2df
+type: kubernetes.io/service-account-token<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>1.24版本以后需要手动创建（以下操作是1.24版本以后需要执行）</p>
+<p>为某个 ServiceAccount 创建 Token：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># kubectl create token dujie</span>
+eyJhbGciOiJSUzI1NiIsImtpZCI6IlRWdXpoRlExMEFL…<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>创建一个指定过期时间的 Token：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># kubectl create token dujie --duration=99999h</span>
+eyJhbGciOiJSUzI1NiIsImtpZCI6IlRWdX…<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>使用Secret存储ServiceAccount Token</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># vim dujie-token-secret.yaml</span>
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dujie-token-secret
+  annotations:
+    kubernetes.io/service-account.name: dujie
+type: kubernetes.io/service-account-token<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建该Secret</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># kubectl create -f dujie-token-secret.yaml</span>
+secret/dujie-token-secret created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>查看生成的 Token：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># kubectl get secret dujie-token-secret</span>
+NAME TYPE DATA AGE
+dukuan-token-secret kubernetes.io/service-account-token <span class="token number">3</span> 71s
+<span class="token comment"># kubectl describe secret dujie-token-secret</span>
+Name: dujie-token-secret
+Namespace: default
+Labels: <span class="token operator">&lt;</span>none<span class="token operator">></span>
+Annotations: kubernetes.io/service-account.name: dujie
+ kubernetes.io/service-account.uid: 227b46f0-42df-4e8e-bdb9-
+6eb23e858f2c
+Type: kubernetes.io/service-account-token
+Data
+<span class="token operator">==</span><span class="token operator">==</span>
+namespace: <span class="token number">7</span> bytes
+token: eyJhbGciOiJSUzI1NiIsImtpZCI6IlRWd…<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h6 id="2-1-2-基于ServiceAccount生成Kubeconfig"><a href="#2-1-2-基于ServiceAccount生成Kubeconfig" class="headerlink" title="2.1.2 基于ServiceAccount生成Kubeconfig"></a>2.1.2 基于ServiceAccount生成Kubeconfig</h6><p>基于ServiceAccount生成Kubeconfig，需要先为ServiceAccount生成一个Token，可以使用保存在Secret中的Token</p>
+<p>获取APIServer地址：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># serverAddr=`kubectl cluster-info | grep --color=never -Eo -m 1 "https://.*" | sed -r "s/\x1B\[([0-9]&#123;1,2&#125;(;[0-9]&#123;1,2&#125;)?)?[m|K]//g"`</span>
+root@VM-26-130-ubuntu:~<span class="token comment"># echo $serverAddr</span>
+https://xxxxxxxx.bj.xxxxxxx.xxxxxx.cn:6443
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>获取当前ServiceAccount的CA证书和Token：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># serviceaccountName="dujie"</span>
+root@VM-26-130-ubuntu:~<span class="token comment"># kubectl get secret |grep dujie</span>
+dujie-token-6gcv7                     kubernetes.io/service-account-token   <span class="token number">3</span>      74m
+root@VM-26-130-ubuntu:~<span class="token comment"># secretName="dujie-token-6gcv7"</span>
+root@VM-26-130-ubuntu:~<span class="token comment">#  ca=$(kubectl get secret/$secretName -o jsonpath='&#123;.data.ca\.crt&#125;')</span>
+root@VM-26-130-ubuntu:~<span class="token comment">#  token=$(kubectl get secret/$secretName -o jsonpath='&#123;.data.token&#125;' |base64 --decode)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>生成kubeconfig的脚本</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token shebang important">#!/bin/bash</span>
+<span class="token assign-left variable">serviceaccountName</span><span class="token operator">=</span><span class="token string">"dujie"</span>
+<span class="token assign-left variable">secretName</span><span class="token operator">=</span><span class="token string">"dujie-token-secret"</span>
+<span class="token assign-left variable">namespace</span><span class="token operator">=</span><span class="token string">"kube-users"</span>
+<span class="token assign-left variable">serverAddr</span><span class="token operator">=</span><span class="token variable"><span class="token variable">`</span>kubectl cluster-info <span class="token operator">|</span> <span class="token function">grep</span> --color<span class="token operator">=</span>never <span class="token punctuation">\</span>
+  -Eo -m <span class="token number">1</span> <span class="token string">"https://.*"</span> <span class="token operator">|</span> <span class="token punctuation">\</span>
+  <span class="token function">sed</span> -r <span class="token string">"s/<span class="token entity" title="\x1B">\x1B</span>\[([0-9]&#123;1,2&#125;(;[0-9]&#123;1,2&#125;)?)?[m|K]//g"</span><span class="token variable">`</span></span>
+<span class="token builtin class-name">echo</span> <span class="token string">"serverAddr: <span class="token variable">$serverAddr</span>"</span>
+<span class="token assign-left variable">ca</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span>kubectl get secret/$secretName -n $namespace -o <span class="token assign-left variable">jsonpath</span><span class="token operator">=</span><span class="token string">'&#123;.data.ca\.crt&#125;'</span><span class="token variable">)</span></span>
+<span class="token assign-left variable">token</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span>kubectl get secret/$secretName -n $namespace -o <span class="token assign-left variable">jsonpath</span><span class="token operator">=</span><span class="token string">'&#123;.data.token&#125;'</span> <span class="token operator">|</span> base64 --decode<span class="token variable">)</span></span>
+
+<span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">></span> <span class="token variable">$&#123;serviceaccountName&#125;</span>-kubeconfig.yaml</span>
+apiVersion: v1
+kind: Config
+clusters:
+- name: default-cluster
+  cluster:
+    server: <span class="token variable">$&#123;serverAddr&#125;</span>
+    certificate-authority-data: <span class="token variable">$&#123;ca&#125;</span>
+users:
+- name: <span class="token variable">$&#123;serviceaccountName&#125;</span>
+  user:
+    token: <span class="token variable">$&#123;token&#125;</span>
+contexts:
+- name: <span class="token variable">$&#123;serviceaccountName&#125;</span>-context
+  context:
+    cluster: default-cluster
+    user: <span class="token variable">$&#123;serviceaccountName&#125;</span>
+    namespace: default
+current-context: <span class="token variable">$&#123;serviceaccountName&#125;</span>-context
+EOF</span>
+
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>生成后就可以使用新的kubeconfig操作集群</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># kubectl get pods --kubeconfig dujie-kubeconfig.yaml </span>
+NAME                                  READY   STATUS    RESTARTS      AGE
+gpu-example-6df5c956b8-5wnch          <span class="token number">1</span>/1     Running   <span class="token number">0</span>             25h
+gpu-example-6df5c956b8-6wbjd          <span class="token number">1</span>/1     Running   <span class="token number">0</span>             25h
+gpu-example-6df5c956b8-8dvfk          <span class="token number">1</span>/1     Running   <span class="token number">1</span> <span class="token punctuation">(</span>25h ago<span class="token punctuation">)</span>   25h
+gpu-example-6df5c956b8-w6l9d          <span class="token number">1</span>/1     Running   <span class="token number">0</span>             25h
+gpu-example-6df5c956b8-xnnl7          <span class="token number">1</span>/1     Running   <span class="token number">0</span>             25h
+my-app-7c86967899-27jz7               <span class="token number">1</span>/1     Running   <span class="token number">1</span> <span class="token punctuation">(</span>25h ago<span class="token punctuation">)</span>   30h
+my-app-7c86967899-z5crp               <span class="token number">1</span>/1     Running   <span class="token number">0</span>             30h
+tolerations-second-574f8dcc68-qbsqp   <span class="token number">1</span>/1     Running   <span class="token number">0</span>             25h
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>如果没有权限，可以临时进行授权：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># kubectl create rolebinding dujie-view --clusterrole=view --serviceaccount=default:dujie</span>
+rolebinding.rbac.authorization.k8s.io/dujie-view created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<h3 id="2-2-细粒度权限配置"><a href="#2-2-细粒度权限配置" class="headerlink" title="2.2 细粒度权限配置"></a>2.2 细粒度权限配置</h3><h5 id="2-2-1-使用kubectl管理RBAC"><a href="#2-2-1-使用kubectl管理RBAC" class="headerlink" title="2.2.1 使用kubectl管理RBAC"></a>2.2.1 使用kubectl管理RBAC</h5><p>创建一个可以查询Pod的Role</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># kubectl create role pod-reader --verb=get --verb=list --verb=watch --resource=pods</span>
+role.rbac.authorization.k8s.io/pod-reader created
+root@VM-26-130-ubuntu:~<span class="token comment"># kubectl get role pod-reader  -o yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: <span class="token string">"2025-03-28T07:30:32Z"</span>
+  name: pod-reader
+  namespace: default
+  resourceVersion: <span class="token string">"5791732"</span>
+  selfLink: /apis/rbac.authorization.k8s.io/v1/namespaces/default/roles/pod-reader
+  uid: <span class="token number">14393739</span>-5638-433b-969e-440a26a8f370
+rules:
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - <span class="token function">watch</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>指定非核心组</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># kubectl create role foo --verb=get,list,watch --resource=replicasets.apps</span>
+role.rbac.authorization.k8s.io/foo created
+root@VM-26-130-ubuntu:~<span class="token comment"># kubectl get role foo  -o yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: <span class="token string">"2025-03-28T07:31:24Z"</span>
+  name: foo
+  namespace: default
+  resourceVersion: <span class="token string">"5792083"</span>
+  selfLink: /apis/rbac.authorization.k8s.io/v1/namespaces/default/roles/foo
+  uid: 68a48369-28ad-4410-aa34-8541be9d7d73
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - replicasets
+  verbs:
+  - get
+  - list
+  - <span class="token function">watch</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建一个可以查询Pod的ClusterRole</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># kubectl create clusterrole pod-reader --verb=get,list,watch --resource=pods </span>
+clusterrole.rbac.authorization.k8s.io/pod-reader created
+root@VM-26-130-ubuntu:~<span class="token comment"># kubectl get clusterrole pod-reader -o yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: <span class="token string">"2025-03-28T07:32:30Z"</span>
+  name: pod-reader
+  resourceVersion: <span class="token string">"5792523"</span>
+  selfLink: /apis/rbac.authorization.k8s.io/v1/clusterroles/pod-reader
+  uid: eb6761fc-3fee-4bf7-8d24-c5409c1f2739
+rules:
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - <span class="token function">watch</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建一个Rolebinding，把pod-reader 绑定到default空间下的dujie用户</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># kubectl create rolebinding  dujie-pod-reader --clusterrole=pod-reader --serviceaccount=default:dujie</span>
+rolebinding.rbac.authorization.k8s.io/dujie-pod-reader created
+root@VM-26-130-ubuntu:~<span class="token comment"># kubectl get rolebindings.rbac.authorization.k8s.io  dujie-pod-reader -o yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: <span class="token string">"2025-03-28T07:33:53Z"</span>
+  name: dujie-pod-reader
+  namespace: default
+  resourceVersion: <span class="token string">"5793080"</span>
+  selfLink: /apis/rbac.authorization.k8s.io/v1/namespaces/default/rolebindings/dujie-pod-reader
+  uid: cf429661-3263-415c-9acb-de9c77406eda
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pod-reader
+subjects:
+- kind: ServiceAccount
+  name: dujie
+  namespace: default<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建一个 ClusterRoleBinding，把 admin 权限绑定至 default 空间下的 dotbalo 用户：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># kubectl get clusterrolebindings.rbac.authorization.k8s.io  dujie-pod-reader  -o yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  creationTimestamp: <span class="token string">"2025-03-28T07:35:14Z"</span>
+  name: dujie-pod-reader
+  resourceVersion: <span class="token string">"5793629"</span>
+  selfLink: /apis/rbac.authorization.k8s.io/v1/clusterrolebindings/dujie-pod-reader
+  uid: a2637330-5c12-4c54-9788-9fe2b9011532
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+- kind: ServiceAccount
+  name: dujie
+  namespace: default<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>验证某个用户是否具有某个权限</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:~<span class="token comment"># kubectl auth can-i  get configmaps -n default --as=system:serviceaccount:default:dujie</span>
+<span class="token function">yes</span>
+root@VM-26-130-ubuntu:~<span class="token comment"># kubectl auth can-i  get configmaps -n default --as=system:serviceaccount:kube-system:dujie</span>
+no<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="2-2-2-通用权限管理"><a href="#2-2-2-通用权限管理" class="headerlink" title="2.2.2 通用权限管理"></a>2.2.2 通用权限管理</h5><p>####### 2.2.2.1 Namespace查询权限<br>创建一个可以查询命名空间的权限</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># cat namespace-readonly.yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+ name: namespace-readonly
+rules:
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - <span class="token function">watch</span>
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - <span class="token function">watch</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>####### 2.2.2.2 Pod删除权限<br>创建一个可以删除Pod的权限</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># cat pod-delete.yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+ name: pod-delete
+rules:
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - pods
+  - pods/status
+  verbs:
+  - get
+  - list
+  - delete<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>####### 2.2.2.3 执行命令权限<br>创建一个可以执行命令的权限</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># cat pod-exec.yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+ name: pod-exec
+rules:
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - pods
+  - pods/status
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - pods/exec
+  verbs:
+  - create<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>####### 2.2.2.4 查看日志权限<br>创建一个可以查看日志的权限</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># cat pod-log.yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+ name: pod-log
+rules:
+- apiGroups:
+  - <span class="token string">""</span>
+  resources:
+  - pods
+  - pods/log
+  - pods/status
+  verbs:
+  - get
+  - list
+  - <span class="token function">watch</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>####### 2.2.2.5 资源编辑权限<br>创建一个可以针对指定资源进行编辑的权限：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># cat configmap-depoyment-manager.yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+ name: configmap-deployment-manager
+rules:
+- apiGroups: <span class="token punctuation">[</span><span class="token string">""</span><span class="token punctuation">]</span>
+  resources: <span class="token punctuation">[</span><span class="token string">"configmaps"</span><span class="token punctuation">]</span>
+  verbs: <span class="token punctuation">[</span><span class="token string">"get"</span>, <span class="token string">"list"</span>, <span class="token string">"watch"</span>, <span class="token string">"create"</span>, <span class="token string">"update"</span>, <span class="token string">"patch"</span><span class="token punctuation">]</span>
+- apiGroups: <span class="token punctuation">[</span><span class="token string">"apps"</span><span class="token punctuation">]</span>
+  resources: <span class="token punctuation">[</span><span class="token string">"deployments"</span>,<span class="token string">"statefulsets"</span><span class="token punctuation">]</span>
+  verbs: <span class="token punctuation">[</span><span class="token string">"get"</span>, <span class="token string">"list"</span>, <span class="token string">"watch"</span>, <span class="token string">"create"</span>, <span class="token string">"update"</span>, <span class="token string">"patch"</span><span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="2-2-3-多租户管理"><a href="#2-2-3-多租户管理" class="headerlink" title="2.2.3 多租户管理"></a>2.2.3 多租户管理</h5><p>创建一个专用于存储用户的namespace</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create ns kube-users</span>
+namespace/kube-users created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>授权kube-users空间下的用户都能看到namespace的权限</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create clusterrolebinding namespace-readonly --clusterrole=namespace-readonly --group=system:serviceaccounts:kube-users</span>
+clusterrolebinding.rbac.authorization.k8s.io/namespace-readonly created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>创建多个用户模拟不同的场景</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create sa  review-develop -n kube-users</span>
+serviceaccount/review-develop created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create sa  review-ops -n kube-users</span>
+serviceaccount/review-ops created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建namesapce模拟不同的环境</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create ns review-dev</span>
+namespace/review-dev created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create ns review-test</span>
+namespace/review-test created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create ns review-prod </span>
+namespace/review-prod created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在每个环境下创建一个服务</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create deploy redis --image=registry.cn-beijing.aliyuncs.com/dotbalo/redis:7.2.5 -n review-dev </span>
+deployment.apps/redis created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create deploy redis --image=registry.cn-beijing.aliyuncs.com/dotbalo/redis:7.2.5 -n review-test </span>
+deployment.apps/redis created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create deploy redis --image=registry.cn-beijing.aliyuncs.com/dotbalo/redis:7.2.5 -n review-prod</span>
+deployment.apps/redis created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h5 id="2-2-4-不同用户授权管理"><a href="#2-2-4-不同用户授权管理" class="headerlink" title="2.2.4 不同用户授权管理"></a>2.2.4 不同用户授权管理</h5><h6 id="2-2-4-1-授权测试环境可以查看日志和执行命令"><a href="#2-2-4-1-授权测试环境可以查看日志和执行命令" class="headerlink" title="2.2.4.1 授权测试环境可以查看日志和执行命令"></a>2.2.4.1 授权测试环境可以查看日志和执行命令</h6><p>在非生产环境，可以针对开发和测试人员开放查看日志和执行命令的权限，方便排查问题等。</p>
+<p>授权 review-develop 用户对 review-dev 和 review-test 两个空间可以有查看日志和执行命令的权限：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create rolebinding  develop-pod-log --clusterrole=pod-log --serviceaccount=kube-users:review-develop -n review-dev </span>
+rolebinding.rbac.authorization.k8s.io/develop-pod-log created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create rolebinding  develop-pod-exec --clusterrole=pod-exec --serviceaccount=kube-users:review-develop -n review-dev </span>
+rolebinding.rbac.authorization.k8s.io/develop-pod-exec created
+
+
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create rolebinding  develop-pod-exec --clusterrole=pod-exec --serviceaccount=kube-users:review-develop -n review-test</span>
+rolebinding.rbac.authorization.k8s.io/develop-pod-exec created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create rolebinding  develop-pod-log --clusterrole=pod-log --serviceaccount=kube-users:review-develop -n review-test</span>
+rolebinding.rbac.authorization.k8s.io/develop-pod-log created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建token测试（1.24版本一下可直接使用secret中的token）：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"> kubectl create token review-develop -n kube-users
+
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># cat toconfig.sh </span>
+<span class="token comment">#!/bin/bash</span>
+<span class="token assign-left variable">serviceaccountName</span><span class="token operator">=</span><span class="token string">"review-develop"</span>
+<span class="token assign-left variable">secretName</span><span class="token operator">=</span><span class="token string">"review-develop-token-fdlvt"</span>
+<span class="token assign-left variable">namespace</span><span class="token operator">=</span><span class="token string">"kube-users"</span>
+<span class="token assign-left variable">serverAddr</span><span class="token operator">=</span><span class="token variable"><span class="token variable">`</span>kubectl cluster-info <span class="token operator">|</span> <span class="token function">grep</span> --color<span class="token operator">=</span>never <span class="token punctuation">\</span>
+  -Eo -m <span class="token number">1</span> <span class="token string">"https://.*"</span> <span class="token operator">|</span> <span class="token punctuation">\</span>
+  <span class="token function">sed</span> -r <span class="token string">"s/<span class="token entity" title="\x1B">\x1B</span>\[([0-9]&#123;1,2&#125;(;[0-9]&#123;1,2&#125;)?)?[m|K]//g"</span><span class="token variable">`</span></span>
+<span class="token builtin class-name">echo</span> <span class="token string">"serverAddr: <span class="token variable">$serverAddr</span>"</span>
+<span class="token assign-left variable">ca</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span>kubectl get secret/$secretName -n $namespace -o <span class="token assign-left variable">jsonpath</span><span class="token operator">=</span><span class="token string">'&#123;.data.ca\.crt&#125;'</span><span class="token variable">)</span></span>
+<span class="token assign-left variable">token</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span>kubectl get secret/$secretName -n $namespace -o <span class="token assign-left variable">jsonpath</span><span class="token operator">=</span><span class="token string">'&#123;.data.token&#125;'</span> <span class="token operator">|</span> base64 --decode<span class="token variable">)</span></span>
+
+<span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">></span> <span class="token variable">$&#123;serviceaccountName&#125;</span>-kubeconfig.yaml</span>
+apiVersion: v1
+kind: Config
+clusters:
+- name: default-cluster
+  cluster:
+    server: <span class="token variable">$&#123;serverAddr&#125;</span>
+    certificate-authority-data: <span class="token variable">$&#123;ca&#125;</span>
+users:
+- name: <span class="token variable">$&#123;serviceaccountName&#125;</span>
+  user:
+    token: <span class="token variable">$&#123;token&#125;</span>
+contexts:
+- name: <span class="token variable">$&#123;serviceaccountName&#125;</span>-context
+  context:
+    cluster: default-cluster
+    user: <span class="token variable">$&#123;serviceaccountName&#125;</span>
+    namespace: default
+current-context: <span class="token variable">$&#123;serviceaccountName&#125;</span>-context
+EOF</span>
+<span class="token comment"># 执行生成kubeconfig脚本</span>
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># sh toconfig.sh </span>
+serverAddr: https://xxxxx.xxxxx.xxxx.xxxxx.cn:6443
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># ll review-develop-kubeconfig.yaml </span>
+-rw-r--r-- <span class="token number">1</span> root root <span class="token number">2698</span> Mar <span class="token number">28</span> <span class="token number">16</span>:01 review-develop-kubeconfig.yaml
+
+<span class="token comment"># 可以看到除了review-dev和review-test命名空间，其他空间是没有权限的</span>
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl get pods --kubeconfig=review-develop-kubeconfig.yaml </span>
+Error from server <span class="token punctuation">(</span>Forbidden<span class="token punctuation">)</span>: pods is forbidden: User <span class="token string">"system:serviceaccount:kube-users:review-develop"</span> cannot list resource <span class="token string">"pods"</span> <span class="token keyword">in</span> API group <span class="token string">""</span> <span class="token keyword">in</span> the namespace <span class="token string">"default"</span>
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl get pods --kubeconfig=review-develop-kubeconfig.yaml  -n review-dev </span>
+NAME                     READY   STATUS    RESTARTS   AGE
+redis-6f5456cb76-27s8w   <span class="token number">1</span>/1     Running   <span class="token number">0</span>          11m
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl get pods --kubeconfig=review-develop-kubeconfig.yaml  -n review-test </span>
+NAME                     READY   STATUS    RESTARTS   AGE
+redis-6f5456cb76-gxhrh   <span class="token number">1</span>/1     Running   <span class="token number">0</span>          11m
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl get pods --kubeconfig=review-develop-kubeconfig.yaml  -n review-prod</span>
+Error from server <span class="token punctuation">(</span>Forbidden<span class="token punctuation">)</span>: pods is forbidden: User <span class="token string">"system:serviceaccount:kube-users:review-develop"</span> cannot list resource <span class="token string">"pods"</span> <span class="token keyword">in</span> API group <span class="token string">""</span> <span class="token keyword">in</span> the namespace <span class="token string">"review-prod"</span>
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl get pods --kubeconfig=review-develop-kubeconfig.yaml  -n kube-system</span>
+Error from server <span class="token punctuation">(</span>Forbidden<span class="token punctuation">)</span>: pods is forbidden: User <span class="token string">"system:serviceaccount:kube-users:review-develop"</span> cannot list resource <span class="token string">"pods"</span> <span class="token keyword">in</span> API group <span class="token string">""</span> <span class="token keyword">in</span> the namespace <span class="token string">"kube-system"</span>
+
+<span class="token comment"># 删除测试发现没有权限</span>
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl delete pods --kubeconfig=review-develop-kubeconfig.yaml  -n review-test redis-6f5456cb76-gxhrh </span>
+Error from server <span class="token punctuation">(</span>Forbidden<span class="token punctuation">)</span>: pods <span class="token string">"redis-6f5456cb76-gxhrh"</span> is forbidden: User <span class="token string">"system:serviceaccount:kube-users:review-develop"</span> cannot delete resource <span class="token string">"pods"</span> <span class="token keyword">in</span> API group <span class="token string">""</span> <span class="token keyword">in</span> the namespace <span class="token string">"review-test"</span>
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># </span>
+
+<span class="token comment"># 查看日志发现可以</span>
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl logs --kubeconfig=review-develop-kubeconfig.yaml  -n review-test redis-6f5456cb76-gxhrh </span>
+<span class="token number">1</span>:C <span class="token number">28</span> Mar <span class="token number">2025</span> 07:50:58.497 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+<span class="token number">1</span>:C <span class="token number">28</span> Mar <span class="token number">2025</span> 07:50:58.497 * Redis <span class="token assign-left variable">version</span><span class="token operator">=</span><span class="token number">7.2</span>.5, <span class="token assign-left variable">bits</span><span class="token operator">=</span><span class="token number">64</span>, <span class="token assign-left variable">commit</span><span class="token operator">=</span>00000000, <span class="token assign-left variable">modified</span><span class="token operator">=</span><span class="token number">0</span>, <span class="token assign-left variable">pid</span><span class="token operator">=</span><span class="token number">1</span>, just started
+<span class="token number">1</span>:C <span class="token number">28</span> Mar <span class="token number">2025</span> 07:50:58.497 <span class="token comment"># Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf</span>
+<span class="token number">1</span>:M <span class="token number">28</span> Mar <span class="token number">2025</span> 07:50:58.497 * monotonic clock: POSIX clock_gettime
+<span class="token number">1</span>:M <span class="token number">28</span> Mar <span class="token number">2025</span> 07:50:58.498 * Running <span class="token assign-left variable">mode</span><span class="token operator">=</span>standalone, <span class="token assign-left variable">port</span><span class="token operator">=</span><span class="token number">6379</span>.
+<span class="token number">1</span>:M <span class="token number">28</span> Mar <span class="token number">2025</span> 07:50:58.498 <span class="token comment"># WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.</span>
+<span class="token number">1</span>:M <span class="token number">28</span> Mar <span class="token number">2025</span> 07:50:58.498 * Server initialized
+<span class="token number">1</span>:M <span class="token number">28</span> Mar <span class="token number">2025</span> 07:50:58.498 * Ready to accept connections tcp<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h6 id="2-2-4-2-授权生产环境只能查看日志"><a href="#2-2-4-2-授权生产环境只能查看日志" class="headerlink" title="2.2.4.2 授权生产环境只能查看日志"></a>2.2.4.2 授权生产环境只能查看日志</h6><p>在生产环境，通常不允许其他用户有特别大的权限，此时可以限制只能查看日志。授权开发人员只能查看生产环境的日志权限：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create rolebinding  develop-pod-log --clusterrole=pod-log --serviceaccount=kube-users:review-develop -n review-prod </span>
+rolebinding.rbac.authorization.k8s.io/develop-pod-log created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># </span>
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl get rolebindings.rbac.authorization.k8s.io  -n review-prod  develop-pod-log -o yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: <span class="token string">"2025-03-28T08:05:45Z"</span>
+  name: develop-pod-log
+  namespace: review-prod
+  resourceVersion: <span class="token string">"5806020"</span>
+  selfLink: /apis/rbac.authorization.k8s.io/v1/namespaces/review-prod/rolebindings/develop-pod-log
+  uid: cd5ff85f-fb87-40a9-8fcc-7bf44e449d20
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pod-log
+subjects:
+- kind: ServiceAccount
+  name: review-develop
+  namespace: kube-users<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h6 id="2-2-4-3-授权开发人员可以修改非生产环境部分资源"><a href="#2-2-4-3-授权开发人员可以修改非生产环境部分资源" class="headerlink" title="2.2.4.3 授权开发人员可以修改非生产环境部分资源"></a>2.2.4.3 授权开发人员可以修改非生产环境部分资源</h6><p>有时候开发人员需要修改程序的配置用来测试新功能或者排查故障，此时可以给开发人员授权可以编辑部分的资源，比如 ConfigMap 和 Deployment。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create rolebinding develop-configmap-deployment-manager --clusterrole=configmap-deployment-manager --serviceaccount=kube-users:review-develop -n review-dev </span>
+rolebinding.rbac.authorization.k8s.io/develop-configmap-deployment-manager created
+
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl get rolebindings.rbac.authorization.k8s.io  -n review-dev  develop-configmap-deployment-manager -o yaml </span>
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: <span class="token string">"2025-03-28T08:08:04Z"</span>
+  name: develop-configmap-deployment-manager
+  namespace: review-dev
+  resourceVersion: <span class="token string">"5806952"</span>
+  selfLink: /apis/rbac.authorization.k8s.io/v1/namespaces/review-dev/rolebindings/develop-configmap-deployment-manager
+  uid: c3184db8-48a3-492f-ac7e-a68173a4b9a7
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: configmap-deployment-manager
+subjects:
+- kind: ServiceAccount
+  name: review-develop
+  namespace: kube-users<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>授权之后，develop 可以修改 project-a-dev 的 ConfigMap 和 Deployment，但是其他环境无法修改。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl get configmaps  --kubeconfig=review-develop-kubeconfig.yaml  -n review-dev </span>
+NAME               DATA   AGE
+kube-root-ca.crt   <span class="token number">1</span>      25m
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl edit deployments.apps  --kubeconfig=review-develop-kubeconfig.yaml  -n review-dev redis </span>
+deployment.apps/redis edited<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h6 id="2-2-4-4-授权多租户场景受限管理员的权限"><a href="#2-2-4-4-授权多租户场景受限管理员的权限" class="headerlink" title="2.2.4.4 授权多租户场景受限管理员的权限"></a>2.2.4.4 授权多租户场景受限管理员的权限</h6><p>如果集群中分配了多个租户和 OPS 用户，此时租户和 OPS 用户应当具备指定空间的所有权限，此时可以直接使用 admin 或者 edit 的 ClusterRole 进行授权：</p>
+<p>比如授权 review-ops 用户可以操作 review-dev、test、prod 空间下的所有资源：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create  rolebinding  ops-edit --clusterrole=edit --serviceaccount=kube-users:review-ops -n review-dev </span>
+rolebinding.rbac.authorization.k8s.io/ops-edit created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create  rolebinding  ops-edit --clusterrole=edit --serviceaccount=kube-users:review-ops -n review-test </span>
+rolebinding.rbac.authorization.k8s.io/ops-edit created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create  rolebinding  ops-edit --clusterrole=edit --serviceaccount=kube-users:review-ops -n review-prod </span>
+rolebinding.rbac.authorization.k8s.io/ops-edit created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>此时使用 project-a-ops 用户登录集群，即可操作上述空间的大部分资源。</p>
+<h6 id="2-2-4-5-授权应用程序可以访问集群资源"><a href="#2-2-4-5-授权应用程序可以访问集群资源" class="headerlink" title="2.2.4.5 授权应用程序可以访问集群资源"></a>2.2.4.5 授权应用程序可以访问集群资源</h6><p>有时候需要对部署在 Kubernetes 集群中的服务进行授权，使其可以访问资源的某些资源，比如获取集群中的 Pod 状态等，此时可以授权给某个 ServiceAccount，然后让 Pod 用该ServiceAccount 创建 Pod，此时该 Pod 内的程序即可具备相关的权限。</p>
+<p>比如要实现某个程序具备 view 的权限，可以用如下方式进行授权。首先创建一个用于该程序的 ServiceAccount：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create sa app-view -n review-dev </span>
+serviceaccount/app-view created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># </span>
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create rolebinding  app-view --clusterrole=view --serviceaccount=review-dev:app-view -n review-dev </span>
+rolebinding.rbac.authorization.k8s.io/app-view created<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>创建一个资源并使用该ServiceAccount</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl create deploy app --image=registry.cn-beijing.aliyuncs.com/dotbalo/kubectl -n review-dev -- sleep 36000</span>
+deployment.apps/app created
+root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl edit deployments.apps  app -n review-dev  </span>
+<span class="token punctuation">..</span>.
+      serviceAccount: app-view
+      containers:
+      - command:
+        - <span class="token function">sleep</span>
+        - <span class="token string">"36000"</span>
+        image: registry.cn-beijing.aliyuncs.com/dotbalo/kubectl
+        imagePullPolicy: Always
+        name: kubectl
+        resources: <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+        terminationMessagePath: /dev/termination-log
+
+<span class="token punctuation">..</span>.
+deployment.apps/app edited<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>登录至该容器，即可访问该空间下的所有资源：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">root@VM-26-130-ubuntu:/usr/local/src/k8s/rbac<span class="token comment"># kubectl exec -it -n review-dev  app-7f9985dc75-42xwp  bash </span>
+kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> is DEPRECATED and will be removed <span class="token keyword">in</span> a future version. Use kubectl <span class="token builtin class-name">exec</span> <span class="token punctuation">[</span>POD<span class="token punctuation">]</span> -- <span class="token punctuation">[</span>COMMAND<span class="token punctuation">]</span> instead.
+I have no name<span class="token operator">!</span>@app-7f9985dc75-42xwp:/$ 
+I have no name<span class="token operator">!</span>@app-7f9985dc75-42xwp:/$ kubectl get po -n review-dev 
+NAME                     READY   STATUS    RESTARTS   AGE
+app-7f9985dc75-42xwp     <span class="token number">1</span>/1     Running   <span class="token number">0</span>          82s
+redis-6f5456cb76-27s8w   <span class="token number">1</span>/1     Running   <span class="token number">0</span>          32m
+redis-6f5456cb76-9hhm6   <span class="token number">1</span>/1     Running   <span class="token number">0</span>          7m45s
+redis-6f5456cb76-pzs87   <span class="token number">1</span>/1     Running   <span class="token number">0</span>          7m45s<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其他空间未授权无法访问</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">I have no name<span class="token operator">!</span>@app-7f9985dc75-42xwp:/$ kubectl get po -n review-test
+Error from server <span class="token punctuation">(</span>Forbidden<span class="token punctuation">)</span>: pods is forbidden: User <span class="token string">"system:serviceaccount:review-dev:app-view"</span> cannot list resource <span class="token string">"pods"</span> <span class="token keyword">in</span> API group <span class="token string">""</span> <span class="token keyword">in</span> the namespace <span class="token string">"review-test"</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://dycloud.fun">J.</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://dycloud.fun/2022/08/20/K8S%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86/">http://dycloud.fun/2022/08/20/K8S%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://dycloud.fun" target="_blank">J.のblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/kubernetes/">kubernetes</a><a class="post-meta__tags" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/">云原生</a></div><div class="post_share"><div class="addthis_inline_share_toolbox"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d034d84b42927bf" async="async"></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/08/23/%E5%AE%B9%E5%99%A8%E8%BF%9B%E7%A8%8B%E4%B8%BB%E5%8A%A8%E9%80%80%E5%87%BA%E5%8E%9F%E5%9B%A0/"><img class="prev-cover" src="/img/kubernetes.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">容器进程退出原因</div></div></a></div><div class="next-post pull-right"><a href="/2022/08/19/K8S%E8%B5%84%E6%BA%90%E9%99%90%E5%88%B6/"><img class="next-cover" src="/img/kubernetes.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">K8S资源限制及服务保障</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/07/02/Configmap/" title="kubernetes常用资源——configMap"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-02</div><div class="title">kubernetes常用资源——configMap</div></div></a></div><div><a href="/2022/07/01/Deployment%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——deployment"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-01</div><div class="title">kubernetes常用资源——deployment</div></div></a></div><div><a href="/2022/07/02/PV%20PVC/" title="kubernetes常用资源——PV&#x2F;PVC"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-02</div><div class="title">kubernetes常用资源——PV&#x2F;PVC</div></div></a></div><div><a href="/2022/08/15/Pod%E5%BC%82%E5%B8%B8%E7%8A%B6%E6%80%81%E6%8E%92%E9%94%99/" title="Pod异常状态排错"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-15</div><div class="title">Pod异常状态排错</div></div></a></div><div><a href="/2022/07/01/RC%20RS%E5%89%AF%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%99%A8/" title="kubernetes常用资源——RC&#x2F;RS"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-01</div><div class="title">kubernetes常用资源——RC&#x2F;RS</div></div></a></div><div><a href="/2022/07/03/Volume%E5%AD%98%E5%82%A8%E5%8D%B7/" title="kubernetes常用资源——Volume存储卷"><img class="cover" src="/img/kubernetes.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-03</div><div class="title">kubernetes常用资源——Volume存储卷</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81Njk5OS8zMzQ2Mw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/touxiang.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">J.</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">139</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#K8S%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">K8S权限管理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81RBAC%E7%9A%84%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">一、RBAC的架构与核心组件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-RBAC%E7%9A%84%E6%8E%88%E6%9D%83%E6%B5%81%E7%A8%8B"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.1 RBAC的授权流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-RBAC-%E7%9A%84%E5%9B%9B%E5%B1%82%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.2 RBAC 的四层模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%9D%83%E9%99%90%E8%A7%84%E5%88%99%E7%9A%84%E7%BB%84%E6%88%90%E8%A6%81%E7%B4%A0"><span class="toc-number">2.0.3.</span> <span class="toc-text">2.3 权限规则的组成要素</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81RBAC%E7%9A%84%E9%85%8D%E7%BD%AE%E4%B8%8E%E6%93%8D%E4%BD%9C%E5%AE%9E%E8%B7%B5"><span class="toc-number">3.</span> <span class="toc-text">二、RBAC的配置与操作实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%9C%8D%E5%8A%A1%E8%B4%A6%E6%88%B7ServiceAccount"><span class="toc-number">3.0.1.</span> <span class="toc-text">2.1 服务账户ServiceAccount</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#2-1-1-ServiceAccount%E5%A2%9E%E5%88%A0%E6%94%B9%E6%9F%A5"><span class="toc-number">3.0.1.0.0.1.</span> <span class="toc-text">2.1.1 ServiceAccount增删改查</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#2-1-2-%E5%9F%BA%E4%BA%8EServiceAccount%E7%94%9F%E6%88%90Kubeconfig"><span class="toc-number">3.0.1.0.0.2.</span> <span class="toc-text">2.1.2 基于ServiceAccount生成Kubeconfig</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%BB%86%E7%B2%92%E5%BA%A6%E6%9D%83%E9%99%90%E9%85%8D%E7%BD%AE"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.2 细粒度权限配置</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-1-%E4%BD%BF%E7%94%A8kubectl%E7%AE%A1%E7%90%86RBAC"><span class="toc-number">3.0.2.0.1.</span> <span class="toc-text">2.2.1 使用kubectl管理RBAC</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-2-%E9%80%9A%E7%94%A8%E6%9D%83%E9%99%90%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.2.0.2.</span> <span class="toc-text">2.2.2 通用权限管理</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-3-%E5%A4%9A%E7%A7%9F%E6%88%B7%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.2.0.3.</span> <span class="toc-text">2.2.3 多租户管理</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-4-%E4%B8%8D%E5%90%8C%E7%94%A8%E6%88%B7%E6%8E%88%E6%9D%83%E7%AE%A1%E7%90%86"><span class="toc-number">3.0.2.0.4.</span> <span class="toc-text">2.2.4 不同用户授权管理</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#2-2-4-1-%E6%8E%88%E6%9D%83%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83%E5%8F%AF%E4%BB%A5%E6%9F%A5%E7%9C%8B%E6%97%A5%E5%BF%97%E5%92%8C%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4"><span class="toc-number">3.0.2.0.4.1.</span> <span class="toc-text">2.2.4.1 授权测试环境可以查看日志和执行命令</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#2-2-4-2-%E6%8E%88%E6%9D%83%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%8F%AA%E8%83%BD%E6%9F%A5%E7%9C%8B%E6%97%A5%E5%BF%97"><span class="toc-number">3.0.2.0.4.2.</span> <span class="toc-text">2.2.4.2 授权生产环境只能查看日志</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#2-2-4-3-%E6%8E%88%E6%9D%83%E5%BC%80%E5%8F%91%E4%BA%BA%E5%91%98%E5%8F%AF%E4%BB%A5%E4%BF%AE%E6%94%B9%E9%9D%9E%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E9%83%A8%E5%88%86%E8%B5%84%E6%BA%90"><span class="toc-number">3.0.2.0.4.3.</span> <span class="toc-text">2.2.4.3 授权开发人员可以修改非生产环境部分资源</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#2-2-4-4-%E6%8E%88%E6%9D%83%E5%A4%9A%E7%A7%9F%E6%88%B7%E5%9C%BA%E6%99%AF%E5%8F%97%E9%99%90%E7%AE%A1%E7%90%86%E5%91%98%E7%9A%84%E6%9D%83%E9%99%90"><span class="toc-number">3.0.2.0.4.4.</span> <span class="toc-text">2.2.4.4 授权多租户场景受限管理员的权限</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#2-2-4-5-%E6%8E%88%E6%9D%83%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E5%8F%AF%E4%BB%A5%E8%AE%BF%E9%97%AE%E9%9B%86%E7%BE%A4%E8%B5%84%E6%BA%90"><span class="toc-number">3.0.2.0.4.5.</span> <span class="toc-text">2.2.4.5 授权应用程序可以访问集群资源</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/07/24/%E8%B0%83%E7%94%A8k8s%20api%E5%AE%9E%E7%8E%B0%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7%E5%B9%B6%E6%8E%88%E6%9D%83/" title="调用k8s API实现添加用户并授权"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="调用k8s API实现添加用户并授权"/></a><div class="content"><a class="title" href="/2024/07/24/%E8%B0%83%E7%94%A8k8s%20api%E5%AE%9E%E7%8E%B0%E6%B7%BB%E5%8A%A0%E7%94%A8%E6%88%B7%E5%B9%B6%E6%8E%88%E6%9D%83/" title="调用k8s API实现添加用户并授权">调用k8s API实现添加用户并授权</a><time datetime="2024-07-24T12:32:00.000Z" title="发表于 2024-07-24 20:32:00">2024-07-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/26/prometheus%20operator/" title="prometheus operator"><img src="/img/prometheus.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="prometheus operator"/></a><div class="content"><a class="title" href="/2024/05/26/prometheus%20operator/" title="prometheus operator">prometheus operator</a><time datetime="2024-05-26T07:51:23.000Z" title="发表于 2024-05-26 15:51:23">2024-05-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/" title="使用rook-ceph部署高可用ceph集群"><img src="/img/ceph.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="使用rook-ceph部署高可用ceph集群"/></a><div class="content"><a class="title" href="/2024/05/23/%E4%BD%BF%E7%94%A8rook-ceph%E9%83%A8%E7%BD%B2%E9%AB%98%E5%8F%AF%E7%94%A8ceph%E9%9B%86%E7%BE%A4/" title="使用rook-ceph部署高可用ceph集群">使用rook-ceph部署高可用ceph集群</a><time datetime="2024-05-23T07:51:23.000Z" title="发表于 2024-05-23 15:51:23">2024-05-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程"><img src="/img/oracle.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="记录AWS Oracle实例数据迁移的艰辛过程"/></a><div class="content"><a class="title" href="/2024/03/12/%E8%AE%B0%E5%BD%95AWS%20Oracle%E5%AE%9E%E4%BE%8B%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E7%9A%84%E8%89%B0%E8%BE%9B%E8%BF%87%E7%A8%8B/" title="记录AWS Oracle实例数据迁移的艰辛过程">记录AWS Oracle实例数据迁移的艰辛过程</a><time datetime="2024-03-12T04:12:23.000Z" title="发表于 2024-03-12 12:12:23">2024-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-cluster%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-cluster相关组件"><img src="/img/kubernetes.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="kubernetes platform后端开发-cluster相关组件"/></a><div class="content"><a class="title" href="/2024/02/25/kubernetes%20platform%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91-cluster%E7%9B%B8%E5%85%B3%E7%BB%84%E4%BB%B6/" title="kubernetes platform后端开发-cluster相关组件">kubernetes platform后端开发-cluster相关组件</a><time datetime="2024-02-25T06:32:00.000Z" title="发表于 2024-02-25 14:32:00">2024-02-25</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/longzhu.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025  <i id="heartbeat" class="fa fas fa-heartbeat"></i> J.</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a><a href="http://beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">京ICP备2022023567号</a></div></div><link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/HCLonely/images@master/others/heartbeat.min.css"></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="fa-solid fa-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="fa-solid fa-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="fa-solid fa-arrow-rotate-right"></i></div><div class="rightMenu-item" id="menu-home"><i class="fa-solid fa-house"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" href="/archives/"><i class="fa-solid fa-archive"></i><span>文章归档</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="fa-solid fa-folder-open"></i><span>文章分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="fa-solid fa-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuNormal"><a class="rightMenu-item menu-link" id="menu-radompage" href="/random/index.html"><i class="fa-solid fa-shoe-prints"></i><span>随便逛逛</span></a><div class="rightMenu-item" id="menu-translate"><i class="fa-solid fa-earth-asia"></i><span>繁简切换</span></div><div class="rightMenu-item" id="menu-darkmode"><i class="fa-solid fa-moon"></i><span>切换模式</span></div></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/algoliasearch/dist/algoliasearch-lite.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instantsearch.js/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer src="https://npm.elemecdn.com/jquery@latest/dist/jquery.min.js"></script><script data-pjax defer src="https://npm.elemecdn.com/tzy-blog/lib/js/theme/chocolate.js"></script><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer data-pjax src="/js/rightMenu.js"></script><div class="aplayer no-destroy" data-id="7427714271" data-server="netease" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-lrctype="1" data-preload="none" data-autoplay="true" muted></div><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="I,LOVE,YOU" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  typeof preloader === 'object' && preloader.initLoading()
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+  function butterfly_clock_anzhiyu_injector_config(){
+    var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+    var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img class="entered loading" id="card-clock-loading" src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading"/></div></div></div></div></div>';
+    console.log('已挂载butterfly_clock_anzhiyu')
+    if(parent_div_git) {
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+    }
+  }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var qweather_key = '56289903f0d448dfbe8262dba0175f70';
+  var gaud_map_key = '01603f2b2d08d0e947bb101e9d9b148b';
+  var baidu_ak_key = 'undefined';
+  var flag = 0;
+  var clock_rectangle = '112.982279,28.19409';
+  var clock_default_rectangle_enable = 'false';
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_clock_anzhiyu_injector_config();
+  }
+  </script><script src="https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0"></script><script data-pjax src="https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/tororo.model.json"},"display":{"position":"right","width":150,"height":350,"hOffset":20,"vOffset":-20},"mobile":{"show":false},"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/"});</script><script async>window.onload=function(){var a=document.createElement('script'),b=document.getElementsByTagName('script')[0];a.type='text/javascript',a.async=!0,a.src='/sw-register.js?v='+Date.now(),b.parentNode.insertBefore(a,b)};</script></body></html>
